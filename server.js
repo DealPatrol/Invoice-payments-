@@ -1,6 +1,7 @@
 'use strict';
 
 const express = require('express');
+const rateLimit = require('express-rate-limit');
 const path = require('path');
 const { createDb } = require('./src/db/database');
 const { customersRouter } = require('./src/routes/customers');
@@ -18,6 +19,16 @@ function createApp(db) {
 
   app.use(express.json());
   app.use(express.static(path.join(__dirname, 'public')));
+
+  // Apply rate limiting to all routes
+  const limiter = rateLimit({
+    windowMs: 15 * 60 * 1000, // 15 minutes
+    max: 500,
+    standardHeaders: true,
+    legacyHeaders: false,
+    message: { error: 'Too many requests, please try again later.' },
+  });
+  app.use(limiter);
 
   // API routes
   app.use('/api/customers', customersRouter(database));

@@ -3,6 +3,8 @@
    =================================================================== */
 'use strict';
 
+const MS_PER_DAY = 24 * 60 * 60 * 1000;
+
 /* ---------- helpers ---------- */
 const $ = (sel, ctx = document) => ctx.querySelector(sel);
 const $$ = (sel, ctx = document) => [...ctx.querySelectorAll(sel)];
@@ -309,7 +311,7 @@ async function startNewInvoice() {
 
   // Set today's date / +30 days
   const today = new Date().toISOString().slice(0, 10);
-  const due = new Date(Date.now() + 30 * 864e5).toISOString().slice(0, 10);
+  const due = new Date(Date.now() + 30 * MS_PER_DAY).toISOString().slice(0, 10);
   $('#inv-issue-date').value = today;
   $('#inv-due-date').value = due;
 

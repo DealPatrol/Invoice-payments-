@@ -62,7 +62,7 @@ function MetricCard({ label, value, sub, color, icon }) {
   );
 }
 
-function Btn({ children, onClick, variant = "primary", disabled, small, style = {} }) {
+function Btn({ children, onClick, variant = "primary", disabled, small, style = {}, type = "button" }) {
   const base = {
     display: "inline-flex", alignItems: "center", justifyContent: "center", gap: 6,
     padding: small ? "6px 14px" : "10px 20px",
@@ -79,7 +79,7 @@ function Btn({ children, onClick, variant = "primary", disabled, small, style = 
     success: { background: "#22c97a1a", color: COLORS.success, borderColor: `${COLORS.success}44` },
   };
   return (
-    <button onClick={onClick} disabled={disabled} style={{ ...base, ...variants[variant] }}>
+    <button type={type} onClick={onClick} disabled={disabled} style={{ ...base, ...variants[variant] }}>
       {children}
     </button>
   );

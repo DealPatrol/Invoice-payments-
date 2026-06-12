@@ -1,6 +1,6 @@
 'use client';
 
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { Sidebar } from '@/components/Sidebar';
 import {
   COLORS,
@@ -11,8 +11,10 @@ import {
   TAX_RATES,
   SAMPLE_CLIENTS,
 } from '@/lib/constants';
-import { Plus, Trash2 } from 'lucide-react';
-import { useState } from 'react';
+import { getTemplateById } from '@/lib/templates';
+import Link from 'next/link';
+import { Plus, Trash2, Palette } from 'lucide-react';
+import { useState, useEffect } from 'react';
 
 const COUNTRY_TAX: Record<string, number> = {
   'United States': 0.08,
@@ -29,6 +31,12 @@ const COUNTRY_TAX: Record<string, number> = {
 
 export default function CreateInvoicePage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const templateParam = searchParams.get('template');
+  
+  const [selectedTemplate, setSelectedTemplate] = useState<string | undefined>(templateParam || undefined);
+  const template = selectedTemplate ? getTemplateById(selectedTemplate) : null;
+  
   const [clientName, setClientName] = useState('');
   const [clientEmail, setClientEmail] = useState('');
   const [country, setCountry] = useState('United States');
@@ -110,6 +118,34 @@ export default function CreateInvoicePage() {
           <p className="text-sm mb-8" style={{ color: COLORS.textMuted }}>
             Auto late-fee rules · recurring billing · instant client pay link
           </p>
+
+          {/* Template Selector */}
+          <div
+            className="rounded-lg border p-6 mb-8 flex items-center justify-between"
+            style={{ background: COLORS.surfaceHigh, borderColor: COLORS.border }}
+          >
+            <div className="flex items-center gap-3">
+              <Palette size={20} style={{ color: COLORS.accent }} />
+              <div>
+                <p className="font-semibold text-sm" style={{ color: COLORS.text }}>
+                  {template ? `Template: ${template.name}` : 'Choose a Template'}
+                </p>
+                <p className="text-xs" style={{ color: COLORS.textMuted }}>
+                  {template ? template.description : 'Browse 80+ professional templates'}
+                </p>
+              </div>
+            </div>
+            <Link
+              href="/templates"
+              className="px-4 py-2 rounded-lg font-medium transition-all text-sm"
+              style={{
+                background: COLORS.accent,
+                color: '#ffffff',
+              }}
+            >
+              Browse Templates
+            </Link>
+          </div>
 
           <form className="space-y-6" onSubmit={handleSubmit}>
             <div

@@ -79,6 +79,7 @@ model Invoice {
   items     InvoiceItem[]
   network   String?    // PEPPOL, ZUGFeRD, etc
   notes     String?
+  templateId String?   // Reference to template used
   
   createdAt DateTime   @default(now())
   updatedAt DateTime   @updatedAt

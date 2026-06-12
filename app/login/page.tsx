@@ -119,13 +119,12 @@ export default function LoginPage() {
                 type="text"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
-                className="w-full px-4 py-3 rounded-lg text-sm transition-all focus:outline-none focus:ring-2"
-                style={{
-                  background: COLORS.surfaceHigh,
-                  border: `1px solid ${COLORS.border}`,
-                  color: COLORS.text,
-                  focusRingColor: COLORS.accent,
-                }}
+              className="w-full px-4 py-3 rounded-lg text-sm transition-all focus:outline-none focus:ring-2"
+              style={{
+                background: COLORS.surfaceHigh,
+                border: `1px solid ${COLORS.border}`,
+                color: COLORS.text,
+              }}
                 placeholder="John Doe"
               />
             </div>

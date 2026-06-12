@@ -1,15 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server';
-import Stripe from 'stripe';
 import { prisma } from '@/lib/db';
-
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-  apiVersion: '2023-10-16',
-});
-
-const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET || '';
 
 export async function POST(request: NextRequest) {
   try {
+    const Stripe = (await import('stripe')).default;
+    const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || '', {
+      apiVersion: '2025-02-24.acacia',
+    });
+
     const body = await request.text();
     const sig = request.headers.get('stripe-signature');
 
@@ -20,7 +18,8 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    let event: Stripe.Event;
+    let event;
+    const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET || '';
     try {
       event = stripe.webhooks.constructEvent(body, sig, webhookSecret);
     } catch (err) {
@@ -34,7 +33,7 @@ export async function POST(request: NextRequest) {
     // Handle different event types
     switch (event.type) {
       case 'checkout.session.completed': {
-        const session = event.data.object as Stripe.Checkout.Session;
+        const session = event.data.object as any;
 
         // Update payment status
         if (session.metadata?.invoiceId) {
@@ -59,7 +58,7 @@ export async function POST(request: NextRequest) {
       }
 
       case 'payment_intent.payment_failed': {
-        const paymentIntent = event.data.object as Stripe.PaymentIntent;
+        const paymentIntent = event.data.object as any;
 
         if (paymentIntent.metadata?.invoiceId) {
           await prisma.payment.updateMany({

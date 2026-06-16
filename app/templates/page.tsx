@@ -1,7 +1,6 @@
 'use client';
 
 import { useState } from 'react';
-import { Sidebar } from '@/components/Sidebar';
 import { TemplateGallery } from '@/components/TemplateGallery';
 import { COLORS } from '@/lib/constants';
 import { getTemplateById } from '@/lib/templates';
@@ -14,10 +13,8 @@ export default function TemplatesPage() {
   const template = selectedTemplate ? getTemplateById(selectedTemplate) : null;
 
   return (
-    <div className="flex" style={{ background: COLORS.background, minHeight: '100vh' }}>
-      <Sidebar />
-
-      <main className="flex-1 overflow-auto">
+    <div style={{ background: COLORS.background, minHeight: '100vh' }}>
+      <div className="flex-1 overflow-auto">
         <div className="max-w-7xl mx-auto p-8">
           {/* Header */}
           <div className="mb-12">
@@ -182,7 +179,7 @@ export default function TemplatesPage() {
             </div>
           </div>
         </div>
-      </main>
+      </div>
     </div>
   );
 }

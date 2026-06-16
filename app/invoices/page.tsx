@@ -2,7 +2,6 @@
 
 import Link from 'next/link';
 import { useState } from 'react';
-import { Sidebar } from '@/components/Sidebar';
 import { DemoBanner } from '@/components/DemoBanner';
 import { PayScoreBadge } from '@/components/PayScoreBadge';
 import { COLORS, CURRENCY_SYMBOLS, STATUS_COLORS } from '@/lib/constants';
@@ -40,11 +39,9 @@ export default function InvoicesPage() {
   }
 
   return (
-    <div className="flex min-h-screen" style={{ background: COLORS.background }}>
-      <Sidebar />
-      <main className="ml-64 flex-1 min-h-screen overflow-y-auto">
-        <div className="p-8">
-          <div className="flex items-center justify-between mb-6">
+    <div style={{ background: COLORS.background, minHeight: '100vh' }}>
+      <div className="p-8">
+      <div className="flex items-center justify-between mb-6">
             <div>
               <h1
                 className="text-4xl font-black tracking-tight mb-2"
@@ -68,8 +65,8 @@ export default function InvoicesPage() {
 
           <DemoBanner mode={mode} />
 
-          <div className="flex gap-4 mb-6">
-            <div className="flex-1 relative">
+      <div className="flex gap-4 mb-6">
+        <div className="flex-1 relative">
               <Search
                 size={18}
                 className="absolute left-3 top-3"
@@ -169,7 +166,7 @@ export default function InvoicesPage() {
                       <PayScoreBadge score={invoice.payScore} />
                     )}
                   </div>
-                  <div className="flex flex-wrap gap-2 items-center">
+              <div className="flex flex-wrap gap-2 items-center">
                     <span
                       className="text-xs px-2 py-0.5 rounded-full"
                       style={{
@@ -227,7 +224,7 @@ export default function InvoicesPage() {
             })}
           </div>
         </div>
-      </main>
+      </div>
     </div>
   );
 }

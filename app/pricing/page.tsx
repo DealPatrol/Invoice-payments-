@@ -1,7 +1,6 @@
 'use client';
 
 import Link from 'next/link';
-import { Sidebar } from '@/components/Sidebar';
 import { COLORS } from '@/lib/constants';
 import { PRICING } from '@/lib/config';
 import { Check } from 'lucide-react';
@@ -49,9 +48,8 @@ const tiers = [
 
 export default function PricingPage() {
   return (
-    <div className="flex min-h-screen" style={{ background: COLORS.background }}>
-      <Sidebar />
-      <main className="ml-64 flex-1 min-h-screen overflow-y-auto">
+    <div style={{ background: COLORS.background, minHeight: '100vh' }}>
+      <div className="w-full">
         <div className="p-8 max-w-5xl">
           <h1
             className="text-4xl font-black mb-2"
@@ -143,7 +141,7 @@ export default function PricingPage() {
             </ul>
           </div>
         </div>
-      </main>
+      </div>
     </div>
   );
 }

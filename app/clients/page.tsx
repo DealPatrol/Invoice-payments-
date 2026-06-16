@@ -1,6 +1,5 @@
 'use client';
 
-import { Sidebar } from '@/components/Sidebar';
 import { COLORS, SAMPLE_CLIENTS, CURRENCY_SYMBOLS } from '@/lib/constants';
 import { Mail, Globe, Edit2, Trash2 } from 'lucide-react';
 import { useState } from 'react';
@@ -15,12 +14,9 @@ export default function ClientsPage() {
   );
 
   return (
-    <div className="flex">
-      <Sidebar />
-
-      <main className="ml-64 flex-1 h-screen overflow-y-auto">
-        <div className="p-8">
-          <div className="flex items-center justify-between mb-8">
+    <div style={{ background: COLORS.background, minHeight: '100vh' }}>
+      <div className="p-8">
+      <div className="flex items-center justify-between mb-8">
             <div>
               <h1
                 className="text-4xl font-black tracking-tight mb-2"
@@ -57,17 +53,17 @@ export default function ClientsPage() {
                 className="px-6 py-6 border-b hover:bg-white/5 transition"
                 style={{ borderColor: COLORS.border }}
               >
-                <div className="flex items-center justify-between">
+            <div className="flex items-center justify-between">
                   <div>
                     <h3 className="font-bold text-lg" style={{ color: COLORS.text }}>
                       {client.name}
                     </h3>
-                    <div className="flex items-center gap-4 mt-2 text-sm" style={{ color: COLORS.textMuted }}>
-                      <div className="flex items-center gap-1">
+                <div className="flex items-center gap-4 mt-2 text-sm" style={{ color: COLORS.textMuted }}>
+                  <div className="flex items-center gap-1">
                         <Mail size={14} />
                         {client.email}
                       </div>
-                      <div className="flex items-center gap-1">
+                  <div className="flex items-center gap-1">
                         <Globe size={14} />
                         {client.country}
                       </div>
@@ -89,7 +85,7 @@ export default function ClientsPage() {
                       {client.totalPaid.toLocaleString()}
                     </div>
                   </div>
-                  <div className="flex gap-2 ml-6">
+              <div className="flex gap-2 ml-6">
                     <button className="p-2 rounded hover:bg-white/10" style={{ color: COLORS.textMuted }}>
                       <Edit2 size={16} />
                     </button>
@@ -102,7 +98,7 @@ export default function ClientsPage() {
             ))}
           </div>
         </div>
-      </main>
+      </div>
     </div>
   );
 }

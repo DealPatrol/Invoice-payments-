@@ -1,6 +1,5 @@
 'use client';
 
-import { Sidebar } from '@/components/Sidebar';
 import { COLORS, NETWORKS } from '@/lib/constants';
 import { CheckCircle, Clock } from 'lucide-react';
 import { useState } from 'react';
@@ -20,11 +19,8 @@ export default function NetworksPage() {
   };
 
   return (
-    <div className="flex">
-      <Sidebar />
-
-      <main className="ml-64 flex-1 h-screen overflow-y-auto">
-        <div className="p-8">
+    <div style={{ background: COLORS.background, minHeight: '100vh' }}>
+      <div className="p-8">
           <h1
             className="text-4xl font-black tracking-tight mb-2"
             style={{ color: COLORS.text, fontFamily: '"Syne", sans-serif' }}
@@ -52,7 +48,7 @@ export default function NetworksPage() {
                   borderWidth: selectedNetwork === network.id ? 2 : 1,
                 }}
               >
-                <div className="flex items-start justify-between mb-3">
+            <div className="flex items-start justify-between mb-3">
                   <div>
                     <h3 className="text-lg font-bold" style={{ color: COLORS.text }}>
                       {network.name}
@@ -84,7 +80,7 @@ export default function NetworksPage() {
                 className="rounded-lg border p-6 opacity-60"
                 style={{ background: COLORS.surface, borderColor: COLORS.border }}
               >
-                <div className="flex items-start justify-between mb-3">
+            <div className="flex items-start justify-between mb-3">
                   <div>
                     <h3 className="text-lg font-bold" style={{ color: COLORS.text }}>
                       {network.name}
@@ -110,7 +106,7 @@ export default function NetworksPage() {
               className="rounded-lg border p-8"
               style={{ background: COLORS.surface, borderColor: COLORS.border }}
             >
-              <div className="flex items-center justify-between mb-6">
+          <div className="flex items-center justify-between mb-6">
                 <h2 className="text-2xl font-bold" style={{ color: COLORS.text }}>
                   {selectedNetwork} Details
                 </h2>
@@ -125,7 +121,7 @@ export default function NetworksPage() {
               <h3 className="text-sm font-bold uppercase mb-3" style={{ color: COLORS.textMuted }}>
                 Supported Regions
               </h3>
-              <div className="flex flex-wrap gap-2">
+          <div className="flex flex-wrap gap-2">
                 {details[selectedNetwork].regions.map((region) => (
                   <span
                     key={region}
@@ -139,7 +135,7 @@ export default function NetworksPage() {
             </div>
           )}
         </div>
-      </main>
+      </div>
     </div>
   );
 }

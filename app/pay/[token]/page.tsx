@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
+import Image from 'next/image';
 import QRCode from 'qrcode';
 import { COLORS, CURRENCY_SYMBOLS } from '@/lib/constants';
 import type { Invoice } from '@/lib/types';
@@ -121,7 +122,13 @@ export default function PayPortalPage({ params }: { params: { token: string } })
 
             {qr && (
               <div className="flex justify-center mb-6">
-                <img src={qr} alt="Pay link QR code" className="rounded-lg" />
+                <Image
+                  src={qr}
+                  alt="Pay link QR code"
+                  width={200}
+                  height={200}
+                  className="rounded-lg"
+                />
               </div>
             )}
 

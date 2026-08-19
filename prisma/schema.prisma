@@ -1,0 +1,133 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+// User model for authentication
+model User {
+  id        String     @id @default(cuid())
+  email     String     @unique
+  password  String
+  name      String?
+  company   String?
+  taxId     String?
+  address   String?
+  bankAccount String?
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+
+  // Relations
+  invoices  Invoice[]
+  clients   Client[]
+  payments  Payment[]
+}
+
+// Client model
+model Client {
+  id        String     @id @default(cuid())
+  userId    String
+  user      User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  name      String
+  email     String
+  country   String
+  currency  String     @default("USD")
+  taxId     String?
+  address   String?
+  phone     String?
+  
+  totalBilled Float    @default(0)
+  totalPaid   Float    @default(0)
+  
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+
+  // Relations
+  invoices  Invoice[]
+
+  @@unique([userId, email])
+  @@index([userId])
+}
+
+// Invoice model
+model Invoice {
+  id        String     @id @default(cuid())
+  userId    String
+  user      User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  clientId  String
+  client    Client     @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  
+  invoiceNumber String  @unique
+  status    String     @default("draft") // draft, sent, pending, paid, overdue
+  
+  currency  String     @default("USD")
+  amount    Float
+  tax       Float      @default(0)
+  total     Float
+  
+  issueDate DateTime
+  dueDate   DateTime
+  
+  items     InvoiceItem[]
+  network   String?    // PEPPOL, ZUGFeRD, etc
+  notes     String?
+  templateId String?   // Reference to template used
+  
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+
+  // Relations
+  payments  Payment[]
+
+  @@index([userId])
+  @@index([clientId])
+  @@index([status])
+}
+
+// Invoice line items
+model InvoiceItem {
+  id        String     @id @default(cuid())
+  invoiceId String
+  invoice   Invoice    @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+  
+  description String
+  quantity  Float
+  unitPrice Float
+  taxRate   Float      @default(0)
+  total     Float
+  
+  @@index([invoiceId])
+}
+
+// Payment model
+model Payment {
+  id        String     @id @default(cuid())
+  userId    String
+  user      User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  invoiceId String
+  invoice   Invoice    @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+  
+  amount    Float
+  method    String     // stripe, bank_transfer, cash, check
+  status    String     @default("pending") // pending, completed, failed
+  
+  stripePaymentIntentId String?
+  reference String?
+  
+  paidAt    DateTime?
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+
+  @@index([userId])
+  @@index([invoiceId])
+  @@index([status])
+}

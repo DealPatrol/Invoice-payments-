@@ -1,14 +1,12 @@
 'use client';
 
-import { Sidebar } from '@/components/Sidebar';
 import { COLORS } from '@/lib/constants';
 import { ExternalLink } from 'lucide-react';
 
 export default function SettingsPage() {
   return (
-    <div className="flex min-h-screen" style={{ background: COLORS.background }}>
-      <Sidebar />
-      <main className="ml-64 flex-1 min-h-screen overflow-y-auto">
+    <div style={{ background: COLORS.background, minHeight: '100vh' }}>
+      <div className="w-full">
         <div className="p-8 max-w-2xl">
           <h1
             className="text-4xl font-black mb-8"
@@ -79,7 +77,7 @@ RESEND_API_KEY= (optional)`}
             </p>
           </section>
         </div>
-      </main>
+      </div>
     </div>
   );
 }

@@ -1,6 +1,5 @@
 'use client';
 
-import { Sidebar } from '@/components/Sidebar';
 import { DemoBanner } from '@/components/DemoBanner';
 import { COLORS, CURRENCY_SYMBOLS } from '@/lib/constants';
 import { useInvoices } from '@/lib/hooks';
@@ -21,9 +20,8 @@ export default function PaymentsPage() {
       : '0';
 
   return (
-    <div className="flex min-h-screen" style={{ background: COLORS.background }}>
-      <Sidebar />
-      <main className="ml-64 flex-1 min-h-screen overflow-y-auto">
+    <div style={{ background: COLORS.background, minHeight: '100vh' }}>
+      <div className="w-full">
         <div className="p-8">
           <h1
             className="text-4xl font-black tracking-tight mb-8"
@@ -129,7 +127,7 @@ export default function PaymentsPage() {
             </>
           )}
         </div>
-      </main>
+      </div>
     </div>
   );
 }

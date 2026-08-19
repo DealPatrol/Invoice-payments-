@@ -1,6 +1,5 @@
 'use client';
 
-import { Sidebar } from '@/components/Sidebar';
 import { DemoBanner } from '@/components/DemoBanner';
 import { PayScoreBadge } from '@/components/PayScoreBadge';
 import { COLORS, CURRENCY_SYMBOLS } from '@/lib/constants';
@@ -47,10 +46,8 @@ export default function RemindersPage() {
   const actionable = invoices.filter((i) => i.status !== 'paid' && i.status !== 'draft');
 
   return (
-    <div className="flex min-h-screen" style={{ background: COLORS.background }}>
-      <Sidebar />
-      <main className="ml-64 flex-1 min-h-screen overflow-y-auto">
-        <div className="p-8 max-w-4xl">
+    <div style={{ background: COLORS.background, minHeight: '100vh' }}>
+      <div className="p-8 max-w-4xl">
           <h1
             className="text-4xl font-black mb-2"
             style={{ color: COLORS.text, fontFamily: '"Syne", sans-serif' }}
@@ -131,7 +128,6 @@ export default function RemindersPage() {
             <p style={{ color: COLORS.textMuted }}>No outstanding invoices need reminders.</p>
           )}
         </div>
-      </main>
     </div>
   );
 }

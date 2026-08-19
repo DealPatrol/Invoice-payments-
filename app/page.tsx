@@ -1,7 +1,6 @@
 'use client';
 
 import Link from 'next/link';
-import { Sidebar } from '@/components/Sidebar';
 import { DemoBanner } from '@/components/DemoBanner';
 import { PayScoreBadge } from '@/components/PayScoreBadge';
 import { COLORS, CURRENCY_SYMBOLS } from '@/lib/constants';
@@ -55,10 +54,8 @@ export default function Dashboard() {
   const recent = invoices.slice(0, 5);
 
   return (
-    <div className="flex min-h-screen" style={{ background: COLORS.background }}>
-      <Sidebar />
-      <main className="ml-64 flex-1 min-h-screen overflow-y-auto">
-        <div className="p-8">
+    <div style={{ background: COLORS.background, minHeight: '100vh' }}>
+      <div className="p-8">
           <div className="mb-8 flex flex-wrap items-end justify-between gap-4">
             <div>
               <h1
@@ -191,7 +188,6 @@ export default function Dashboard() {
             ))}
           </div>
         </div>
-      </main>
     </div>
   );
 }

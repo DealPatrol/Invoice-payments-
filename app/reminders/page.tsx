@@ -55,8 +55,7 @@ export default function RemindersPage() {
             Smart Reminders
           </h1>
           <p className="text-sm mb-8" style={{ color: COLORS.textMuted }}>
-            AI-timed follow-ups based on Pay Score™ — not generic blast emails. Connect Resend
-            in Settings for live sends (free tier: 3,000/mo).
+            Automated due-date and overdue email follow-ups, including configured late fees.
           </p>
 
           <DemoBanner mode={mode} />
@@ -67,7 +66,7 @@ export default function RemindersPage() {
           >
             {[
               { icon: Mail, label: 'Email', desc: 'Resend API' },
-              { icon: MessageSquare, label: 'SMS', desc: 'Coming soon' },
+              { icon: MessageSquare, label: 'SMS', desc: 'Roadmap' },
               { icon: Bell, label: 'In-app', desc: 'Always on' },
             ].map(({ icon: Icon, label, desc }) => (
               <div key={label} className="text-center">

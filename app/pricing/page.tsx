@@ -1,6 +1,6 @@
 'use client';
 
-import Link from 'next/link';
+import { useState } from 'react';
 import { COLORS } from '@/lib/constants';
 import { PRICING } from '@/lib/config';
 import { Check } from 'lucide-react';
@@ -15,7 +15,7 @@ const tiers = [
       'Stripe Checkout + pay portal',
       'Smart Pay Score™',
       'Multi-currency (Frankfurter rates)',
-      'E-invoice network tags',
+      'E-invoice standard labels (routing roadmap)',
       'Zero per-invoice platform fees',
     ],
   },
@@ -47,6 +47,27 @@ const tiers = [
 ];
 
 export default function PricingPage() {
+  const [loading, setLoading] = useState<string | null>(null);
+  const [error, setError] = useState('');
+
+  async function subscribe(plan: keyof typeof PRICING) {
+    setLoading(plan);
+    setError('');
+    try {
+      const response = await fetch('/api/billing/checkout', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ plan }),
+      });
+      const data = await response.json();
+      if (!response.ok || !data.url) throw new Error(data.error || 'Checkout unavailable');
+      window.location.assign(data.url);
+    } catch (checkoutError) {
+      setError(checkoutError instanceof Error ? checkoutError.message : 'Checkout unavailable');
+      setLoading(null);
+    }
+  }
+
   return (
     <div style={{ background: COLORS.background, minHeight: '100vh' }}>
       <div className="w-full">
@@ -109,8 +130,10 @@ export default function PricingPage() {
                       </li>
                     ))}
                   </ul>
-                  <Link
-                    href="/settings"
+                  <button
+                    type="button"
+                    onClick={() => subscribe(key)}
+                    disabled={loading !== null}
                     className="block text-center py-3 rounded-lg font-bold text-sm"
                     style={{
                       background: highlight ? COLORS.accent : 'transparent',
@@ -118,12 +141,13 @@ export default function PricingPage() {
                       border: highlight ? 'none' : `1px solid ${COLORS.accent}`,
                     }}
                   >
-                    Get started
-                  </Link>
+                    {loading === key ? 'Opening checkout…' : 'Choose plan'}
+                  </button>
                 </div>
               );
             })}
           </div>
+          {error && <p className="mt-6 text-sm" style={{ color: COLORS.danger }}>{error}</p>}
 
           <div
             className="mt-12 rounded-lg border p-6"
@@ -135,7 +159,7 @@ export default function PricingPage() {
             <ul className="text-sm space-y-2" style={{ color: COLORS.textMuted }}>
               <li>· Smart Pay Score™ — competitors charge extra for “insights” add-ons</li>
               <li>· Client pay portal + QR — many tools lock this behind $50+ plans</li>
-              <li>· 40+ e-invoice network routing labels — enterprise feature, included</li>
+              <li>· E-invoice standard labels today; network delivery remains on the roadmap</li>
               <li>· Open exchange rates (Frankfurter/ECB) — no paid FX API required</li>
               <li>· Supabase + Stripe + Vercel — stack stays under ~$50/mo until you scale</li>
             </ul>

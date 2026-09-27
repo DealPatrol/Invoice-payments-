@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, use } from 'react';
 import { useSearchParams } from 'next/navigation';
 import Image from 'next/image';
 import QRCode from 'qrcode';
@@ -8,7 +8,8 @@ import { COLORS, CURRENCY_SYMBOLS } from '@/lib/constants';
 import type { Invoice } from '@/lib/types';
 import { CheckCircle, CreditCard, Loader2 } from 'lucide-react';
 
-export default function PayPortalPage({ params }: { params: { token: string } }) {
+export default function PayPortalPage(props: { params: Promise<{ token: string }> }) {
+  const params = use(props.params);
   const searchParams = useSearchParams();
   const paid = searchParams.get('paid') === '1';
   const [invoice, setInvoice] = useState<Invoice | null>(null);

@@ -3,41 +3,63 @@
 import { useCallback, useEffect, useState } from 'react';
 import type { DashboardStats, Invoice } from './types';
 
+async function fetchInvoices(status?: string, search?: string) {
+  const params = new URLSearchParams();
+  if (status) params.set('status', status);
+  if (search) params.set('search', search);
+  const response = await fetch(`/api/invoices?${params}`);
+  const data = await response.json();
+  if (!response.ok) throw new Error(data.error || 'Failed to load');
+  return data as { invoices: Invoice[]; mode: 'demo' | 'postgres' };
+}
+
 export function useInvoices(filters?: { status?: string; search?: string }) {
+  const status = filters?.status;
+  const search = filters?.search;
   const [invoices, setInvoices] = useState<Invoice[]>([]);
-  const [mode, setMode] = useState<'demo' | 'supabase'>('demo');
+  const [mode, setMode] = useState<'demo' | 'postgres'>('demo');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const load = useCallback(async () => {
+  useEffect(() => {
+    let active = true;
+    fetchInvoices(status, search)
+      .then((data) => {
+        if (!active) return;
+        setInvoices(data.invoices);
+        setMode(data.mode);
+      })
+      .catch((loadError) => {
+        if (active) setError(loadError instanceof Error ? loadError.message : 'Error');
+      })
+      .finally(() => {
+        if (active) setLoading(false);
+      });
+    return () => {
+      active = false;
+    };
+  }, [status, search]);
+
+  const reload = useCallback(async () => {
     setLoading(true);
     setError(null);
     try {
-      const params = new URLSearchParams();
-      if (filters?.status) params.set('status', filters.status);
-      if (filters?.search) params.set('search', filters.search);
-      const res = await fetch(`/api/invoices?${params}`);
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || 'Failed to load');
+      const data = await fetchInvoices(status, search);
       setInvoices(data.invoices);
       setMode(data.mode);
-    } catch (e) {
-      setError(e instanceof Error ? e.message : 'Error');
+    } catch (loadError) {
+      setError(loadError instanceof Error ? loadError.message : 'Error');
     } finally {
       setLoading(false);
     }
-  }, [filters?.status, filters?.search]);
+  }, [status, search]);
 
-  useEffect(() => {
-    load();
-  }, [load]);
-
-  return { invoices, mode, loading, error, reload: load };
+  return { invoices, mode, loading, error, reload };
 }
 
 export function useDashboardStats() {
   const [stats, setStats] = useState<DashboardStats | null>(null);
-  const [mode, setMode] = useState<'demo' | 'supabase'>('demo');
+  const [mode, setMode] = useState<'demo' | 'postgres'>('demo');
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {

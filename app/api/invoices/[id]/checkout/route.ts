@@ -1,14 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getInvoice, updateInvoiceStatus } from '@/lib/invoice-service';
+import { getInvoice } from '@/lib/invoice-service';
 import { createCheckoutSession } from '@/lib/stripe';
-import { getSupabaseAdmin } from '@/lib/supabase-admin';
+import { getTenantId, UnauthorizedError } from '@/lib/tenant';
 
-export async function POST(
-  _request: NextRequest,
-  { params }: { params: { id: string } }
-) {
+export async function POST(_request: NextRequest, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params;
   try {
-    const invoice = await getInvoice(params.id);
+    const userId = await getTenantId();
+    const invoice = await getInvoice(userId, params.id);
     if (!invoice) {
       return NextResponse.json({ error: 'Invoice not found' }, { status: 404 });
     }
@@ -16,21 +15,14 @@ export async function POST(
       return NextResponse.json({ error: 'Invoice already paid' }, { status: 400 });
     }
 
-    const session = await createCheckoutSession(invoice);
-
-    const supabase = getSupabaseAdmin();
-    if (supabase) {
-      await supabase
-        .from('invoices')
-        .update({ stripe_session_id: session.id, status: 'sent' })
-        .eq('id', invoice.id);
-    } else if (invoice.status === 'draft') {
-      await updateInvoiceStatus(invoice.id, 'sent');
-    }
+    const session = await createCheckoutSession(invoice, userId);
 
     return NextResponse.json({ url: session.url, payLink: `/pay/${invoice.payToken}` });
-  } catch (e) {
-    const message = e instanceof Error ? e.message : 'Checkout failed';
+  } catch (error) {
+    if (error instanceof UnauthorizedError) {
+      return NextResponse.json({ error: error.message }, { status: 401 });
+    }
+    const message = error instanceof Error ? error.message : 'Checkout failed';
     return NextResponse.json({ error: message }, { status: 500 });
   }
 }

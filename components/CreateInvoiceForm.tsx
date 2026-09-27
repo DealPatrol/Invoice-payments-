@@ -48,6 +48,7 @@ export function CreateInvoiceForm() {
   const [dueDate, setDueDate] = useState('');
   const [notes, setNotes] = useState('');
   const [recurring, setRecurring] = useState(false);
+  const [lateFeePercent, setLateFeePercent] = useState(0);
   const [taxPercent, setTaxPercent] = useState(8);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
@@ -112,6 +113,7 @@ export function CreateInvoiceForm() {
           unitRate: i.unitRate,
         })),
         recurring,
+        lateFeePercent,
       };
 
       const response = await fetch('/api/invoices', {
@@ -272,7 +274,7 @@ export function CreateInvoiceForm() {
                 color: COLORS.text,
               }}
             >
-              <option value="">Network (optional)</option>
+              <option value="">E-invoice label (routing roadmap)</option>
               {NETWORKS.map((n: any) => (
                 <option key={n.id} value={n.name}>
                   {n.name}
@@ -415,6 +417,25 @@ export function CreateInvoiceForm() {
               className="rounded"
             />
             <span style={{ color: COLORS.text }}>This is a recurring invoice</span>
+          </label>
+          <label className="block">
+            <span className="text-sm" style={{ color: COLORS.text }}>
+              Optional overdue late fee (%)
+            </span>
+            <input
+              type="number"
+              min="0"
+              max="100"
+              step="0.1"
+              value={lateFeePercent}
+              onChange={(event) => setLateFeePercent(Number(event.target.value) || 0)}
+              className="mt-2 w-full px-4 py-2 rounded-lg"
+              style={{
+                background: COLORS.surface,
+                border: `1px solid ${COLORS.border}`,
+                color: COLORS.text,
+              }}
+            />
           </label>
         </div>
 

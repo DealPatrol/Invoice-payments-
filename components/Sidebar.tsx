@@ -29,7 +29,7 @@ export function Sidebar() {
     { href: '/payments', label: 'Payments', icon: CreditCard },
     { href: '/reminders', label: 'Smart Reminders', icon: Bell },
     { href: '/clients', label: 'Clients', icon: Users },
-    { href: '/networks', label: 'E-Invoice Networks', icon: Globe },
+    { href: '/networks', label: 'Networks (Roadmap)', icon: Globe },
     { href: '/reports', label: 'Reports', icon: BarChart3 },
     { href: '/pricing', label: 'Pricing', icon: DollarSign },
     { href: '/settings', label: 'Settings', icon: Settings },

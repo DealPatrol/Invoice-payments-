@@ -18,8 +18,10 @@ Global invoice & payments platform — Smart Pay Score™, Stripe Checkout, clie
 - Invoices CRUD with line items, tax, recurring & late-fee rules
 - **Client pay portal** (`/pay/[token]`) with QR code
 - **Stripe Checkout** one-click collection
-- Smart reminder schedules (Resend-ready)
-- E-invoice network labels (PEPPOL, ZUGFeRD, NF-e, etc.)
+- Automated due/overdue reminders with Resend and optional late fees
+- Revenue, collection-rate, and receivables-aging reports
+- E-invoice network integrations clearly labeled as roadmap
+- Stripe subscriptions and customer portal for $12 / $29 / $59 plans
 - Transparent pricing: **$12 / $29 / $59** — zero per-invoice platform fees
 
 ## Local dev
@@ -30,13 +32,21 @@ cp .env.local.example .env.local
 npm run dev
 ```
 
-Without env vars the app runs in **demo mode** (in-memory data) so builds and deploys succeed.
+The example enables explicit **demo mode** (`DEMO_MODE=true`) for keyless previews. Set
+`DEMO_MODE=false` in production; production data uses only Prisma over Supabase Postgres.
 
 ## Production setup
 
-1. Run `supabase/schema.sql` in Supabase SQL editor
-2. Add env vars in Vercel (see `.env.local.example`)
-3. Configure Stripe webhook → `/api/webhooks/stripe`
+1. Create a Supabase project and copy its pooled Postgres URL to `DATABASE_URL`
+2. Set `DEMO_MODE=false` and run `npx prisma migrate deploy`
+3. Add every variable listed in `.env.local.example`
+4. Create separate Stripe Products/recurring Prices for Starter, Growth, and Scale
+5. Configure Stripe webhook → `/api/webhooks/stripe` for checkout, subscription, and payment-failure events
+6. Verify a Resend sending domain and set `RESEND_FROM_EMAIL`
+
+Never commit real credentials. Prefer a restricted Stripe key with only the permissions this
+integration needs. Stripe Tax is not enabled automatically; configure registrations in Stripe
+before enabling tax collection for recurring plans.
 
 ## Deploy
 

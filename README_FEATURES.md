@@ -159,10 +159,9 @@ yarn install
 
 ### Environment Setup
 ```bash
-# Create .env.local with required variables
-NEXT_PUBLIC_SUPABASE_URL=your_url
-NEXT_PUBLIC_SUPABASE_ANON_KEY=your_key
-DATABASE_URL=your_database_url
+cp .env.local.example .env.local
+# Fill DATABASE_URL, NextAuth, Stripe, Resend, and cron values.
+# Keep DEMO_MODE=true only for keyless previews.
 ```
 
 ### Running Locally

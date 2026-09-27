@@ -2,25 +2,19 @@
 
 import Link from 'next/link';
 import { useState } from 'react';
+import { DemoBanner } from '@/components/DemoBanner';
 import { COLORS } from '@/lib/constants';
+import { useInvoices } from '@/lib/hooks';
 import { Plus } from 'lucide-react';
 
-const SAMPLE_INVOICES = [
-  { id: '1', clientName: 'Acme Corp', amount: 5000, status: 'paid', date: '2024-01-15' },
-  { id: '2', clientName: 'Tech Startup', amount: 3200, status: 'pending', date: '2024-01-20' },
-  { id: '3', clientName: 'Design Agency', amount: 7500, status: 'overdue', date: '2023-12-01' },
-];
-
 export default function InvoicesPage() {
-  const [invoices] = useState(SAMPLE_INVOICES);
   const [filter, setFilter] = useState('all');
-
-  const filtered = invoices.filter((inv) => (filter === 'all' ? true : inv.status === filter));
+  const { invoices, mode, loading, reload } = useInvoices({ status: filter });
 
   async function remove(id: string) {
     if (!confirm('Delete this invoice?')) return;
     await fetch(`/api/invoices/${id}`, { method: 'DELETE' });
-    window.location.reload();
+    await reload();
   }
 
   return (
@@ -46,6 +40,8 @@ export default function InvoicesPage() {
           </Link>
         </div>
 
+        <DemoBanner mode={mode} />
+
         <div className="flex gap-2 mb-8">
           {['all', 'paid', 'pending', 'overdue'].map((status) => (
             <button
@@ -64,7 +60,8 @@ export default function InvoicesPage() {
         </div>
 
         <div className="space-y-4">
-          {filtered.map((invoice) => (
+          {loading && <p style={{ color: COLORS.textMuted }}>Loading invoices…</p>}
+          {invoices.map((invoice) => (
             <div key={invoice.id} className="rounded-lg border p-6" style={{ background: COLORS.surface, borderColor: COLORS.border }}>
               <div className="flex items-center justify-between">
                 <div>
@@ -72,12 +69,12 @@ export default function InvoicesPage() {
                     {invoice.clientName}
                   </Link>
                   <p className="text-sm" style={{ color: COLORS.textMuted }}>
-                    {invoice.date}
+                    {invoice.issuedDate}
                   </p>
                 </div>
                 <div className="flex items-center gap-4">
                   <span className="text-xl font-bold" style={{ color: COLORS.text }}>
-                    ${invoice.amount}
+                    {invoice.currency} {invoice.total.toLocaleString()}
                   </span>
                   <span
                     className="px-3 py-1 rounded-full text-xs font-bold"
@@ -111,7 +108,7 @@ export default function InvoicesPage() {
           ))}
         </div>
 
-        {filtered.length === 0 && (
+        {!loading && invoices.length === 0 && (
           <div className="text-center py-12">
             <p style={{ color: COLORS.textMuted }}>No invoices found</p>
           </div>

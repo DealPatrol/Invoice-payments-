@@ -1,44 +1,52 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getServerSession } from 'next-auth';
-import { authOptions } from '@/lib/authOptions';
+import { z } from 'zod';
+import { isDemoMode } from '@/lib/config';
 import { prisma } from '@/lib/db';
+import { getTenantId, UnauthorizedError } from '@/lib/tenant';
+
+export const dynamic = 'force-dynamic';
+
+const paymentSchema = z.object({
+  invoiceId: z.string().min(1),
+  amount: z.number().positive(),
+  method: z.enum(['stripe', 'bank_transfer', 'cash', 'check']),
+  reference: z.string().optional(),
+});
 
 export async function GET() {
   try {
-    const session = await getServerSession(authOptions);
-    if (!session?.user?.id) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
+    const userId = await getTenantId();
+    if (isDemoMode()) return NextResponse.json({ payments: [], mode: 'demo' });
 
     const payments = await prisma.payment.findMany({
-      where: { userId: session.user.id },
+      where: { userId },
       include: { invoice: { include: { client: true } } },
       orderBy: { createdAt: 'desc' },
     });
 
-    return NextResponse.json(payments);
-  } catch (e) {
-    const message = e instanceof Error ? e.message : 'Failed to fetch payments';
+    return NextResponse.json({ payments, mode: 'postgres' });
+  } catch (error) {
+    if (error instanceof UnauthorizedError) {
+      return NextResponse.json({ error: error.message }, { status: 401 });
+    }
+    const message = error instanceof Error ? error.message : 'Failed to fetch payments';
     return NextResponse.json({ error: message }, { status: 500 });
   }
 }
 
 export async function POST(request: NextRequest) {
   try {
-    const session = await getServerSession(authOptions);
-    if (!session?.user?.id) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    const userId = await getTenantId();
+    const input = paymentSchema.parse(await request.json());
+    if (isDemoMode()) {
+      return NextResponse.json(
+        { id: `demo-payment-${Date.now()}`, ...input, status: 'pending' },
+        { status: 201 }
+      );
     }
 
-    const body = await request.json();
-    const { invoiceId, amount, method, reference } = body;
-
-    // Verify invoice belongs to user
     const invoice = await prisma.invoice.findFirst({
-      where: {
-        id: invoiceId,
-        userId: session.user.id,
-      },
+      where: { id: input.invoiceId, userId },
     });
 
     if (!invoice) {
@@ -47,18 +55,21 @@ export async function POST(request: NextRequest) {
 
     const payment = await prisma.payment.create({
       data: {
-        userId: session.user.id,
-        invoiceId,
-        amount,
-        method,
-        reference,
+        userId,
+        ...input,
         status: 'pending',
       },
     });
 
     return NextResponse.json(payment, { status: 201 });
-  } catch (e) {
-    const message = e instanceof Error ? e.message : 'Failed to create payment';
+  } catch (error) {
+    if (error instanceof UnauthorizedError) {
+      return NextResponse.json({ error: error.message }, { status: 401 });
+    }
+    if (error instanceof z.ZodError) {
+      return NextResponse.json({ error: error.flatten() }, { status: 400 });
+    }
+    const message = error instanceof Error ? error.message : 'Failed to create payment';
     return NextResponse.json({ error: message }, { status: 500 });
   }
 }

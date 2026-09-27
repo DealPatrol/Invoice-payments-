@@ -1,9 +1,10 @@
 import type { Metadata, Viewport } from "next";
+import { AppShell } from "@/components/AppShell";
 import "./globals.css";
 
 export const metadata: Metadata = {
   title: "InvoiceOS - Global Invoice Management",
-  description: "Create, manage, and receive payments for invoices across 40+ global e-invoicing networks",
+  description: "Create invoices, collect payments, automate reminders, and track receivables",
 };
 
 export const viewport: Viewport = {
@@ -21,7 +22,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" className="bg-[var(--background)] text-[var(--foreground)]">
-      <body>{children}</body>
+      <body><AppShell>{children}</AppShell></body>
     </html>
   );
 }

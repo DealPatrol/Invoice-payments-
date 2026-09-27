@@ -1,9 +1,20 @@
 'use client';
 
+import { useState } from 'react';
 import { COLORS } from '@/lib/constants';
 import { ExternalLink } from 'lucide-react';
 
 export default function SettingsPage() {
+  const [billingError, setBillingError] = useState('');
+
+  async function openBillingPortal() {
+    setBillingError('');
+    const response = await fetch('/api/billing/portal', { method: 'POST' });
+    const data = await response.json();
+    if (response.ok && data.url) window.location.href = data.url;
+    else setBillingError(data.error || 'Billing portal unavailable');
+  }
+
   return (
     <div style={{ background: COLORS.background, minHeight: '100vh' }}>
       <div className="w-full">
@@ -23,21 +34,24 @@ export default function SettingsPage() {
               Environment (Vercel)
             </h2>
             <p className="text-sm mb-4" style={{ color: COLORS.textMuted }}>
-              Add these in your Vercel project → Settings → Environment Variables. The app runs in
-              demo mode until Supabase is connected.
+              Copy <code>.env.local.example</code> for the complete list. Set{' '}
+              <code>DEMO_MODE=true</code> only for keyless demos.
             </p>
             <pre
               className="text-xs p-4 rounded-lg overflow-x-auto"
               style={{ background: COLORS.surfaceHigh, color: COLORS.text }}
             >
-              {`NEXT_PUBLIC_SUPABASE_URL=
-NEXT_PUBLIC_SUPABASE_ANON_KEY=
-SUPABASE_SERVICE_ROLE_KEY=
+              {`DATABASE_URL=
+NEXTAUTH_SECRET=
+NEXTAUTH_URL=
 STRIPE_SECRET_KEY=
 STRIPE_WEBHOOK_SECRET=
-NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=
-NEXT_PUBLIC_APP_URL=https://your-domain.vercel.app
-RESEND_API_KEY= (optional)`}
+STRIPE_STARTER_PRICE_ID=
+STRIPE_GROWTH_PRICE_ID=
+STRIPE_SCALE_PRICE_ID=
+RESEND_API_KEY=
+RESEND_FROM_EMAIL=
+CRON_SECRET=`}
             </pre>
           </section>
 
@@ -49,8 +63,9 @@ RESEND_API_KEY= (optional)`}
               Database setup
             </h2>
             <p className="text-sm mb-3" style={{ color: COLORS.textMuted }}>
-              Run <code className="text-xs">supabase/schema.sql</code> in the Supabase SQL editor
-              (free tier).
+              Create a Supabase Postgres project, set its pooled{' '}
+              <code className="text-xs">DATABASE_URL</code>, then run{' '}
+              <code className="text-xs">npx prisma migrate deploy</code>.
             </p>
             <a
               href="https://supabase.com/dashboard"
@@ -64,6 +79,22 @@ RESEND_API_KEY= (optional)`}
           </section>
 
           <section
+            className="rounded-lg border p-6 mb-6"
+            style={{ background: COLORS.surface, borderColor: COLORS.border }}
+          >
+            <h2 className="font-bold mb-3" style={{ color: COLORS.text }}>Subscription</h2>
+            <button
+              type="button"
+              onClick={openBillingPortal}
+              className="px-4 py-2 rounded-lg font-bold text-sm"
+              style={{ background: COLORS.accent, color: '#fff' }}
+            >
+              Manage billing
+            </button>
+            {billingError && <p className="mt-3 text-sm" style={{ color: COLORS.danger }}>{billingError}</p>}
+          </section>
+
+          <section
             className="rounded-lg border p-6"
             style={{ background: COLORS.surface, borderColor: COLORS.border }}
           >
@@ -73,7 +104,8 @@ RESEND_API_KEY= (optional)`}
             <p className="text-sm" style={{ color: COLORS.textMuted }}>
               Point your webhook to{' '}
               <code className="text-xs">/api/webhooks/stripe</code> and listen for{' '}
-              <code className="text-xs">checkout.session.completed</code>.
+              <code className="text-xs">checkout.session.completed</code>, subscription lifecycle,
+              payment failure, and invoice failure events.
             </p>
           </section>
         </div>

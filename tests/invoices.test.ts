@@ -77,7 +77,7 @@ describe('invoice CRUD routes', () => {
   });
 
   it('reads, updates, and deletes with the tenant ID', async () => {
-    const context = { params: { id: 'invoice-1' } };
+    const context = { params: Promise.resolve({ id: 'invoice-1' }) };
     expect((await read(new NextRequest('http://localhost'), context)).status).toBe(200);
     expect((await update(new NextRequest('http://localhost', {
       method: 'PATCH',

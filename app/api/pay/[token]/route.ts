@@ -4,10 +4,8 @@ import { prisma } from '@/lib/db';
 import { getInvoiceByPayToken } from '@/lib/invoice-service';
 import { createCheckoutSession } from '@/lib/stripe';
 
-export async function GET(
-  _request: NextRequest,
-  { params }: { params: { token: string } }
-) {
+export async function GET(_request: NextRequest, props: { params: Promise<{ token: string }> }) {
+  const params = await props.params;
   try {
     const invoice = await getInvoiceByPayToken(params.token);
     if (!invoice) {
@@ -20,10 +18,8 @@ export async function GET(
   }
 }
 
-export async function POST(
-  _request: NextRequest,
-  { params }: { params: { token: string } }
-) {
+export async function POST(_request: NextRequest, props: { params: Promise<{ token: string }> }) {
+  const params = await props.params;
   try {
     const invoice = await getInvoiceByPayToken(params.token);
     if (!invoice) {

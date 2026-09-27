@@ -3,10 +3,8 @@ import { getInvoice } from '@/lib/invoice-service';
 import { createCheckoutSession } from '@/lib/stripe';
 import { getTenantId, UnauthorizedError } from '@/lib/tenant';
 
-export async function POST(
-  _request: NextRequest,
-  { params }: { params: { id: string } }
-) {
+export async function POST(_request: NextRequest, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params;
   try {
     const userId = await getTenantId();
     const invoice = await getInvoice(userId, params.id);

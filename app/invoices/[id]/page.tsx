@@ -1,11 +1,12 @@
 'use client';
 
 import Link from 'next/link';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, use } from 'react';
 import { COLORS, CURRENCY_SYMBOLS } from '@/lib/constants';
 import type { Invoice, InvoiceStatus } from '@/lib/types';
 
-export default function InvoiceDetailPage({ params }: { params: { id: string } }) {
+export default function InvoiceDetailPage(props: { params: Promise<{ id: string }> }) {
+  const params = use(props.params);
   const [invoice, setInvoice] = useState<Invoice | null>(null);
   const [error, setError] = useState('');
 

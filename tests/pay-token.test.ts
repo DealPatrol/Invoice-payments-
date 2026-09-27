@@ -37,7 +37,7 @@ describe('pay token route', () => {
 
   it('loads an invoice by its opaque token without authentication', async () => {
     const response = await GET(new NextRequest('http://localhost'), {
-      params: { token: 'secure-token' },
+      params: Promise.resolve({ token: 'secure-token' }),
     });
     expect(response.status).toBe(200);
     expect(mocks.getInvoiceByPayToken).toHaveBeenCalledWith('secure-token');
@@ -45,7 +45,7 @@ describe('pay token route', () => {
 
   it('creates checkout against the invoice owner', async () => {
     const response = await POST(new NextRequest('http://localhost', { method: 'POST' }), {
-      params: { token: 'secure-token' },
+      params: Promise.resolve({ token: 'secure-token' }),
     });
     expect(response.status).toBe(200);
     expect(mocks.createCheckoutSession).toHaveBeenCalledWith(invoice, 'user-1');
@@ -57,7 +57,7 @@ describe('pay token route', () => {
   it('rejects replayed payment attempts for paid invoices', async () => {
     mocks.getInvoiceByPayToken.mockResolvedValue({ ...invoice, status: 'paid' });
     const response = await POST(new NextRequest('http://localhost', { method: 'POST' }), {
-      params: { token: 'secure-token' },
+      params: Promise.resolve({ token: 'secure-token' }),
     });
     expect(response.status).toBe(400);
     expect(mocks.createCheckoutSession).not.toHaveBeenCalled();

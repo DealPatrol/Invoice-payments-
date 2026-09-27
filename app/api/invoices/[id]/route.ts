@@ -7,10 +7,8 @@ const statusSchema = z.object({
   status: z.enum(['draft', 'sent', 'pending', 'paid', 'overdue']),
 });
 
-export async function GET(
-  _request: NextRequest,
-  { params }: { params: { id: string } }
-) {
+export async function GET(_request: NextRequest, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params;
   try {
     const userId = await getTenantId();
     const invoice = await getInvoice(userId, params.id);
@@ -27,10 +25,8 @@ export async function GET(
   }
 }
 
-export async function PATCH(
-  request: NextRequest,
-  { params }: { params: { id: string } }
-) {
+export async function PATCH(request: NextRequest, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params;
   try {
     const userId = await getTenantId();
     const body = await request.json();
@@ -52,10 +48,8 @@ export async function PATCH(
   }
 }
 
-export async function DELETE(
-  _request: NextRequest,
-  { params }: { params: { id: string } }
-) {
+export async function DELETE(_request: NextRequest, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params;
   try {
     const userId = await getTenantId();
     const ok = await deleteInvoice(userId, params.id);

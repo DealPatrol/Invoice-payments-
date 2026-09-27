@@ -145,6 +145,12 @@ export async function createInvoice(
   const invoice = await prisma.$transaction(async (tx) => {
     const user = await tx.user.findUniqueOrThrow({ where: { id: userId } });
     const plan: Plan = isPlan(user.plan) ? user.plan : 'starter';
+    if (
+      plan === 'starter' &&
+      (input.recurring || (input.lateFeePercent ?? 0) > 0)
+    ) {
+      throw new Error('Recurring invoices and late-fee automation require Growth or Scale');
+    }
     const existingClient = await tx.client.findUnique({
       where: { userId_email: { userId, email } },
     });

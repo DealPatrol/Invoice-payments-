@@ -15,7 +15,7 @@ const tiers = [
       'Stripe Checkout + pay portal',
       'Smart Pay Score™',
       'Multi-currency (Frankfurter rates)',
-      'E-invoice network tags',
+      'E-invoice standard labels (routing roadmap)',
       'Zero per-invoice platform fees',
     ],
   },
@@ -159,7 +159,7 @@ export default function PricingPage() {
             <ul className="text-sm space-y-2" style={{ color: COLORS.textMuted }}>
               <li>· Smart Pay Score™ — competitors charge extra for “insights” add-ons</li>
               <li>· Client pay portal + QR — many tools lock this behind $50+ plans</li>
-              <li>· 40+ e-invoice network routing labels — enterprise feature, included</li>
+              <li>· E-invoice standard labels today; network delivery remains on the roadmap</li>
               <li>· Open exchange rates (Frankfurter/ECB) — no paid FX API required</li>
               <li>· Supabase + Stripe + Vercel — stack stays under ~$50/mo until you scale</li>
             </ul>

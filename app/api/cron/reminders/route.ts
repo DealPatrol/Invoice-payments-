@@ -31,6 +31,10 @@ export async function GET(request: NextRequest) {
     where: {
       status: { in: ['sent', 'pending', 'overdue'] },
       dueDate: { lt: dayEnd },
+      user: {
+        plan: { in: ['growth', 'scale'] },
+        subscriptionStatus: 'active',
+      },
       client: { email: { not: { endsWith: '@no-email.invoiceos' } } },
       reminderLogs: { none: { sentAt: { gte: dayStart, lt: dayEnd } } },
     },

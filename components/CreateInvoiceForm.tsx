@@ -274,7 +274,7 @@ export function CreateInvoiceForm() {
                 color: COLORS.text,
               }}
             >
-              <option value="">Network (optional)</option>
+              <option value="">E-invoice label (routing roadmap)</option>
               {NETWORKS.map((n: any) => (
                 <option key={n.id} value={n.name}>
                   {n.name}

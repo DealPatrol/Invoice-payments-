@@ -1,13 +1,33 @@
 'use client';
 
-import { COLORS, SAMPLE_CLIENTS } from '@/lib/constants';
-import { Mail, Edit2, Trash2 } from 'lucide-react';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
+import { DemoBanner } from '@/components/DemoBanner';
+import { COLORS } from '@/lib/constants';
+import { Mail } from 'lucide-react';
+
+interface Client {
+  id: string | number;
+  name: string;
+  email: string;
+  country: string;
+  currency: string;
+}
 
 export default function ClientsPage() {
   const [search, setSearch] = useState('');
+  const [clients, setClients] = useState<Client[]>([]);
+  const [mode, setMode] = useState<'demo' | 'postgres'>('demo');
 
-  const filtered = SAMPLE_CLIENTS.filter(
+  useEffect(() => {
+    fetch('/api/clients')
+      .then((response) => response.json())
+      .then((data) => {
+        setClients(data.clients ?? []);
+        setMode(data.mode ?? 'postgres');
+      });
+  }, []);
+
+  const filtered = clients.filter(
     (c) =>
       c.name.toLowerCase().includes(search.toLowerCase()) ||
       c.email.toLowerCase().includes(search.toLowerCase())
@@ -27,6 +47,8 @@ export default function ClientsPage() {
             <p style={{ color: COLORS.textMuted }}>Manage your client relationships</p>
           </div>
         </div>
+
+        <DemoBanner mode={mode} />
 
         <input
           type="text"
@@ -48,14 +70,6 @@ export default function ClientsPage() {
                   <p className="text-sm" style={{ color: COLORS.textMuted }}>
                     {client.country} • {client.currency}
                   </p>
-                </div>
-                <div className="flex gap-2">
-                  <button className="p-2 rounded hover:bg-gray-100">
-                    <Edit2 size={16} style={{ color: COLORS.accent }} />
-                  </button>
-                  <button className="p-2 rounded hover:bg-gray-100">
-                    <Trash2 size={16} style={{ color: '#dc2626' }} />
-                  </button>
                 </div>
               </div>
               <div className="flex gap-4 text-sm">

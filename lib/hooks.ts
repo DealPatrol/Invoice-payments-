@@ -5,7 +5,7 @@ import type { DashboardStats, Invoice } from './types';
 
 export function useInvoices(filters?: { status?: string; search?: string }) {
   const [invoices, setInvoices] = useState<Invoice[]>([]);
-  const [mode, setMode] = useState<'demo' | 'supabase'>('demo');
+  const [mode, setMode] = useState<'demo' | 'postgres'>('demo');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -37,7 +37,7 @@ export function useInvoices(filters?: { status?: string; search?: string }) {
 
 export function useDashboardStats() {
   const [stats, setStats] = useState<DashboardStats | null>(null);
-  const [mode, setMode] = useState<'demo' | 'supabase'>('demo');
+  const [mode, setMode] = useState<'demo' | 'postgres'>('demo');
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {

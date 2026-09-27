@@ -25,16 +25,16 @@ export default function NetworksPage() {
           className="text-4xl font-black tracking-tight mb-2"
           style={{ color: COLORS.text, fontFamily: '"Syne", sans-serif' }}
         >
-          Global Networks
+          E-Invoice Networks — Roadmap
         </h1>
         <p className="text-sm mb-12" style={{ color: COLORS.textMuted }}>
-          Support for e-invoicing standards across 40+ countries
+          Planned integrations. Network delivery is not currently available.
         </p>
 
         {/* Live Networks */}
         <h2 className="text-lg font-bold mb-6" style={{ color: COLORS.text }}>
           <CheckCircle size={20} className="inline mr-2" />
-          Live Networks
+          Planned Networks
         </h2>
         <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mb-12">
           {live.map((network: any) => (
@@ -61,7 +61,7 @@ export default function NetworksPage() {
                   className="text-xs font-bold px-3 py-1 rounded-full"
                   style={{ background: '#22c97a18', color: '#15803d' }}
                 >
-                  LIVE
+                  ROADMAP
                 </span>
               </div>
             </div>

@@ -40,6 +40,19 @@ export interface DashboardStats {
   avgPayScore: number;
 }
 
+export interface ReportsData {
+  revenue: number;
+  totalBilled: number;
+  outstanding: number;
+  collectionRate: number;
+  aging: {
+    current: number;
+    days1to30: number;
+    days31to60: number;
+    days60plus: number;
+  };
+}
+
 export interface CreateInvoiceInput {
   clientName: string;
   clientEmail: string;

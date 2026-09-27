@@ -3,7 +3,7 @@
 import { COLORS } from '@/lib/constants';
 import { Database } from 'lucide-react';
 
-export function DemoBanner({ mode }: { mode?: 'demo' | 'supabase' }) {
+export function DemoBanner({ mode }: { mode?: 'demo' | 'postgres' }) {
   if (mode !== 'demo') return null;
   return (
     <div
@@ -20,7 +20,7 @@ export function DemoBanner({ mode }: { mode?: 'demo' | 'supabase' }) {
         <a href="/settings" style={{ color: COLORS.accent }}>
           Supabase
         </a>{' '}
-        for persistent production data (free tier).
+        for persistent production data.
       </span>
     </div>
   );

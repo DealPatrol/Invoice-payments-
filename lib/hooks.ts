@@ -4,18 +4,18 @@ import { useCallback, useEffect, useState } from 'react';
 import type { DashboardStats, Invoice } from './types';
 
 export function useInvoices(filters?: { status?: string; search?: string }) {
+  const status = filters?.status;
+  const search = filters?.search;
   const [invoices, setInvoices] = useState<Invoice[]>([]);
   const [mode, setMode] = useState<'demo' | 'postgres'>('demo');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   const load = useCallback(async () => {
-    setLoading(true);
-    setError(null);
     try {
       const params = new URLSearchParams();
-      if (filters?.status) params.set('status', filters.status);
-      if (filters?.search) params.set('search', filters.search);
+      if (status) params.set('status', status);
+      if (search) params.set('search', search);
       const res = await fetch(`/api/invoices?${params}`);
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || 'Failed to load');
@@ -26,13 +26,19 @@ export function useInvoices(filters?: { status?: string; search?: string }) {
     } finally {
       setLoading(false);
     }
-  }, [filters?.status, filters?.search]);
+  }, [status, search]);
 
   useEffect(() => {
-    load();
+    void load();
   }, [load]);
 
-  return { invoices, mode, loading, error, reload: load };
+  const reload = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+    await load();
+  }, [load]);
+
+  return { invoices, mode, loading, error, reload };
 }
 
 export function useDashboardStats() {

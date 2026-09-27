@@ -61,7 +61,7 @@ export default function PricingPage() {
       });
       const data = await response.json();
       if (!response.ok || !data.url) throw new Error(data.error || 'Checkout unavailable');
-      window.location.href = data.url;
+      window.location.assign(data.url);
     } catch (checkoutError) {
       setError(checkoutError instanceof Error ? checkoutError.message : 'Checkout unavailable');
       setLoading(null);

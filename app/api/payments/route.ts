@@ -4,6 +4,8 @@ import { isDemoMode } from '@/lib/config';
 import { prisma } from '@/lib/db';
 import { getTenantId, UnauthorizedError } from '@/lib/tenant';
 
+export const dynamic = 'force-dynamic';
+
 const paymentSchema = z.object({
   invoiceId: z.string().min(1),
   amount: z.number().positive(),

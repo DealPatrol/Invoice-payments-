@@ -2,6 +2,8 @@ import { NextResponse } from 'next/server';
 import { getDashboardStats } from '@/lib/invoice-service';
 import { getTenantId, UnauthorizedError } from '@/lib/tenant';
 
+export const dynamic = 'force-dynamic';
+
 export async function GET() {
   try {
     const userId = await getTenantId();

@@ -3,6 +3,8 @@ import { z } from 'zod';
 import { createInvoice, listInvoices } from '@/lib/invoice-service';
 import { getTenantId, UnauthorizedError } from '@/lib/tenant';
 
+export const dynamic = 'force-dynamic';
+
 const invoiceSchema = z.object({
   clientName: z.string().min(1),
   clientEmail: z.string().email().or(z.literal('')),

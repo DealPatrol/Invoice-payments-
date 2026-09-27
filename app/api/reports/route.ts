@@ -3,6 +3,8 @@ import { listInvoices } from '@/lib/invoice-service';
 import { getTenantId, UnauthorizedError } from '@/lib/tenant';
 import type { ReportsData } from '@/lib/types';
 
+export const dynamic = 'force-dynamic';
+
 export async function GET() {
   try {
     const userId = await getTenantId();

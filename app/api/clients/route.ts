@@ -5,6 +5,8 @@ import { SAMPLE_CLIENTS } from '@/lib/constants';
 import { prisma } from '@/lib/db';
 import { getTenantId, UnauthorizedError } from '@/lib/tenant';
 
+export const dynamic = 'force-dynamic';
+
 const clientSchema = z.object({
   name: z.string().min(1),
   email: z.string().email(),

@@ -21,6 +21,11 @@ export function amountForStripe(total: number, currency: string): number {
 
 export async function createCheckoutSession(invoice: Invoice, userId: string) {
   const stripe = getStripe();
+  const lateFee =
+    invoice.status === 'overdue' && invoice.lateFeePercent
+      ? invoice.total * (invoice.lateFeePercent / 100)
+      : 0;
+  const amountDue = invoice.total + lateFee;
   const session = await stripe.checkout.sessions.create({
     mode: 'payment',
     line_items: [
@@ -31,7 +36,7 @@ export async function createCheckoutSession(invoice: Invoice, userId: string) {
             name: `Invoice ${invoice.invoiceNumber}`,
             description: `Payment for ${invoice.invoiceNumber}`,
           },
-          unit_amount: amountForStripe(invoice.total, invoice.currency),
+          unit_amount: amountForStripe(amountDue, invoice.currency),
         },
         quantity: 1,
       },
@@ -56,7 +61,7 @@ export async function createCheckoutSession(invoice: Invoice, userId: string) {
       data: {
         userId,
         invoiceId: invoice.id,
-        amount: invoice.total,
+        amount: amountDue,
         method: 'stripe',
         status: 'pending',
         stripeCheckoutId: session.id,

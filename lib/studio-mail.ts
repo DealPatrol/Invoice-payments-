@@ -76,3 +76,9 @@ export async function sendStudioEmail(msg: OutgoingEmail, provider = getEmailPro
   if (!recipientAllowed(msg.to)) throw new Error('Recipient is not on STUDIO_EMAIL_ALLOWLIST');
   return provider.send(msg);
 }
+
+/** Allowlist is REQUIRED for automated reminders: an empty list means nothing is sent. */
+export function strictlyAllowed(to: string) {
+  const list = (process.env.STUDIO_EMAIL_ALLOWLIST ?? '').split(',').map((s) => s.trim().toLowerCase()).filter(Boolean);
+  return list.length > 0 && list.includes(to.trim().toLowerCase());
+}

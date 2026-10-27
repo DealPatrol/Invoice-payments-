@@ -24,6 +24,61 @@ const btn =
 const btnPrimary =
   'inline-flex items-center gap-2 rounded-md bg-[var(--accent)] px-3 py-2 text-sm font-semibold text-white hover:opacity-90';
 
+const LOGO_MAX_EDGE = 256;
+const LOGO_PASSTHROUGH_BYTES = 40 * 1024;
+
+function readAsDataUrl(file: File): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(String(reader.result || ''));
+    reader.onerror = () => reject(reader.error ?? new Error('Could not read image'));
+    reader.readAsDataURL(file);
+  });
+}
+
+function loadImage(file: File): Promise<HTMLImageElement> {
+  return new Promise((resolve, reject) => {
+    const url = URL.createObjectURL(file);
+    const img = new Image();
+    img.onload = () => {
+      URL.revokeObjectURL(url);
+      resolve(img);
+    };
+    img.onerror = () => {
+      URL.revokeObjectURL(url);
+      reject(new Error('Could not read image'));
+    };
+    img.src = url;
+  });
+}
+
+/** Shrink phone photos before they are copied into the profile and every invoice snapshot. */
+async function logoDataUrlFromFile(file: File): Promise<string> {
+  if (file.size > 0 && file.size <= LOGO_PASSTHROUGH_BYTES) return readAsDataUrl(file);
+  const img = await loadImage(file);
+  const edge = Math.max(img.naturalWidth, img.naturalHeight);
+  if (!edge) throw new Error('Could not read image');
+  const scale = Math.min(1, LOGO_MAX_EDGE / edge);
+  const width = Math.max(1, Math.round(img.naturalWidth * scale));
+  const height = Math.max(1, Math.round(img.naturalHeight * scale));
+  const canvas = document.createElement('canvas');
+  canvas.width = width;
+  canvas.height = height;
+  const ctx = canvas.getContext('2d');
+  if (!ctx) throw new Error('Could not read image');
+  ctx.fillStyle = '#ffffff';
+  ctx.fillRect(0, 0, width, height);
+  ctx.drawImage(img, 0, 0, width, height);
+  let quality = 0.82;
+  let dataUrl = canvas.toDataURL('image/jpeg', quality);
+  while (dataUrl.length > 48000 && quality > 0.5) {
+    quality -= 0.16;
+    dataUrl = canvas.toDataURL('image/jpeg', quality);
+  }
+  if (dataUrl.length > 48000) throw new Error('logo too large');
+  return dataUrl;
+}
+
 export function InvoiceStudio() {
   const params = useSearchParams();
   const shared = params.get('doc');
@@ -72,19 +127,31 @@ export function InvoiceStudio() {
     update({ items: draft.items.map((i) => (i.id === id ? { ...i, ...patch } : i)) });
 
   const persistProfile = (p: BusinessProfile) => {
+    if (!saveProfile(p)) {
+      flash('Could not save (storage full)');
+      return false;
+    }
     setProfile(p);
-    saveProfile(p);
+    return true;
   };
 
   const saveDraft = () => {
     const exists = invoices.some((i) => i.id === draft.id);
     const list = exists ? invoices.map((i) => (i.id === draft.id ? draft : i)) : [draft, ...invoices];
+    if (!saveInvoices(list)) {
+      flash('Could not save (storage full)');
+      return;
+    }
     setInvoices(list);
-    saveInvoices(list);
     if (!exists) {
       // bump auto-number only when a brand-new invoice used the next number
       if (draft.number === formatInvoiceNumber(profile.invoicePrefix, profile.nextNumber)) {
-        persistProfile({ ...profile, nextNumber: profile.nextNumber + 1 });
+        const nextProfile = { ...profile, nextNumber: profile.nextNumber + 1 };
+        if (!saveProfile(nextProfile)) {
+          flash('Saved, but storage is too full to update the next number');
+          return;
+        }
+        setProfile(nextProfile);
       }
     }
     flash(`Saved ${draft.number}`);
@@ -107,21 +174,33 @@ export function InvoiceStudio() {
   const remove = (id: string) => {
     if (!confirm('Delete this invoice from this device?')) return;
     const list = invoices.filter((i) => i.id !== id);
+    if (!saveInvoices(list)) {
+      flash('Could not save (storage full)');
+      return;
+    }
     setInvoices(list);
-    saveInvoices(list);
   };
 
   const setStatus = (id: string, status: StudioStatus) => {
     const list = invoices.map((i) => (i.id === id ? { ...i, status } : i));
+    if (!saveInvoices(list)) {
+      flash('Could not save (storage full)');
+      return;
+    }
     setInvoices(list);
-    saveInvoices(list);
     if (draft.id === id) setDraft({ ...draft, status });
   };
 
   const copyLink = async () => {
+    const logoOmitted = Boolean(draft.business.logoDataUrl);
     const url = `${window.location.origin}/studio?doc=${encodeInvoice(draft)}`;
-    await navigator.clipboard.writeText(url).catch(() => undefined);
-    flash('Shareable link copied');
+    try {
+      if (!navigator.clipboard?.writeText) throw new Error('clipboard unavailable');
+      await navigator.clipboard.writeText(url);
+      flash(logoOmitted ? 'Link copied (logo omitted so it stays short)' : 'Shareable link copied');
+    } catch {
+      flash('Could not copy link');
+    }
   };
 
   const printPdf = () => {
@@ -143,17 +222,24 @@ export function InvoiceStudio() {
     file.text().then((txt) => {
       try {
         const data = JSON.parse(txt);
-        if (data.profile) persistProfile({ ...DEFAULT_PROFILE, ...data.profile });
-        if (Array.isArray(data.invoices)) { setInvoices(data.invoices); saveInvoices(data.invoices); }
+        if (data.profile) {
+          const next = { ...DEFAULT_PROFILE, ...data.profile };
+          if (!saveProfile(next)) { flash('Could not restore (storage full)'); return; }
+          setProfile(next);
+        }
+        if (Array.isArray(data.invoices)) {
+          if (!saveInvoices(data.invoices)) { flash('Could not restore (storage full)'); return; }
+          setInvoices(data.invoices);
+        }
         flash('Backup imported');
       } catch { flash('Could not read that file'); }
     });
   };
 
   const onLogo = (file: File) => {
-    const reader = new FileReader();
-    reader.onload = () => persistProfile({ ...profile, logoDataUrl: String(reader.result) });
-    reader.readAsDataURL(file);
+    logoDataUrlFromFile(file)
+      .then((logoDataUrl) => { persistProfile({ ...profile, logoDataUrl }); })
+      .catch(() => flash('Could not read that image'));
   };
 
   const tabs: { id: Tab; label: string; icon: typeof FileText }[] = [
@@ -375,7 +461,7 @@ export function InvoiceStudio() {
           )}
         </div>
 
-        <div className="print-reset overflow-x-auto">
+        <div className="print-reset overflow-x-auto print:!overflow-visible">
           <InvoiceDocument invoice={draft} />
         </div>
       </div>

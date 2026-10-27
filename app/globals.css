@@ -149,10 +149,12 @@ a {
 }
 
 @media print {
-  @page { size: letter; margin: 0; }
-  html, body { background: #fff !important; }
+  @page { size: letter; margin: 0.5in 0.6in; }
+  html, body { background: #fff !important; height: auto !important; overflow: visible !important; }
   .no-print { display: none !important; }
-  .print-reset { margin: 0 !important; padding: 0 !important; background: #fff !important; }
-  .invoice-doc { box-shadow: none; border-radius: 0; max-width: none; width: 8.5in; height: 11in; min-height: 0; overflow: hidden; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-  .inv-bar { border-radius: 0; }
+  .print-reset { margin: 0 !important; padding: 0 !important; background: #fff !important; overflow: visible !important; height: auto !important; max-height: none !important; }
+  .invoice-doc { box-shadow: none; border-radius: 0; max-width: none; width: auto; height: auto; min-height: 0; overflow: visible; display: block; break-inside: auto; page-break-inside: auto; padding: 0; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  .inv-bar { position: static; border-radius: 0; margin-bottom: 16px; }
+  .inv-table { break-inside: auto; page-break-inside: auto; }
+  .inv-table tr { break-inside: avoid; page-break-inside: avoid; }
 }

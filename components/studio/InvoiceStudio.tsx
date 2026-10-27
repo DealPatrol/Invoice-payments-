@@ -4,10 +4,12 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
 import {
   BarChart3, Bell, Building2, Copy, CreditCard, Download, FilePlus2, FileSpreadsheet, FileText, Link2, Package,
-  Mail, Pencil, Plus, Cloud, CloudOff, Printer, Repeat, Save, ScrollText, Trash2, Upload, Users, X, ArrowRightLeft, ExternalLink,
+  Mail, Pencil, Clock, Calculator, Plus, Cloud, CloudOff, Printer, Repeat, Save, ScrollText, Trash2, Upload, Users, X, ArrowRightLeft, ExternalLink,
 } from 'lucide-react';
 import { InvoiceDocument } from './InvoiceDocument';
 import { CatalogPanel, ClientsPanel, Dashboard, StatusBadge } from './StudioPanels';
+import { BrandSwitcher, ExpensesTimePanel, PortalCard, TaxReportPanel, TrackingCard } from './SuitePanels';
+import { DEFAULT_EXTRAS, billToInvoice, ensureBrands, loadExtras, normalizeExtras, saveExtras, syncActiveBrand, type StudioExtras } from '@/lib/studio-suite';
 import { btn, btnPrimary, btnSm, card, input, label } from './ui';
 import {
   addDays, calcTotals, decodeInvoice, encodeInvoice, formatInvoiceNumber, formatMoney, formatDate,
@@ -21,7 +23,7 @@ import {
   advanceDate, amountDue, convertEstimate, displayStatus, generateDueRecurring, invoicesToCSV, recordPayment, reminderDraft, removePayment,
 } from '@/lib/studio-ops';
 
-type Tab = 'dashboard' | 'edit' | 'invoices' | 'estimates' | 'clients' | 'items' | 'profile';
+type Tab = 'dashboard' | 'edit' | 'invoices' | 'estimates' | 'clients' | 'items' | 'work' | 'tax' | 'profile';
 
 function download(name: string, content: string, type: string) {
   const a = document.createElement('a');
@@ -98,6 +100,7 @@ export function InvoiceStudio() {
   const [invoices, setInvoices] = useState<StudioInvoice[]>([]);
   const [clients, setClients] = useState<StudioClient[]>([]);
   const [catalog, setCatalog] = useState<CatalogItem[]>([]);
+  const [extras, setExtras] = useState<StudioExtras>(DEFAULT_EXTRAS);
   const [draft, setDraft] = useState<StudioInvoice | null>(null);
   const [toast, setToast] = useState('');
   const [query, setQuery] = useState('');
@@ -125,8 +128,10 @@ export function InvoiceStudio() {
     setInvoices(list);
     setClients(loadClients());
     setCatalog(loadCatalog());
+    const x = ensureBrands(loadExtras(), p);
+    saveExtras(x); setExtras(x);
     const fromLink = shared ? decodeInvoice(shared) : null;
-    setDraft(fromLink ?? newInvoice(p));
+    setDraft(fromLink ?? { ...newInvoice(p), brandId: x.activeBrandId });
     if (fromLink) setTab('edit');
     else if (!localStorage.getItem('invoiceos.studio.profile.v1')) setTab('profile');
     if (initialTab) setTab(initialTab);
@@ -160,6 +165,7 @@ export function InvoiceStudio() {
             clients: [...server.clients, ...loadClients().filter((c) => !server.clients.some((s: StudioClient) => s.id === c.id))],
             catalog: [...server.catalog, ...loadCatalog().filter((c) => !server.catalog.some((s: CatalogItem) => s.id === c.id))],
             invoices: [...server.invoices, ...localOnly],
+            extras: server.extras && Object.keys(server.extras).length ? server.extras : loadExtras(),
             prune: false,
           };
           const put = await fetch('/api/studio/sync', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(merged) });
@@ -174,6 +180,7 @@ export function InvoiceStudio() {
       setInvoices(server.invoices); saveInvoices(server.invoices);
       setClients(server.clients); saveClients(server.clients);
       setCatalog(server.catalog); saveCatalog(server.catalog);
+      if (server.extras && Object.keys(server.extras).length) { const sx = ensureBrands(normalizeExtras(server.extras), server.profile ?? loadProfile()); setExtras(sx); saveExtras(sx); }
       setCloud('on');
     })();
     return () => { cancelled = true; };
@@ -183,10 +190,10 @@ export function InvoiceStudio() {
   const pushNow = useCallback(async () => {
     const res = await fetch('/api/studio/sync', {
       method: 'PUT', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ profile, invoices, clients, catalog }),
+      body: JSON.stringify({ profile, invoices, clients, catalog, extras }),
     }).catch(() => null);
     return res?.ok ?? false;
-  }, [profile, invoices, clients, catalog]);
+  }, [profile, invoices, clients, catalog, extras]);
 
   useEffect(() => {
     if (cloud !== 'on') return;
@@ -246,7 +253,38 @@ export function InvoiceStudio() {
   const updateCustomer = (patch: Partial<StudioInvoice['customer']>) => update({ customer: { ...draft.customer, ...patch } });
   const updateItem = (id: string, patch: Partial<StudioLineItem>) =>
     update({ items: draft.items.map((i) => (i.id === id ? { ...i, ...patch } : i)) });
-  const persistProfile = (p: BusinessProfile) => { if (!saveProfile(p)) flash('Could not save on this device (storage full)'); setProfile(p); };
+  const persistExtras = (x: StudioExtras) => { if (!saveExtras(x)) flash('Could not save on this device (storage full)'); setExtras(x); };
+  const persistProfile = (p: BusinessProfile) => {
+    if (!saveProfile(p)) flash('Could not save on this device (storage full)');
+    setProfile(p);
+    setExtras((x) => { const nx = syncActiveBrand(x, p); saveExtras(nx); return nx; });
+  };
+  const switchBrand = (id: string) => {
+    const b = extras.brands.find((x) => x.id === id);
+    if (!b) return;
+    const nx = { ...syncActiveBrand(extras, profile), activeBrandId: id };
+    persistExtras(nx); saveProfile(b.profile); setProfile(b.profile);
+    setDraft({ ...newInvoice(b.profile), brandId: id });
+    flash(`Switched to ${b.profile.name || 'business'}`);
+  };
+  const addBrand = () => {
+    const id = uid();
+    const p = { ...profile, name: 'New business', tagline: '', logoDataUrl: '', paymentLinkUrl: '', nextNumber: 1001, invoicePrefix: 'NB-' };
+    const nx = { ...syncActiveBrand(extras, profile), brands: [...extras.brands, { id, profile: p }], activeBrandId: id };
+    persistExtras(nx); saveProfile(p); setProfile(p); setDraft({ ...newInvoice(p), brandId: id }); setTab('profile');
+  };
+  const billWork = (expenseIds: string[], timeIds: string[]) => {
+    if (!draft) return;
+    const out = billToInvoice(draft, extras, expenseIds, timeIds);
+    setDraft(out.invoice); persistExtras(out.extras); setTab('edit');
+    flash(`Added ${expenseIds.length + timeIds.length} item(s) — save the invoice to keep them`);
+  };
+  const copyPortal = async (c: StudioClient) => {
+    const res = await fetch('/api/studio/portal', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ email: c.email }) }).catch(() => null);
+    if (!res?.ok) return flash('Could not create a portal link (sign in first)');
+    const { url } = await res.json();
+    try { await navigator.clipboard.writeText(url); flash(`Portal link for ${c.name} copied`); } catch { window.prompt('Copy this link:', url); }
+  };
   const persistInvoices = (list: StudioInvoice[]) => { if (!saveInvoices(list)) flash('Could not save on this device (storage full)'); setInvoices(list); };
   const persistClients = (list: StudioClient[]) => { setClients(list); saveClients(list); };
   const persistCatalog = (list: CatalogItem[]) => { setCatalog(list); saveCatalog(list); };
@@ -288,7 +326,7 @@ export function InvoiceStudio() {
   };
 
   const startNew = (kind: DocKind = 'invoice', client?: StudioClient) => {
-    const inv = newInvoice(profile, kind);
+    const inv = { ...newInvoice(profile, kind), brandId: extras.activeBrandId };
     if (client) { inv.customer = { name: client.name, company: client.company, email: client.email, phone: client.phone, address: client.address }; inv.clientId = client.id; }
     setDraft(inv);
     setTab('edit');
@@ -364,7 +402,7 @@ export function InvoiceStudio() {
     flash('Marked as sent (nothing was emailed)');
   };
 
-  const exportData = () => download(`invoice-studio-backup-${today}.json`, JSON.stringify({ version: 2, profile, invoices, clients, catalog }, null, 2), 'application/json');
+  const exportData = () => download(`invoice-studio-backup-${today}.json`, JSON.stringify({ version: 3, profile, invoices, clients, catalog, extras: syncActiveBrand(extras, profile) }, null, 2), 'application/json');
   const importData = (file: File) => {
     file.text().then((txt) => {
       try {
@@ -373,6 +411,7 @@ export function InvoiceStudio() {
         if (Array.isArray(data.invoices)) { saveInvoices(data.invoices); setInvoices(loadInvoices()); }
         if (Array.isArray(data.clients)) persistClients(data.clients);
         if (Array.isArray(data.catalog)) persistCatalog(data.catalog);
+        if (data.extras) persistExtras(ensureBrands(normalizeExtras(data.extras), loadProfile()));
         flash('Backup restored');
       } catch { flash('Could not read that file'); }
     });
@@ -387,8 +426,9 @@ export function InvoiceStudio() {
   const openDoc = (inv: StudioInvoice) => { setDraft(inv); setTab('edit'); };
   const saved = invoices.some((i) => i.id === draft.id);
   const status = displayStatus(draft, today);
-  const invoiceList = invoices.filter((i) => i.kind === 'invoice');
-  const estimateList = invoices.filter((i) => i.kind === 'estimate');
+  const inBrand = (i: StudioInvoice) => !extras.activeBrandId || !i.brandId || i.brandId === extras.activeBrandId;
+  const invoiceList = invoices.filter((i) => i.kind === 'invoice' && inBrand(i));
+  const estimateList = invoices.filter((i) => i.kind === 'estimate' && inBrand(i));
 
   const tabs: { id: Tab; label: string; icon: typeof FileText }[] = [
     { id: 'dashboard', label: 'Dashboard', icon: BarChart3 },
@@ -397,6 +437,8 @@ export function InvoiceStudio() {
     { id: 'estimates', label: `Estimates (${estimateList.length})`, icon: ScrollText },
     { id: 'clients', label: 'Clients', icon: Users },
     { id: 'items', label: 'Items', icon: Package },
+    { id: 'work', label: 'Time & expenses', icon: Clock },
+    { id: 'tax', label: 'Tax report', icon: Calculator },
     { id: 'profile', label: 'Business', icon: Building2 },
   ];
 
@@ -423,6 +465,7 @@ export function InvoiceStudio() {
                   <div className="flex items-center gap-2 font-semibold text-[var(--text)]">
                     {inv.number} · {inv.customer.name || 'No customer'} <StatusBadge status={displayStatus(inv, today)} />
                     {inv.recurring?.active && <Repeat size={13} className="text-[var(--accent)]" aria-label="Recurring" />}
+                    {(inv.views?.length ?? 0) > 0 && <span className="text-xs font-normal text-[var(--text-muted)]">👁 {inv.views!.length}</span>}
                   </div>
                   <div className="text-xs text-[var(--text-muted)]">
                     {formatDate(inv.issueDate)} · {kind === 'invoice' ? 'due' : 'valid until'} {formatDate(inv.dueDate)} · {formatMoney(t.total, inv.business.currency)}
@@ -455,7 +498,8 @@ export function InvoiceStudio() {
             </span></h1>
           <p className="text-sm text-[var(--text-muted)]">Invoices, estimates, clients and payments for any business.{cloud === 'on' ? ' Saved to your account and this device.' : cloud === 'signedout' ? <> <a className="underline" href="/login?callbackUrl=/studio">Sign in</a> to sync across devices and send secure client links.</> : ' Saved on this device — back up anytime.'}</p>
         </div>
-        <div className="flex flex-wrap gap-2">
+        <div className="flex flex-wrap items-center gap-2">
+          <BrandSwitcher extras={extras} onSwitch={(b) => switchBrand(b.id)} onAdd={addBrand} />
           <button className={btn} onClick={() => startNew('estimate')}><ScrollText size={16} />New estimate</button>
           <button className={btnPrimary} onClick={() => startNew('invoice')}><FilePlus2 size={16} />New invoice</button>
         </div>
@@ -476,6 +520,9 @@ export function InvoiceStudio() {
           {tab === 'invoices' && renderDocList('invoice')}
           {tab === 'estimates' && renderDocList('estimate')}
           {tab === 'clients' && <ClientsPanel clients={clients} invoices={invoices} onChange={persistClients} onNewFor={(c) => startNew('invoice', c)} />}
+          {tab === 'clients' && <PortalCard clients={clients} enabled={cloud === 'on'} onCopy={copyPortal} />}
+          {tab === 'work' && <ExpensesTimePanel extras={extras} currency={profile.currency} brandId={extras.activeBrandId} draft={draft} clients={clients} onChange={persistExtras} onBill={billWork} />}
+          {tab === 'tax' && <TaxReportPanel invoices={invoices} extras={extras} currency={profile.currency} onDownload={(n, csv) => download(n, csv, 'text/csv')} />}
           {tab === 'items' && <CatalogPanel items={catalog} currency={profile.currency} onChange={persistCatalog} />}
 
           {tab === 'profile' && (
@@ -541,6 +588,10 @@ export function InvoiceStudio() {
                   <input type="number" min={0} max={25} step={0.5} className={input} value={profile.lateFeePercent} onChange={(e) => persistProfile({ ...profile, lateFeePercent: Math.max(0, Number(e.target.value) || 0) })} /></div>
                 <div className="sm:col-span-2"><label className={label}>Default notes</label>
                   <textarea rows={2} className={input} value={profile.defaultNotes} onChange={(e) => persistProfile({ ...profile, defaultNotes: e.target.value })} /></div>
+                <div className="sm:col-span-2"><label className={label}>Overdue reminders (days after due, comma separated)</label>
+                  <input className={input} defaultValue={extras.reminderOffsets.join(', ')} key={extras.reminderOffsets.join(',')}
+                    onBlur={(e) => { const o = [...new Set(e.target.value.split(',').map((v) => Math.round(Number(v))).filter((n) => n > 0 && n <= 365))].sort((x, y) => x - y); persistExtras({ ...extras, reminderOffsets: o.length ? o : [1, 7, 14, 30] }); }} />
+                  <p className="mt-1 text-xs text-[var(--text-muted)]">Daily job prepares reminder drafts. It only emails when STUDIO_REMINDERS_AUTO=true and the client is on the email allowlist.</p></div>
               </div>
               <div className="mt-4 flex flex-wrap gap-2">
                 <button className={btnPrimary} onClick={() => { setDraft({ ...draft, business: { ...profile } }); setTab('edit'); flash('Profile applied to current document'); }}>Apply to current document</button>
@@ -572,6 +623,7 @@ export function InvoiceStudio() {
                   )}
                 </div>
               </div>
+              {saved && draft.status !== 'draft' && <TrackingCard inv={draft} offsets={extras.reminderOffsets} today={today} />}
 
               <div className={card}>
                 <div className="grid gap-3 sm:grid-cols-2">

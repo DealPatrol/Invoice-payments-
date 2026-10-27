@@ -7,12 +7,14 @@ import type { Prisma } from '@prisma/client';
 import { prisma } from './db';
 import { DEFAULT_PROFILE, normalizeInvoice, uid, type BusinessProfile, type CatalogItem, type StudioClient, type StudioInvoice, type StudioPayment } from './studio';
 import { calcTotals } from './studio';
+import { normalizeExtras, recordViewOn, type StudioExtras } from './studio-suite';
 
 export interface StudioSnapshot {
   profile: BusinessProfile | null;
   clients: StudioClient[];
   catalog: CatalogItem[];
   invoices: StudioInvoice[];
+  extras?: StudioExtras;
 }
 
 const json = (v: unknown) => v as Prisma.InputJsonValue;
@@ -35,6 +37,7 @@ export async function loadSnapshot(userId: string): Promise<StudioSnapshot> {
     clients: (ws?.clients as unknown as StudioClient[]) ?? [],
     catalog: (ws?.catalog as unknown as CatalogItem[]) ?? [],
     invoices: docs.map((d) => normalizeInvoice({ ...(d.data as object), shareToken: d.shareToken ?? '' })),
+    extras: normalizeExtras(ws?.extras as Partial<StudioExtras> | undefined),
   };
 }
 
@@ -48,8 +51,8 @@ export async function saveSnapshot(userId: string, snap: StudioSnapshot, prune =
   const ops: Prisma.PrismaPromise<unknown>[] = [
     prisma.studioWorkspace.upsert({
       where: { userId },
-      create: { userId, profile: json(snap.profile ?? DEFAULT_PROFILE), clients: json(snap.clients), catalog: json(snap.catalog) },
-      update: { profile: json(snap.profile ?? DEFAULT_PROFILE), clients: json(snap.clients), catalog: json(snap.catalog) },
+      create: { userId, profile: json(snap.profile ?? DEFAULT_PROFILE), clients: json(snap.clients), catalog: json(snap.catalog), extras: json(normalizeExtras(snap.extras)) },
+      update: { profile: json(snap.profile ?? DEFAULT_PROFILE), clients: json(snap.clients), catalog: json(snap.catalog), ...(snap.extras ? { extras: json(normalizeExtras(snap.extras)) } : {}) },
     }),
   ];
   for (const inv of snap.invoices) {
@@ -131,4 +134,77 @@ export async function recordStripePayment(docId: string, userId: string, payment
   const next: StudioInvoice = { ...updated, status: paid ? 'paid' : inv.status === 'draft' ? 'sent' : inv.status };
   await writeDoc(next);
   return next;
+}
+
+/** Merge server-owned tracking (link views, automated reminders) into a client-sent document. */
+export function mergeServerTracking(client: StudioInvoice, server: StudioInvoice | null): StudioInvoice {
+  if (!server) return client;
+  const reminders = Array.from(new Set([...client.remindersSent, ...server.remindersSent]));
+  return { ...client, views: server.views ?? [], remindersSent: reminders };
+}
+
+/** Records that the client opened the secure link. Never throws (tracking must not break the page). */
+export async function recordView(token: string, at = new Date().toISOString()) {
+  try {
+    const found = await getByToken(token);
+    if (!found) return;
+    await writeDoc(recordViewOn(found.invoice, at));
+  } catch (e) {
+    console.warn('[studio] view tracking failed', e);
+  }
+}
+
+/* ---------- client portal ---------- */
+
+export async function portalFor(userId: string, email: string): Promise<string> {
+  const key = email.trim().toLowerCase();
+  const existing = await prisma.studioPortal.findUnique({ where: { userId_email: { userId, email: key } } });
+  if (existing) return existing.token;
+  const token = newShareToken();
+  await prisma.studioPortal.create({ data: { token, userId, email: key } });
+  return token;
+}
+
+export async function revokePortal(userId: string, email: string) {
+  await prisma.studioPortal.deleteMany({ where: { userId, email: email.trim().toLowerCase() } });
+}
+
+/** Lists a client's non-draft documents, issuing secure links for any that do not have one yet. */
+export async function loadPortal(token: string) {
+  if (!/^[A-Za-z0-9_-]{32}$/.test(token)) return null;
+  const portal = await prisma.studioPortal.findUnique({ where: { token } });
+  if (!portal) return null;
+  const docs = await prisma.studioDocument.findMany({ where: { userId: portal.userId }, orderBy: { createdAt: 'desc' } });
+  const out: StudioInvoice[] = [];
+  for (const d of docs) {
+    const inv = normalizeInvoice({ ...(d.data as object), shareToken: d.shareToken ?? '' });
+    if (inv.customer.email.trim().toLowerCase() !== portal.email) continue;
+    if (inv.status === 'draft' && !(inv.kind === 'estimate' && inv.estimateStatus !== 'draft')) continue;
+    if (!d.shareToken) {
+      const t = newShareToken();
+      await prisma.studioDocument.update({ where: { id: d.id }, data: { shareToken: t } });
+      inv.shareToken = t;
+    }
+    out.push(inv);
+  }
+  return { email: portal.email, docs: out };
+}
+
+/** Marks automated reminders as sent on a document. */
+export async function markReminder(docId: string, userId: string, entry: string) {
+  const doc = await prisma.studioDocument.findFirst({ where: { id: docId, userId } });
+  if (!doc) return;
+  const inv = normalizeInvoice(doc.data as object);
+  if (inv.remindersSent.includes(entry)) return;
+  await writeDoc({ ...inv, remindersSent: [...inv.remindersSent, entry] });
+}
+
+export async function allWorkspaces() {
+  const ws = await prisma.studioWorkspace.findMany({ select: { userId: true, extras: true } });
+  return ws.map((w) => ({ userId: w.userId, extras: normalizeExtras(w.extras as Partial<StudioExtras>) }));
+}
+
+export async function userDocuments(userId: string) {
+  const docs = await prisma.studioDocument.findMany({ where: { userId } });
+  return docs.map((d) => normalizeInvoice({ ...(d.data as object), shareToken: d.shareToken ?? '' }));
 }

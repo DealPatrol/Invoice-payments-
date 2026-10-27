@@ -147,6 +147,7 @@ model StudioWorkspace {
   profile   Json
   clients   Json
   catalog   Json
+  extras    Json     @default("{}")
   updatedAt DateTime @updatedAt
 }
 
@@ -162,4 +163,14 @@ model StudioDocument {
   createdAt  DateTime @default(now())
 
   @@index([userId])
+}
+
+/// Invoice Studio client portal: one unguessable link per client (by email) listing all their documents.
+model StudioPortal {
+  token     String   @id
+  userId    String
+  email     String
+  createdAt DateTime @default(now())
+
+  @@unique([userId, email])
 }

@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { studioUser } from '@/lib/studio-auth';
-import { loadSnapshot, mergeServerPayments, saveSnapshot, type StudioSnapshot } from '@/lib/studio-server';
+import { loadSnapshot, mergeServerPayments, mergeServerTracking, saveSnapshot, type StudioSnapshot } from '@/lib/studio-server';
 import { normalizeInvoice } from '@/lib/studio';
 
 export async function GET() {
@@ -23,10 +23,11 @@ export async function PUT(request: NextRequest) {
     profile: body.profile ?? null,
     clients: body.clients,
     catalog: body.catalog,
+    extras: body.extras && typeof body.extras === 'object' ? body.extras : undefined,
     invoices: body.invoices.map((raw: object) => {
       const inv = normalizeInvoice(raw);
       const server = byId.get(inv.id) ?? null;
-      const merged = mergeServerPayments(inv, server);
+      const merged = mergeServerTracking(mergeServerPayments(inv, server), server);
       // Estimate responses come from the client link and are server-owned.
       return server?.clientResponse ? { ...merged, clientResponse: server.clientResponse, estimateStatus: merged.estimateStatus === 'converted' ? 'converted' : server.estimateStatus } : merged;
     }),

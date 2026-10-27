@@ -101,6 +101,8 @@ export interface StudioInvoice {
   remindersSent: string[];
   applyLateFee: boolean; // charge business.lateFeePercent once overdue
   clientResponse?: { action: 'accept' | 'decline'; name: string; at: string };
+  brandId: string; // which business/brand issued it ('' = default)
+  views?: string[]; // ISO timestamps the client opened the secure link (server-owned)
   shareToken: string; // server-issued token for the secure client link ('' = not shared)
   issueDate: string; // yyyy-mm-dd
   dueDate: string;
@@ -261,6 +263,8 @@ export function newInvoice(profile: BusinessProfile, kind: DocKind = 'invoice', 
     remindersSent: [],
     applyLateFee: false,
     shareToken: '',
+    brandId: '',
+    views: [],
     issueDate,
     termsDays: kind === 'estimate' ? 30 : profile.defaultTermsDays,
     dueDate: addDays(issueDate, kind === 'estimate' ? 30 : profile.defaultTermsDays),

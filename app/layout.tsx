@@ -1,4 +1,5 @@
 import type { Metadata, Viewport } from "next";
+import { Suspense } from "react";
 import { AppShell } from "@/components/AppShell";
 import "./globals.css";
 
@@ -22,7 +23,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" className="bg-[var(--background)] text-[var(--foreground)]">
-      <body><AppShell>{children}</AppShell></body>
+      <body><Suspense><AppShell>{children}</AppShell></Suspense></body>
     </html>
   );
 }

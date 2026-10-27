@@ -15,6 +15,7 @@ import {
   Sparkles,
   DollarSign,
   Palette,
+  Wand2,
 } from 'lucide-react';
 import { COLORS } from '@/lib/constants';
 
@@ -25,6 +26,7 @@ export function Sidebar() {
     { href: '/', label: 'Dashboard', icon: LayoutDashboard },
     { href: '/invoices', label: 'Invoices', icon: FileText },
     { href: '/invoices/create', label: 'New Invoice', icon: Plus },
+    { href: '/studio', label: 'Invoice Studio', icon: Wand2 },
     { href: '/templates', label: 'Templates', icon: Palette },
     { href: '/payments', label: 'Payments', icon: CreditCard },
     { href: '/reminders', label: 'Smart Reminders', icon: Bell },

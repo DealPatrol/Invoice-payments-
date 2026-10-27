@@ -1,7 +1,8 @@
+import { lateFee } from '@/lib/studio-ops';
 import { calcTotals, formatDate, formatMoney, lineTotal, termsLabel, type StudioInvoice } from '@/lib/studio';
 
 /** Clean, print-ready invoice (always light themed; sized for US Letter / A4). */
-export function InvoiceDocument({ invoice }: { invoice: StudioInvoice }) {
+export function InvoiceDocument({ invoice, today }: { invoice: StudioInvoice; today?: string }) {
   const b = invoice.business;
   const c = invoice.customer;
   const t = calcTotals(invoice);
@@ -10,6 +11,9 @@ export function InvoiceDocument({ invoice }: { invoice: StudioInvoice }) {
   const isEstimate = invoice.kind === 'estimate';
   const isPaid = !isEstimate && (invoice.status === 'paid' || (t.total > 0 && t.balanceDue <= 0));
   const payUrl = !isEstimate && !isPaid ? invoice.paymentLink || b.paymentLinkUrl : '';
+  const hasLateTerms = !isEstimate && invoice.applyLateFee && b.lateFeePercent > 0;
+  const fee = today ? lateFee(invoice, today) : 0;
+  const due = t.balanceDue + fee;
   const docWord = isEstimate ? 'Estimate' : 'Invoice';
   const showUnit = invoice.items.some((i) => i.unit);
 
@@ -57,11 +61,11 @@ export function InvoiceDocument({ invoice }: { invoice: StudioInvoice }) {
         </div>
         <dl className="inv-dates">
           <div><dt>{docWord} Date</dt><dd>{formatDate(invoice.issueDate)}</dd></div>
-          {!isEstimate && <div><dt>Terms</dt><dd>{termsLabel(invoice.termsDays)}</dd></div>}
+          {!isEstimate && <div><dt>Terms</dt><dd>{termsLabel(invoice.termsDays)}{hasLateTerms ? ` · ${b.lateFeePercent}% late fee` : ''}</dd></div>}
           <div><dt>{isEstimate ? 'Valid Until' : 'Due Date'}</dt><dd>{formatDate(invoice.dueDate)}</dd></div>
           {invoice.serviceDate && <div><dt>Service Date</dt><dd>{formatDate(invoice.serviceDate)}</dd></div>}
           {invoice.poNumber && <div><dt>PO / Job #</dt><dd>{invoice.poNumber}</dd></div>}
-          <div className="inv-due-box"><dt>{isEstimate ? 'Estimate Total' : 'Balance Due'}</dt><dd>{money(isEstimate ? t.total : t.balanceDue)}</dd></div>
+          <div className="inv-due-box"><dt>{isEstimate ? 'Estimate Total' : 'Balance Due'}</dt><dd>{money(isEstimate ? t.total : due)}</dd></div>
         </dl>
       </section>
 
@@ -96,7 +100,7 @@ export function InvoiceDocument({ invoice }: { invoice: StudioInvoice }) {
           {payUrl && (
             <div>
               <div className="inv-label">Pay Online</div>
-              <p><a className="inv-paylink" href={payUrl} target="_blank" rel="noreferrer">Pay {money(t.balanceDue)} securely online →</a></p>
+              <p><a className="inv-paylink" href={payUrl} target="_blank" rel="noreferrer">Pay {money(due)} securely online →</a></p>
             </div>
           )}
           {!isEstimate && invoice.payments.length > 0 && (
@@ -129,7 +133,8 @@ export function InvoiceDocument({ invoice }: { invoice: StudioInvoice }) {
           {t.shipping > 0 && <div><dt>Shipping / Delivery</dt><dd>{money(t.shipping)}</dd></div>}
           <div className="inv-total"><dt>Total</dt><dd>{money(t.total)}</dd></div>
           {!isEstimate && t.amountPaid > 0 && <div><dt>Amount Paid</dt><dd>−{money(t.amountPaid)}</dd></div>}
-          {!isEstimate && <div className="inv-balance"><dt>Balance Due</dt><dd>{money(t.balanceDue)}</dd></div>}
+          {fee > 0 && <div><dt>Late fee ({b.lateFeePercent}%)</dt><dd>{money(fee)}</dd></div>}
+          {!isEstimate && <div className="inv-balance"><dt>Balance Due</dt><dd>{money(due)}</dd></div>}
         </dl>
       </section>
 

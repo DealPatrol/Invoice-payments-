@@ -140,3 +140,26 @@ model ReminderLog {
   @@index([invoiceId])
   @@unique([invoiceId, kind, sentAt])
 }
+
+/// Invoice Studio: per-user settings, clients and catalog (JSON, last write wins).
+model StudioWorkspace {
+  userId    String   @id
+  profile   Json
+  clients   Json
+  catalog   Json
+  updatedAt DateTime @updatedAt
+}
+
+/// Invoice Studio invoices and estimates. `data` is the full StudioInvoice JSON.
+model StudioDocument {
+  id         String   @id
+  userId     String
+  kind       String
+  number     String
+  data       Json
+  shareToken String?  @unique
+  updatedAt  DateTime @updatedAt
+  createdAt  DateTime @default(now())
+
+  @@index([userId])
+}

@@ -1,6 +1,21 @@
 import Stripe from 'stripe';
 import { isPlan, type Plan } from './config';
 import { prisma } from './db';
+import { recordStripePayment } from './studio-server';
+
+/** Records a paid Invoice Studio checkout (card immediately, ACH on async success). */
+async function handleStudioPayment(session: Stripe.Checkout.Session, livemode: boolean) {
+  const { studioDocId, userId } = session.metadata ?? {};
+  if (!studioDocId || !userId) throw new Error('Studio session is missing metadata');
+  if (session.payment_status !== 'paid') return; // ACH still processing
+  if (livemode && process.env.STUDIO_ALLOW_LIVE_STRIPE !== 'true') throw new Error('Live Studio payments are disabled');
+  await recordStripePayment(studioDocId, userId, {
+    date: new Date((session.created ?? Date.now() / 1000) * 1000).toISOString().slice(0, 10),
+    amount: (session.amount_total ?? 0) / 100,
+    method: 'Stripe',
+    reference: session.id,
+  });
+}
 
 function planFromSubscription(subscription: Stripe.Subscription): Plan | null {
   const metadataPlan = subscription.metadata.plan;
@@ -70,6 +85,13 @@ async function handleSubscription(subscription: Stripe.Subscription) {
 }
 
 export async function processStripeEvent(event: Stripe.Event) {
+  if (
+    (event.type === 'checkout.session.completed' || event.type === 'checkout.session.async_payment_succeeded') &&
+    event.data.object.metadata?.kind === 'studio_invoice'
+  ) {
+    await handleStudioPayment(event.data.object, event.livemode);
+    return;
+  }
   if (event.type === 'checkout.session.completed') {
     await handleCheckoutCompleted(event.data.object);
     return;

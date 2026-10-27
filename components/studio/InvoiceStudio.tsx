@@ -1,10 +1,10 @@
 'use client';
 
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
 import {
   BarChart3, Bell, Building2, Copy, CreditCard, Download, FilePlus2, FileSpreadsheet, FileText, Link2, Package,
-  Pencil, Plus, Printer, Repeat, Save, ScrollText, Trash2, Upload, Users, X, ArrowRightLeft, ExternalLink,
+  Mail, Pencil, Plus, Cloud, CloudOff, Printer, Repeat, Save, ScrollText, Trash2, Upload, Users, X, ArrowRightLeft, ExternalLink,
 } from 'lucide-react';
 import { InvoiceDocument } from './InvoiceDocument';
 import { CatalogPanel, ClientsPanel, Dashboard, StatusBadge } from './StudioPanels';
@@ -18,7 +18,7 @@ import {
   type StudioClient, type StudioInvoice, type StudioLineItem, type StudioStatus,
 } from '@/lib/studio';
 import {
-  advanceDate, convertEstimate, displayStatus, generateDueRecurring, invoicesToCSV, recordPayment, reminderDraft, removePayment,
+  advanceDate, amountDue, convertEstimate, displayStatus, generateDueRecurring, invoicesToCSV, recordPayment, reminderDraft, removePayment,
 } from '@/lib/studio-ops';
 
 type Tab = 'dashboard' | 'edit' | 'invoices' | 'estimates' | 'clients' | 'items' | 'profile';
@@ -104,6 +104,10 @@ export function InvoiceStudio() {
   const [reminder, setReminder] = useState<ReturnType<typeof reminderDraft> | null>(null);
   const [pay, setPay] = useState({ amount: '', date: todayISO(), method: 'Cash', reference: '' });
   const today = todayISO();
+  // Cloud sync: 'local' = no DB configured, 'signedout' = DB but no session, 'on' = synced to account.
+  const [cloud, setCloud] = useState<'checking' | 'local' | 'signedout' | 'on'>('checking');
+  const skipPush = useRef(true);
+  const pushTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
     // Hydrate from localStorage after mount (not available during SSR).
@@ -135,15 +139,73 @@ export function InvoiceStudio() {
     setTimeout(() => setToast(''), 2400);
   }, []);
 
+  useEffect(() => {
+    if (!ready || clientView || printOnly) return;
+    let cancelled = false;
+    (async () => {
+      const res = await fetch('/api/studio/sync', { cache: 'no-store' }).catch(() => null);
+      if (cancelled) return;
+      if (!res || res.status === 503) return setCloud('local');
+      if (res.status === 401) return setCloud('signedout');
+      if (!res.ok) return setCloud('local');
+      let server = await res.json();
+      const migratedKey = 'invoiceos.studio.cloudMigrated.v1';
+      if (!localStorage.getItem(migratedKey)) {
+        // First sign-in on this browser: copy local documents into the account (never deletes server data).
+        const serverIds = new Set((server.invoices as StudioInvoice[]).map((i) => i.id));
+        const localOnly = loadInvoices().filter((i) => !serverIds.has(i.id));
+        if (localOnly.length || !server.profile) {
+          const merged = {
+            profile: server.profile ?? loadProfile(),
+            clients: [...server.clients, ...loadClients().filter((c) => !server.clients.some((s: StudioClient) => s.id === c.id))],
+            catalog: [...server.catalog, ...loadCatalog().filter((c) => !server.catalog.some((s: CatalogItem) => s.id === c.id))],
+            invoices: [...server.invoices, ...localOnly],
+            prune: false,
+          };
+          const put = await fetch('/api/studio/sync', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(merged) });
+          if (put.ok) server = await put.json();
+          if (localOnly.length) flash(`Moved ${localOnly.length} document(s) from this browser to your account`);
+        }
+        localStorage.setItem(migratedKey, new Date().toISOString());
+      }
+      if (cancelled) return;
+      skipPush.current = true;
+      if (server.profile) { setProfile(server.profile); saveProfile(server.profile); }
+      setInvoices(server.invoices); saveInvoices(server.invoices);
+      setClients(server.clients); saveClients(server.clients);
+      setCatalog(server.catalog); saveCatalog(server.catalog);
+      setCloud('on');
+    })();
+    return () => { cancelled = true; };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [ready]);
+
+  const pushNow = useCallback(async () => {
+    const res = await fetch('/api/studio/sync', {
+      method: 'PUT', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ profile, invoices, clients, catalog }),
+    }).catch(() => null);
+    return res?.ok ?? false;
+  }, [profile, invoices, clients, catalog]);
+
+  useEffect(() => {
+    if (cloud !== 'on') return;
+    if (skipPush.current) { skipPush.current = false; return; }
+    if (pushTimer.current) clearTimeout(pushTimer.current);
+    pushTimer.current = setTimeout(() => { void pushNow(); }, 800);
+    return () => { if (pushTimer.current) clearTimeout(pushTimer.current); };
+  }, [cloud, pushNow]);
+
   const totals = useMemo(() => (draft ? calcTotals(draft) : null), [draft]);
 
   if (!ready || !draft || !totals) return <div className="p-8 text-[var(--text-muted)]">Loading studio…</div>;
 
   if (printOnly) {
-    return <div className="print-reset min-h-screen bg-white"><InvoiceDocument invoice={draft} /></div>;
+    return <div className="print-reset min-h-screen bg-white"><InvoiceDocument invoice={draft} today={today} /></div>;
   }
 
   const docWord = draft.kind === 'estimate' ? 'Estimate' : 'Invoice';
+  const lateFeeNow = amountDue(draft, today) - totals.balanceDue;
   const printPdf = (inv = draft) => {
     const prev = document.title;
     document.title = `${inv.business.name} - ${inv.kind === 'estimate' ? 'Estimate' : 'Invoice'} ${inv.number}`;
@@ -155,11 +217,6 @@ export function InvoiceStudio() {
   if (clientView) {
     const st = displayStatus(draft, today);
     const payUrl = draft.paymentLink || draft.business.paymentLinkUrl;
-    const startCheckout = async () => {
-      const res = await fetch('/api/studio/checkout', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ doc: shared }) });
-      const data = await res.json().catch(() => ({}));
-      if (data.url) window.location.href = data.url; else flash(data.error || 'Online payment unavailable');
-    };
     return (
       <div className="print-reset min-h-screen bg-[#f3f4f6] p-3 sm:p-8">
         <div className="no-print mx-auto mb-4 flex max-w-[860px] flex-wrap items-center justify-between gap-3 rounded-xl bg-white p-4 shadow-sm">
@@ -174,12 +231,11 @@ export function InvoiceStudio() {
           </div>
           <div className="flex flex-wrap gap-2">
             <button className="inline-flex items-center gap-2 rounded-md border border-gray-300 px-3 py-2 text-sm font-semibold text-gray-800" onClick={() => printPdf()}><Download size={16} />Download PDF</button>
-            {draft.kind === 'invoice' && totals.balanceDue > 0 && (payUrl
-              ? <a href={payUrl} target="_blank" rel="noreferrer" className="inline-flex items-center gap-2 rounded-md px-4 py-2 text-sm font-bold text-white" style={{ background: draft.business.accentColor }}><CreditCard size={16} />Pay now</a>
-              : <button onClick={startCheckout} className="inline-flex items-center gap-2 rounded-md px-4 py-2 text-sm font-bold text-white" style={{ background: draft.business.accentColor }}><CreditCard size={16} />Pay by card</button>)}
+            {draft.kind === 'invoice' && totals.balanceDue > 0 && payUrl && (
+              <a href={payUrl} target="_blank" rel="noreferrer" className="inline-flex items-center gap-2 rounded-md px-4 py-2 text-sm font-bold text-white" style={{ background: draft.business.accentColor }}><CreditCard size={16} />Pay now</a>)}
           </div>
         </div>
-        <div className="mx-auto max-w-[860px] overflow-x-auto"><InvoiceDocument invoice={draft} /></div>
+        <div className="mx-auto max-w-[860px] overflow-x-auto"><InvoiceDocument invoice={draft} today={today} /></div>
         {toast && <div className="no-print fixed bottom-6 left-1/2 -translate-x-1/2 rounded-lg bg-gray-900 px-4 py-2 text-sm text-white">{toast}</div>}
       </div>
     );
@@ -241,7 +297,7 @@ export function InvoiceStudio() {
   const duplicate = (inv: StudioInvoice) => {
     const fresh = newInvoice(profile, inv.kind);
     setDraft({ ...inv, id: fresh.id, number: fresh.number, status: 'draft', estimateStatus: 'draft', issueDate: fresh.issueDate,
-      dueDate: addDays(fresh.issueDate, inv.termsDays), amountPaid: 0, payments: [], recurring: null, sentAt: '', remindersSent: [],
+      dueDate: addDays(fresh.issueDate, inv.termsDays), amountPaid: 0, payments: [], recurring: null, sentAt: '', remindersSent: [], shareToken: '', clientResponse: undefined,
       convertedFromId: '', convertedToId: '', business: { ...profile }, createdAt: fresh.createdAt, updatedAt: fresh.updatedAt });
     setTab('edit');
     flash('Duplicated — remember to save');
@@ -272,11 +328,34 @@ export function InvoiceStudio() {
     } catch (e) { flash(e instanceof Error ? e.message : 'Invalid payment'); }
   };
 
+  /** Secure server link when signed in (amount verified server-side); offline link otherwise. */
+  const secureLink = async (inv: StudioInvoice): Promise<string | null> => {
+    if (cloud !== 'on') return null;
+    if (!invoices.some((i) => i.id === inv.id)) { flash('Save the document first'); return ''; }
+    if (pushTimer.current) clearTimeout(pushTimer.current);
+    await pushNow();
+    const res = await fetch('/api/studio/share', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id: inv.id }) });
+    const data = await res.json().catch(() => ({}));
+    if (!data.url) { flash(data.error || 'Could not create link'); return ''; }
+    return data.url as string;
+  };
+
   const copyLink = async (inv = draft) => {
+    const secure = await secureLink(inv);
+    if (secure === '') return;
     try {
-      await navigator.clipboard.writeText(shareUrl(inv));
-      flash('Client view link copied');
-    } catch { flash('Could not copy link'); }
+      await navigator.clipboard.writeText(secure ?? shareUrl(inv));
+      flash(secure ? 'Secure client link copied' : 'Client view link copied (offline link — sign in for secure links)');
+    } catch { flash(secure ? `Copy this link: ${secure}` : 'Could not copy link'); }
+  };
+
+  const sendEmail = async (inv = draft) => {
+    if (cloud !== 'on') return flash('Sign in to send email');
+    if (!confirm(`Email ${inv.number} to ${inv.customer.email || '(no email)'}?`)) return;
+    await pushNow();
+    const res = await fetch('/api/studio/send', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id: inv.id }) });
+    const data = await res.json().catch(() => ({}));
+    if (data.sent) markSent(inv); else flash(data.error || 'Email not sent');
   };
 
   const markSent = (inv: StudioInvoice) => {
@@ -370,8 +449,11 @@ export function InvoiceStudio() {
     <div className="print-reset p-4 sm:p-6 lg:p-8">
       <div className="no-print mb-5 flex flex-wrap items-center justify-between gap-3">
         <div>
-          <h1 className="text-2xl font-black text-[var(--text)]">Invoice Studio</h1>
-          <p className="text-sm text-[var(--text-muted)]">Invoices, estimates, clients and payments for any business. Saved on this device — back up anytime.</p>
+          <h1 className="flex items-center gap-2 text-2xl font-black text-[var(--text)]">Invoice Studio
+            <span className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-semibold ${cloud === 'on' ? 'bg-green-500/15 text-green-600' : 'bg-gray-500/15 text-[var(--text-muted)]'}`}>
+              {cloud === 'on' ? <><Cloud size={12} />Synced to account</> : <><CloudOff size={12} />{cloud === 'signedout' ? 'Not signed in — this device only' : 'This device only'}</>}
+            </span></h1>
+          <p className="text-sm text-[var(--text-muted)]">Invoices, estimates, clients and payments for any business.{cloud === 'on' ? ' Saved to your account and this device.' : cloud === 'signedout' ? <> <a className="underline" href="/login?callbackUrl=/studio">Sign in</a> to sync across devices and send secure client links.</> : ' Saved on this device — back up anytime.'}</p>
         </div>
         <div className="flex flex-wrap gap-2">
           <button className={btn} onClick={() => startNew('estimate')}><ScrollText size={16} />New estimate</button>
@@ -455,6 +537,8 @@ export function InvoiceStudio() {
                 <div className="sm:col-span-2"><label className={label}>Default payment instructions</label>
                   <textarea rows={2} className={input} placeholder="e.g. Cash, check payable to …, Venmo @…, Zelle …" value={profile.paymentInstructions}
                     onChange={(e) => persistProfile({ ...profile, paymentInstructions: e.target.value })} /></div>
+                <div><label className={label}>Late fee % (optional, one-time when overdue)</label>
+                  <input type="number" min={0} max={25} step={0.5} className={input} value={profile.lateFeePercent} onChange={(e) => persistProfile({ ...profile, lateFeePercent: Math.max(0, Number(e.target.value) || 0) })} /></div>
                 <div className="sm:col-span-2"><label className={label}>Default notes</label>
                   <textarea rows={2} className={input} value={profile.defaultNotes} onChange={(e) => persistProfile({ ...profile, defaultNotes: e.target.value })} /></div>
               </div>
@@ -471,13 +555,15 @@ export function InvoiceStudio() {
           {tab === 'edit' && (
             <>
               <div className={card + ' flex flex-wrap items-center justify-between gap-2'}>
-                <div className="flex items-center gap-2 font-bold text-[var(--text)]">{docWord} {draft.number} <StatusBadge status={status} />{!saved && <span className="text-xs font-normal text-[var(--text-muted)]">unsaved</span>}</div>
+                <div className="flex items-center gap-2 font-bold text-[var(--text)]">{docWord} {draft.number} <StatusBadge status={status} />{!saved && <span className="text-xs font-normal text-[var(--text-muted)]">unsaved</span>}
+                  {draft.clientResponse && <span className="text-xs font-normal text-[var(--text-muted)]">{draft.clientResponse.action === 'accept' ? 'Accepted' : 'Declined'} by {draft.clientResponse.name} on {formatDate(draft.clientResponse.at.slice(0, 10))}</span>}</div>
                 <div className="flex flex-wrap gap-2">
                   <button className={btnSm} onClick={saveDraft}><Save size={13} />Save</button>
                   <button className={btnSm} onClick={() => copyLink()}><Link2 size={13} />Client link</button>
                   <a className={btnSm} href={shareUrl(draft)} target="_blank" rel="noreferrer"><ExternalLink size={13} />Preview</a>
                   <button className={btnSm} onClick={() => printPdf()}><Printer size={13} />PDF</button>
                   <button className={btnSm} onClick={() => markSent(draft)}>Mark sent</button>
+                  <button className={btnSm} title="Email the secure link (off unless STUDIO_EMAIL_ENABLED=true)" onClick={() => sendEmail(draft)}><Mail size={13} />Email</button>
                   {draft.kind === 'invoice' && draft.status !== 'draft' && totals.balanceDue > 0 && (
                     <button className={btnSm} onClick={() => setReminder(reminderDraft(draft, today, shareUrl(draft)))}><Bell size={13} />Reminder</button>
                   )}
@@ -507,6 +593,12 @@ export function InvoiceStudio() {
                       {TERMS_OPTIONS.map((t) => <option key={t.days} value={t.days}>{t.label}</option>)}
                     </select></div>
                   <div><label className={label}>{draft.kind === 'estimate' ? 'Valid until' : 'Due date'}</label><input type="date" className={input} value={draft.dueDate} onChange={(e) => update({ dueDate: e.target.value })} /></div>
+                  {draft.kind === 'invoice' && (
+                    <label className="flex items-center gap-2 text-sm text-[var(--text)] sm:col-span-2">
+                      <input type="checkbox" checked={draft.applyLateFee} disabled={!(profile.lateFeePercent > 0)} onChange={(e) => update({ applyLateFee: e.target.checked })} />
+                      Apply late fee{profile.lateFeePercent > 0 ? ` (${profile.lateFeePercent}% of balance if overdue${lateFeeNow > 0 ? ` — currently ${formatMoney(lateFeeNow, draft.business.currency)}` : ''})` : ' — set a late fee % in Business profile first'}
+                    </label>
+                  )}
                   <div><label className={label}>Service date (optional)</label><input type="date" className={input} value={draft.serviceDate} onChange={(e) => update({ serviceDate: e.target.value })} /></div>
                   <div><label className={label}>PO / Job # (optional)</label><input className={input} value={draft.poNumber} onChange={(e) => update({ poNumber: e.target.value })} /></div>
                   <div><label className={label}>Currency</label>
@@ -671,7 +763,7 @@ export function InvoiceStudio() {
           )}
         </div>
 
-        {showPreview && <div className="print-reset overflow-x-auto print:!overflow-visible"><InvoiceDocument invoice={draft} /></div>}
+        {showPreview && <div className="print-reset overflow-x-auto print:!overflow-visible"><InvoiceDocument invoice={draft} today={today} /></div>}
       </div>
 
       {reminder && (

@@ -1,45 +1,49 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { appUrl } from '@/lib/config';
 import { amountForStripe, getStripe } from '@/lib/stripe';
-import { calcTotals, decodeInvoice } from '@/lib/studio';
+import { getByToken, hasDatabase } from '@/lib/studio-server';
+import { amountDue } from '@/lib/studio-ops';
 
 /**
- * Creates a Stripe Checkout Session for the balance of an Invoice Studio invoice.
- * Disabled unless STUDIO_CHECKOUT_ENABLED=true and STRIPE_SECRET_KEY is set.
- * Live keys are refused unless STUDIO_ALLOW_LIVE_STRIPE=true (test mode by default).
- * Note: Studio share links are unsigned, so only enable this for trusted use.
+ * Creates a Stripe Checkout Session (card + US bank/ACH) for a shared Studio invoice.
+ * The invoice is looked up server-side by its unguessable share token, so the client
+ * cannot change the amount. Disabled unless STUDIO_CHECKOUT_ENABLED=true; live keys are
+ * refused unless STUDIO_ALLOW_LIVE_STRIPE=true (test mode by default).
  */
 export async function POST(request: NextRequest) {
   if (process.env.STUDIO_CHECKOUT_ENABLED !== 'true' || !process.env.STRIPE_SECRET_KEY) {
-    return NextResponse.json({ error: 'Online card payments are not enabled for Invoice Studio.' }, { status: 503 });
+    return NextResponse.json({ error: 'Online payments are not enabled for Invoice Studio.' }, { status: 503 });
   }
   const key = process.env.STRIPE_SECRET_KEY;
   if (/_live_/.test(key) && process.env.STUDIO_ALLOW_LIVE_STRIPE !== 'true') {
     return NextResponse.json({ error: 'Live Stripe keys are disabled for Invoice Studio.' }, { status: 503 });
   }
+  if (!hasDatabase()) return NextResponse.json({ error: 'Cloud storage is required for online payments.' }, { status: 503 });
   const body = await request.json().catch(() => ({}));
-  const invoice = typeof body.doc === 'string' ? decodeInvoice(body.doc) : null;
-  if (!invoice || invoice.kind !== 'invoice') {
-    return NextResponse.json({ error: 'Invalid invoice' }, { status: 400 });
-  }
-  const { balanceDue } = calcTotals(invoice);
-  if (balanceDue <= 0) return NextResponse.json({ error: 'Invoice is already paid' }, { status: 400 });
+  const found = typeof body.token === 'string' ? await getByToken(body.token) : null;
+  if (!found || found.invoice.kind !== 'invoice') return NextResponse.json({ error: 'Invalid invoice' }, { status: 400 });
+  const { invoice, userId } = found;
+  if (invoice.status === 'void') return NextResponse.json({ error: 'Invoice is void' }, { status: 400 });
+  const due = amountDue(invoice, new Date().toISOString().slice(0, 10));
+  if (due <= 0) return NextResponse.json({ error: 'Invoice is already paid' }, { status: 400 });
 
+  const currency = invoice.business.currency.toLowerCase();
   try {
-    const back = `${appUrl()}/studio?view=1&doc=${body.doc}`;
+    const back = `${appUrl()}/i/${body.token}`;
     const session = await getStripe().checkout.sessions.create({
       mode: 'payment',
+      payment_method_types: currency === 'usd' ? ['card', 'us_bank_account'] : ['card'],
       line_items: [{
         quantity: 1,
         price_data: {
-          currency: invoice.business.currency.toLowerCase(),
-          unit_amount: amountForStripe(balanceDue, invoice.business.currency),
+          currency,
+          unit_amount: amountForStripe(due, invoice.business.currency),
           product_data: { name: `Invoice ${invoice.number}`, description: invoice.business.name },
         },
       }],
-      metadata: { kind: 'studio_invoice', invoiceId: invoice.id, invoiceNumber: invoice.number },
+      metadata: { kind: 'studio_invoice', studioDocId: invoice.id, userId, invoiceNumber: invoice.number },
       customer_email: invoice.customer.email || undefined,
-      success_url: `${back}&paid=1`,
+      success_url: `${back}?paid=1`,
       cancel_url: back,
     });
     return NextResponse.json({ url: session.url });

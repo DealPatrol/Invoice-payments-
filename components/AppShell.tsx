@@ -14,7 +14,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   const setOpen = (value: boolean) => setOpenPath(value ? pathname : null);
 
   const isPrintView = pathname === '/studio' && (searchParams.get('print') === '1' || searchParams.get('view') === '1');
-  const isPublicPage = pathname === '/login' || pathname.startsWith('/pay/') || isPrintView;
+  const isPublicPage = pathname === '/login' || pathname.startsWith('/pay/') || pathname.startsWith('/i/') || isPrintView;
 
   if (isPublicPage) return children;
 

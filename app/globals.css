@@ -220,8 +220,8 @@ a { color: inherit; text-decoration: none; }
 /* Bold: full-bleed accent header band */
 .tpl-bold .inv-bar { display: none; }
 .tpl-bold .inv-header { background: var(--inv-accent); margin: -0.6in -0.65in 0; padding: 0.5in 0.65in 0.4in; border-radius: 10px 10px 0 0; }
-.tpl-bold .inv-header, .tpl-bold .inv-bizname, .tpl-bold .inv-contact, .tpl-bold .inv-number, .tpl-bold .inv-title, .tpl-bold .inv-tagline { color: #fff; }
-.tpl-bold .inv-tagline, .tpl-bold .inv-contact { opacity: 0.85; }
+.tpl-bold .inv-header, .tpl-bold .inv-bizname, .tpl-bold .inv-header .inv-contact, .tpl-bold .inv-number, .tpl-bold .inv-title, .tpl-bold .inv-tagline { color: #fff; }
+.tpl-bold .inv-tagline, .tpl-bold .inv-header .inv-contact { opacity: 0.85; }
 .tpl-bold .inv-title { font-size: 44px; letter-spacing: 0.02em; }
 .tpl-bold .inv-monogram { background: rgb(255 255 255 / 0.18); }
 .tpl-bold .inv-meta { border-top: none; }

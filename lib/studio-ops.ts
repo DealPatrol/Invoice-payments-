@@ -61,6 +61,20 @@ export function removePayment(inv: StudioInvoice, paymentId: string): StudioInvo
   return { ...next, status: inv.status === 'paid' && t.balanceDue > 0 ? 'sent' : inv.status };
 }
 
+/* ---------- late fees ---------- */
+
+/** One-time late fee on the open balance, only when opted in and overdue. */
+export function lateFee(inv: StudioInvoice, today: string): number {
+  if (inv.kind !== 'invoice' || !inv.applyLateFee || !(inv.business.lateFeePercent > 0)) return 0;
+  if (displayStatus(inv, today) !== 'overdue') return 0;
+  return round2(calcTotals(inv).balanceDue * (inv.business.lateFeePercent / 100));
+}
+
+/** What the client owes right now, including any late fee. */
+export function amountDue(inv: StudioInvoice, today: string): number {
+  return round2(calcTotals(inv).balanceDue + lateFee(inv, today));
+}
+
 /* ---------- estimates ---------- */
 
 export function convertEstimate(est: StudioInvoice, profile: BusinessProfile, today: string): StudioInvoice {
@@ -82,6 +96,7 @@ export function convertEstimate(est: StudioInvoice, profile: BusinessProfile, to
     convertedToId: '',
     sentAt: '',
     remindersSent: [],
+    shareToken: '',
     business: { ...profile },
     createdAt: base.createdAt,
     updatedAt: base.updatedAt,
@@ -134,6 +149,7 @@ export function generateDueRecurring(
         convertedFromId: tpl.id,
         sentAt: '',
         remindersSent: [],
+        shareToken: '',
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
       });

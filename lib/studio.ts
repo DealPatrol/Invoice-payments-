@@ -99,6 +99,9 @@ export interface StudioInvoice {
   convertedToId: string;
   sentAt: string;
   remindersSent: string[];
+  applyLateFee: boolean; // charge business.lateFeePercent once overdue
+  clientResponse?: { action: 'accept' | 'decline'; name: string; at: string };
+  shareToken: string; // server-issued token for the secure client link ('' = not shared)
   issueDate: string; // yyyy-mm-dd
   dueDate: string;
   termsDays: number;
@@ -253,6 +256,8 @@ export function newInvoice(profile: BusinessProfile, kind: DocKind = 'invoice', 
     convertedToId: '',
     sentAt: '',
     remindersSent: [],
+    applyLateFee: false,
+    shareToken: '',
     issueDate,
     termsDays: kind === 'estimate' ? 30 : profile.defaultTermsDays,
     dueDate: addDays(issueDate, kind === 'estimate' ? 30 : profile.defaultTermsDays),

@@ -7,7 +7,10 @@ export function InvoiceDocument({ invoice }: { invoice: StudioInvoice }) {
   const t = calcTotals(invoice);
   const money = (n: number) => formatMoney(n, b.currency);
   const accent = b.accentColor || '#4f6ef7';
-  const isPaid = invoice.status === 'paid' || (t.total > 0 && t.balanceDue <= 0);
+  const isEstimate = invoice.kind === 'estimate';
+  const isPaid = !isEstimate && (invoice.status === 'paid' || (t.total > 0 && t.balanceDue <= 0));
+  const payUrl = !isEstimate && !isPaid ? invoice.paymentLink || b.paymentLinkUrl : '';
+  const docWord = isEstimate ? 'Estimate' : 'Invoice';
   const showUnit = invoice.items.some((i) => i.unit);
 
   return (
@@ -35,7 +38,7 @@ export function InvoiceDocument({ invoice }: { invoice: StudioInvoice }) {
           </div>
         </div>
         <div className="inv-title-block">
-          <h2 className="inv-title">INVOICE</h2>
+          <h2 className="inv-title">{docWord.toUpperCase()}</h2>
           <div className="inv-number"># {invoice.number}</div>
           {isPaid && <div className="inv-paid">PAID</div>}
         </div>
@@ -53,12 +56,12 @@ export function InvoiceDocument({ invoice }: { invoice: StudioInvoice }) {
           </div>
         </div>
         <dl className="inv-dates">
-          <div><dt>Invoice Date</dt><dd>{formatDate(invoice.issueDate)}</dd></div>
-          <div><dt>Terms</dt><dd>{termsLabel(invoice.termsDays)}</dd></div>
-          <div><dt>Due Date</dt><dd>{formatDate(invoice.dueDate)}</dd></div>
+          <div><dt>{docWord} Date</dt><dd>{formatDate(invoice.issueDate)}</dd></div>
+          {!isEstimate && <div><dt>Terms</dt><dd>{termsLabel(invoice.termsDays)}</dd></div>}
+          <div><dt>{isEstimate ? 'Valid Until' : 'Due Date'}</dt><dd>{formatDate(invoice.dueDate)}</dd></div>
           {invoice.serviceDate && <div><dt>Service Date</dt><dd>{formatDate(invoice.serviceDate)}</dd></div>}
           {invoice.poNumber && <div><dt>PO / Job #</dt><dd>{invoice.poNumber}</dd></div>}
-          <div className="inv-due-box"><dt>Balance Due</dt><dd>{money(t.balanceDue)}</dd></div>
+          <div className="inv-due-box"><dt>{isEstimate ? 'Estimate Total' : 'Balance Due'}</dt><dd>{money(isEstimate ? t.total : t.balanceDue)}</dd></div>
         </dl>
       </section>
 
@@ -90,7 +93,21 @@ export function InvoiceDocument({ invoice }: { invoice: StudioInvoice }) {
 
       <section className="inv-bottom">
         <div className="inv-notes">
-          {invoice.paymentInstructions && (
+          {payUrl && (
+            <div>
+              <div className="inv-label">Pay Online</div>
+              <p><a className="inv-paylink" href={payUrl} target="_blank" rel="noreferrer">Pay {money(t.balanceDue)} securely online →</a></p>
+            </div>
+          )}
+          {!isEstimate && invoice.payments.length > 0 && (
+            <div>
+              <div className="inv-label">Payment History</div>
+              {invoice.payments.map((p) => (
+                <p key={p.id}>{formatDate(p.date)} · {p.method}{p.reference ? ` #${p.reference}` : ''} · {money(p.amount)}</p>
+              ))}
+            </div>
+          )}
+          {!isEstimate && invoice.paymentInstructions && (
             <div>
               <div className="inv-label">Payment Instructions</div>
               <p>{invoice.paymentInstructions}</p>
@@ -111,8 +128,8 @@ export function InvoiceDocument({ invoice }: { invoice: StudioInvoice }) {
           {invoice.taxRate > 0 && <div><dt>Tax ({invoice.taxRate}%)</dt><dd>{money(t.tax)}</dd></div>}
           {t.shipping > 0 && <div><dt>Shipping / Delivery</dt><dd>{money(t.shipping)}</dd></div>}
           <div className="inv-total"><dt>Total</dt><dd>{money(t.total)}</dd></div>
-          {t.amountPaid > 0 && <div><dt>Amount Paid</dt><dd>−{money(t.amountPaid)}</dd></div>}
-          <div className="inv-balance"><dt>Balance Due</dt><dd>{money(t.balanceDue)}</dd></div>
+          {!isEstimate && t.amountPaid > 0 && <div><dt>Amount Paid</dt><dd>−{money(t.amountPaid)}</dd></div>}
+          {!isEstimate && <div className="inv-balance"><dt>Balance Due</dt><dd>{money(t.balanceDue)}</dd></div>}
         </dl>
       </section>
 

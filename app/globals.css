@@ -158,3 +158,4 @@ a {
   .inv-table { break-inside: auto; page-break-inside: auto; }
   .inv-table tr { break-inside: avoid; page-break-inside: avoid; }
 }
+.inv-paylink { color: var(--inv-accent); font-weight: 700; text-decoration: underline; }

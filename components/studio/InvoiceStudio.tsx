@@ -9,7 +9,7 @@ import {
 import { InvoiceDocument } from './InvoiceDocument';
 import { CatalogPanel, ClientsPanel, Dashboard, StatusBadge } from './StudioPanels';
 import { BrandSwitcher, ExpensesTimePanel, PortalCard, TaxReportPanel, TrackingCard } from './SuitePanels';
-import { DEFAULT_EXTRAS, billToInvoice, ensureBrands, loadExtras, normalizeExtras, saveExtras, syncActiveBrand, type StudioExtras } from '@/lib/studio-suite';
+import { DEFAULT_EXTRAS, billToInvoice, ensureBrands, hasStoredExtras, loadExtras, normalizeExtras, saveExtras, syncActiveBrand, type StudioExtras } from '@/lib/studio-suite';
 import { btn, btnPrimary, btnSm, card, input, label } from './ui';
 import {
   addDays, calcTotals, decodeInvoice, encodeInvoice, formatInvoiceNumber, formatMoney, formatDate,
@@ -102,6 +102,8 @@ export function InvoiceStudio() {
   const [catalog, setCatalog] = useState<CatalogItem[]>([]);
   const [extras, setExtras] = useState<StudioExtras>(DEFAULT_EXTRAS);
   const [draft, setDraft] = useState<StudioInvoice | null>(null);
+  // Time/expenses added to the open draft. invoiceId is persisted only when that document is saved.
+  const [pendingBill, setPendingBill] = useState<{ invoiceId: string; expenseIds: string[]; timeIds: string[] } | null>(null);
   const [toast, setToast] = useState('');
   const [query, setQuery] = useState('');
   const [reminder, setReminder] = useState<ReturnType<typeof reminderDraft> | null>(null);
@@ -159,13 +161,16 @@ export function InvoiceStudio() {
         // First sign-in on this browser: copy local documents into the account (never deletes server data).
         const serverIds = new Set((server.invoices as StudioInvoice[]).map((i) => i.id));
         const localOnly = loadInvoices().filter((i) => !serverIds.has(i.id));
-        if (localOnly.length || !server.profile) {
+        const localExtras = loadExtras();
+        const serverHasExtras = hasStoredExtras(server.extras);
+        // normalizeExtras always returns keys, so an empty server snapshot must not count as stored work.
+        if (localOnly.length || !server.profile || (!serverHasExtras && hasStoredExtras(localExtras))) {
           const merged = {
             profile: server.profile ?? loadProfile(),
             clients: [...server.clients, ...loadClients().filter((c) => !server.clients.some((s: StudioClient) => s.id === c.id))],
             catalog: [...server.catalog, ...loadCatalog().filter((c) => !server.catalog.some((s: CatalogItem) => s.id === c.id))],
             invoices: [...server.invoices, ...localOnly],
-            extras: server.extras && Object.keys(server.extras).length ? server.extras : loadExtras(),
+            extras: serverHasExtras ? server.extras : localExtras,
             prune: false,
           };
           const put = await fetch('/api/studio/sync', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(merged) });
@@ -180,7 +185,23 @@ export function InvoiceStudio() {
       setInvoices(server.invoices); saveInvoices(server.invoices);
       setClients(server.clients); saveClients(server.clients);
       setCatalog(server.catalog); saveCatalog(server.catalog);
-      if (server.extras && Object.keys(server.extras).length) { const sx = ensureBrands(normalizeExtras(server.extras), server.profile ?? loadProfile()); setExtras(sx); saveExtras(sx); }
+      if (hasStoredExtras(server.extras)) {
+        const normalized = normalizeExtras(server.extras);
+        const local = loadExtras();
+        // Server time/expenses with no brands must not mint a new id set over the draft's brand.
+        const base = normalized.brands.length || !local.brands.length
+          ? normalized
+          : { ...normalized, brands: local.brands, activeBrandId: local.activeBrandId };
+        const sx = ensureBrands(base, server.profile ?? loadProfile());
+        setExtras(sx); saveExtras(sx);
+        // Hydrate minted a brand id before this snapshot arrived. An unsaved draft keeps that id and then disappears from the business list.
+        const savedIds = new Set((server.invoices as StudioInvoice[]).map((i) => i.id));
+        setDraft((d) => {
+          if (!d?.brandId || savedIds.has(d.id) || sx.brands.some((b) => b.id === d.brandId)) return d;
+          const brandId = sx.activeBrandId || sx.brands[0]?.id;
+          return brandId ? { ...d, brandId } : d;
+        });
+      }
       setCloud('on');
     })();
     return () => { cancelled = true; };
@@ -264,6 +285,7 @@ export function InvoiceStudio() {
     if (!b) return;
     const nx = { ...syncActiveBrand(extras, profile), activeBrandId: id };
     persistExtras(nx); saveProfile(b.profile); setProfile(b.profile);
+    setPendingBill(null);
     setDraft({ ...newInvoice(b.profile), brandId: id });
     flash(`Switched to ${b.profile.name || 'business'}`);
   };
@@ -271,12 +293,20 @@ export function InvoiceStudio() {
     const id = uid();
     const p = { ...profile, name: 'New business', tagline: '', logoDataUrl: '', paymentLinkUrl: '', nextNumber: 1001, invoicePrefix: 'NB-' };
     const nx = { ...syncActiveBrand(extras, profile), brands: [...extras.brands, { id, profile: p }], activeBrandId: id };
-    persistExtras(nx); saveProfile(p); setProfile(p); setDraft({ ...newInvoice(p), brandId: id }); setTab('profile');
+    persistExtras(nx); saveProfile(p); setProfile(p); setPendingBill(null); setDraft({ ...newInvoice(p), brandId: id }); setTab('profile');
   };
   const billWork = (expenseIds: string[], timeIds: string[]) => {
-    if (!draft) return;
+    if (!draft || (!expenseIds.length && !timeIds.length)) return;
+    const prior = pendingBill?.invoiceId === draft.id ? pendingBill : null;
     const out = billToInvoice(draft, extras, expenseIds, timeIds);
-    setDraft(out.invoice); persistExtras(out.extras); setTab('edit');
+    setDraft(out.invoice);
+    // Keep invoiceId off disk until the document itself is saved. Otherwise the work is marked billed with no line items.
+    setPendingBill({
+      invoiceId: draft.id,
+      expenseIds: [...(prior?.expenseIds ?? []), ...expenseIds],
+      timeIds: [...(prior?.timeIds ?? []), ...timeIds],
+    });
+    setTab('edit');
     flash(`Added ${expenseIds.length + timeIds.length} item(s) — save the invoice to keep them`);
   };
   const copyPortal = async (c: StudioClient) => {
@@ -295,6 +325,10 @@ export function InvoiceStudio() {
     const next = exists ? list.map((i) => (i.id === inv.id ? inv : i)) : [inv, ...list];
     persistInvoices(next);
     if (draft.id === inv.id) setDraft(inv);
+    if (pendingBill?.invoiceId === inv.id && (pendingBill.expenseIds.length || pendingBill.timeIds.length)) {
+      persistExtras(billToInvoice(inv, extras, pendingBill.expenseIds, pendingBill.timeIds).extras);
+      setPendingBill(null);
+    }
     return { next, exists };
   };
 
@@ -328,12 +362,14 @@ export function InvoiceStudio() {
   const startNew = (kind: DocKind = 'invoice', client?: StudioClient) => {
     const inv = { ...newInvoice(profile, kind), brandId: extras.activeBrandId };
     if (client) { inv.customer = { name: client.name, company: client.company, email: client.email, phone: client.phone, address: client.address }; inv.clientId = client.id; }
+    setPendingBill(null);
     setDraft(inv);
     setTab('edit');
   };
 
   const duplicate = (inv: StudioInvoice) => {
     const fresh = newInvoice(profile, inv.kind);
+    setPendingBill(null);
     setDraft({ ...inv, id: fresh.id, number: fresh.number, status: 'draft', estimateStatus: 'draft', issueDate: fresh.issueDate,
       dueDate: addDays(fresh.issueDate, inv.termsDays), amountPaid: 0, payments: [], recurring: null, sentAt: '', remindersSent: [], shareToken: '', clientResponse: undefined,
       convertedFromId: '', convertedToId: '', business: { ...profile }, createdAt: fresh.createdAt, updatedAt: fresh.updatedAt });
@@ -344,7 +380,7 @@ export function InvoiceStudio() {
   const remove = (id: string) => {
     if (!confirm('Delete this document from this device?')) return;
     persistInvoices(invoices.filter((i) => i.id !== id));
-    if (draft.id === id) setDraft(newInvoice(profile));
+    if (draft.id === id) { setPendingBill(null); setDraft(newInvoice(profile)); }
   };
 
   const convert = (est: StudioInvoice) => {
@@ -352,6 +388,7 @@ export function InvoiceStudio() {
     const { next } = commit({ ...est, estimateStatus: 'converted', convertedToId: inv.id });
     commit(inv, next);
     persistProfile(bumpNumber(inv));
+    setPendingBill(null);
     setDraft(inv);
     setTab('edit');
     flash(`Converted ${est.number} → ${inv.number}`);
@@ -412,6 +449,7 @@ export function InvoiceStudio() {
         if (Array.isArray(data.clients)) persistClients(data.clients);
         if (Array.isArray(data.catalog)) persistCatalog(data.catalog);
         if (data.extras) persistExtras(ensureBrands(normalizeExtras(data.extras), loadProfile()));
+        setPendingBill(null);
         flash('Backup restored');
       } catch { flash('Could not read that file'); }
     });
@@ -423,12 +461,26 @@ export function InvoiceStudio() {
       .catch(() => flash('Could not read that image'));
   };
 
-  const openDoc = (inv: StudioInvoice) => { setDraft(inv); setTab('edit'); };
+  const openDoc = (inv: StudioInvoice) => { setPendingBill(null); setDraft(inv); setTab('edit'); };
   const saved = invoices.some((i) => i.id === draft.id);
   const status = displayStatus(draft, today);
   const inBrand = (i: StudioInvoice) => !extras.activeBrandId || !i.brandId || i.brandId === extras.activeBrandId;
   const invoiceList = invoices.filter((i) => i.kind === 'invoice' && inBrand(i));
   const estimateList = invoices.filter((i) => i.kind === 'estimate' && inBrand(i));
+  const pendingForDraft = pendingBill?.invoiceId === draft.id ? pendingBill : null;
+  const workExtras = pendingForDraft
+    ? billToInvoice(draft, extras, pendingForDraft.expenseIds, pendingForDraft.timeIds).extras
+    : extras;
+  const persistWorkExtras = (x: StudioExtras) => {
+    if (!pendingForDraft) { persistExtras(x); return; }
+    const expenseIds = new Set(pendingForDraft.expenseIds);
+    const timeIds = new Set(pendingForDraft.timeIds);
+    persistExtras({
+      ...x,
+      expenses: x.expenses.map((e) => (expenseIds.has(e.id) ? { ...e, invoiceId: '' } : e)),
+      time: x.time.map((t) => (timeIds.has(t.id) ? { ...t, invoiceId: '' } : t)),
+    });
+  };
 
   const tabs: { id: Tab; label: string; icon: typeof FileText }[] = [
     { id: 'dashboard', label: 'Dashboard', icon: BarChart3 },
@@ -516,12 +568,12 @@ export function InvoiceStudio() {
 
       <div className={showPreview ? 'grid gap-6 xl:grid-cols-[minmax(0,540px)_minmax(0,1fr)]' : 'mx-auto max-w-4xl'}>
         <div className="no-print space-y-4">
-          {tab === 'dashboard' && <Dashboard invoices={invoices} today={today} currency={profile.currency} onOpen={openDoc} />}
+          {tab === 'dashboard' && <Dashboard invoices={invoices.filter(inBrand)} today={today} currency={profile.currency} onOpen={openDoc} />}
           {tab === 'invoices' && renderDocList('invoice')}
           {tab === 'estimates' && renderDocList('estimate')}
           {tab === 'clients' && <ClientsPanel clients={clients} invoices={invoices} onChange={persistClients} onNewFor={(c) => startNew('invoice', c)} />}
           {tab === 'clients' && <PortalCard clients={clients} enabled={cloud === 'on'} onCopy={copyPortal} />}
-          {tab === 'work' && <ExpensesTimePanel extras={extras} currency={profile.currency} brandId={extras.activeBrandId} draft={draft} clients={clients} onChange={persistExtras} onBill={billWork} />}
+          {tab === 'work' && <ExpensesTimePanel extras={workExtras} currency={profile.currency} brandId={extras.activeBrandId} draft={draft} clients={clients} onChange={persistWorkExtras} onBill={billWork} />}
           {tab === 'tax' && <TaxReportPanel invoices={invoices} extras={extras} currency={profile.currency} onDownload={(n, csv) => download(n, csv, 'text/csv')} />}
           {tab === 'items' && <CatalogPanel items={catalog} currency={profile.currency} onChange={persistCatalog} />}
 

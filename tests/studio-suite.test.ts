@@ -2,7 +2,7 @@ import { describe, expect, it, vi } from 'vitest';
 vi.mock('@/lib/db', () => ({ prisma: {} }));
 import { DEFAULT_PROFILE, calcTotals, newInvoice, newLineItem, type StudioInvoice } from '@/lib/studio';
 import {
-  DEFAULT_EXTRAS, billToInvoice, dueReminders, ensureBrands, nextReminderDate, normalizeExtras, taxSummary, taxSummaryCSV, unbilled, viewSummary,
+  DEFAULT_EXTRAS, billToInvoice, dueReminders, ensureBrands, hasStoredExtras, nextReminderDate, normalizeExtras, taxSummary, taxSummaryCSV, unbilled, viewSummary,
   type StudioExtras,
 } from '@/lib/studio-suite';
 import { mergeServerTracking } from '@/lib/studio-server';
@@ -18,6 +18,11 @@ describe('brands', () => {
     expect(x.brands.map((b) => b.profile.name)).toEqual(['Collins Lawncare', 'Front Porch Growth', 'Custom Gifts Online']);
     expect(x.activeBrandId).toBe(x.brands[0].id);
     expect(ensureBrands(x, DEFAULT_PROFILE)).toBe(x);
+  });
+  it('treats a normalized empty snapshot as having no stored extras', () => {
+    expect(hasStoredExtras(normalizeExtras(null))).toBe(false);
+    expect(hasStoredExtras(normalizeExtras({ reminderOffsets: [3] }))).toBe(false);
+    expect(hasStoredExtras({ brands: [{ id: 'b', profile: DEFAULT_PROFILE }] })).toBe(true);
   });
 });
 
@@ -49,7 +54,17 @@ describe('time & expenses', () => {
     expect(s.totals.expenses).toBe(50);
     expect(s.totals.net).toBe(50);
     expect(s.quarters[1].collected).toBe(110);
+    expect(s.quarters[1].taxCollected).toBe(10);
     expect(taxSummaryCSV(s)).toContain('Collins Lawncare');
+  });
+  it('adds sales tax to the quarter for amountPaid deposits with no payments array', () => {
+    const inv = sent({ brandId: 'b1', payments: [], amountPaid: 110, status: 'paid' });
+    const x = { ...extras, brands: [{ id: 'b1', profile: { ...DEFAULT_PROFILE, name: 'Collins Lawncare' } }] };
+    const s = taxSummary([inv], x, 2026);
+    expect(s.totals.collected).toBe(110);
+    expect(s.totals.taxCollected).toBe(10);
+    expect(s.quarters[0].collected).toBe(110);
+    expect(s.quarters[0].taxCollected).toBe(10);
   });
 });
 

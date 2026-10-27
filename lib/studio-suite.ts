@@ -59,6 +59,14 @@ export function normalizeExtras(raw: Partial<StudioExtras> | null | undefined): 
   };
 }
 
+/** True when extras hold brands, time, or expenses. A normalized empty snapshot still has keys, so key-count is not enough. */
+export function hasStoredExtras(raw: Partial<StudioExtras> | null | undefined): boolean {
+  if (!raw || typeof raw !== 'object') return false;
+  return (Array.isArray(raw.brands) && raw.brands.length > 0)
+    || (Array.isArray(raw.expenses) && raw.expenses.length > 0)
+    || (Array.isArray(raw.time) && raw.time.length > 0);
+}
+
 /** Builds brands from the current profile plus any missing starter brands. */
 export function ensureBrands(extras: StudioExtras, current: BusinessProfile): StudioExtras {
   if (extras.brands.length) return extras;
@@ -185,8 +193,9 @@ export function taxSummary(invoices: StudioInvoice[], extras: StudioExtras, year
       if (q(p.date)) { q(p.date).collected += p.amount; q(p.date).taxCollected += p.amount * ratio; }
     }
     if (!inv.payments.length && inv.amountPaid > 0 && inv.issueDate.startsWith(y)) {
-      r.collected += paidAmount(inv); r.taxCollected += paidAmount(inv) * ratio;
-      if (q(inv.issueDate)) q(inv.issueDate).collected += paidAmount(inv);
+      const paid = paidAmount(inv);
+      r.collected += paid; r.taxCollected += paid * ratio;
+      if (q(inv.issueDate)) { q(inv.issueDate).collected += paid; q(inv.issueDate).taxCollected += paid * ratio; }
     }
   }
   const cats = new Map<string, number>();

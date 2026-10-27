@@ -66,6 +66,7 @@ export interface BusinessProfile {
   taxPresets: TaxPreset[];
   paymentLinkUrl: string; // e.g. a Stripe Payment Link (test mode) shown as a Pay button
   lateFeePercent: number;
+  timeZone: string; // IANA zone for due dates and late fees; '' = runtime local
 }
 
 export interface StudioCustomer {
@@ -186,7 +187,21 @@ export function formatDate(iso: string): string {
   });
 }
 
-export function todayISO(): string {
+/** Calendar date (yyyy-mm-dd). Uses `timeZone` when set, otherwise the runtime's local zone — never UTC. */
+export function todayISO(timeZone?: string): string {
+  if (timeZone) {
+    try {
+      const parts = new Intl.DateTimeFormat('en-US', {
+        timeZone, year: 'numeric', month: '2-digit', day: '2-digit',
+      }).formatToParts(new Date());
+      const year = parts.find((p) => p.type === 'year')?.value;
+      const month = parts.find((p) => p.type === 'month')?.value;
+      const day = parts.find((p) => p.type === 'day')?.value;
+      if (year && month && day) return `${year}-${month}-${day}`;
+    } catch {
+      // Unknown zone name: fall through to the runtime's local calendar date.
+    }
+  }
   const d = new Date();
   const local = new Date(d.getTime() - d.getTimezoneOffset() * 60000);
   return local.toISOString().slice(0, 10);
@@ -232,6 +247,7 @@ export const DEFAULT_PROFILE: BusinessProfile = {
   taxPresets: [{ name: 'No tax', rate: 0 }],
   paymentLinkUrl: '',
   lateFeePercent: 0,
+  timeZone: '',
 };
 
 export const EMPTY_CUSTOMER: StudioCustomer = { name: '', company: '', email: '', phone: '', address: '' };

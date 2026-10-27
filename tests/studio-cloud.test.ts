@@ -10,6 +10,7 @@ vi.mock('@/lib/db', () => ({
       findUnique: vi.fn(async ({ where }) => [...db.docs.values()].find((d) => d.shareToken === where.shareToken) ?? null),
       update: vi.fn(async ({ where, data }) => { const d = db.docs.get(where.id)!; Object.assign(d, data); return d; }),
     },
+    studioWorkspace: { findUnique: vi.fn(async () => null) },
   },
 }));
 

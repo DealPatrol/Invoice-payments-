@@ -23,6 +23,23 @@ import {
 
 type Tab = 'dashboard' | 'edit' | 'invoices' | 'estimates' | 'clients' | 'items' | 'profile';
 
+function browserTimeZone(): string {
+  try {
+    return Intl.DateTimeFormat().resolvedOptions().timeZone || '';
+  } catch {
+    return '';
+  }
+}
+
+/** Create owed recurring drafts and persist them. Returns null when nothing was due. */
+function catchUpRecurring(list: StudioInvoice[], profile: BusinessProfile) {
+  const due = generateDueRecurring(list, profile, todayISO());
+  if (!due.created.length) return null;
+  saveInvoices(due.invoices);
+  saveProfile(due.profile);
+  return due;
+}
+
 function download(name: string, content: string, type: string) {
   const a = document.createElement('a');
   a.href = URL.createObjectURL(new Blob([content], { type }));
@@ -111,24 +128,23 @@ export function InvoiceStudio() {
 
   useEffect(() => {
     // Hydrate from localStorage after mount (not available during SSR).
+    // Recurring drafts are created after cloud hydrate so a server snapshot cannot discard them.
     /* eslint-disable react-hooks/set-state-in-effect */
+    const hadProfile = Boolean(localStorage.getItem('invoiceos.studio.profile.v1'));
     let p = loadProfile();
-    let list = loadInvoices();
-    // Catch up recurring schedules: creates drafts only, never sends anything.
-    const due = generateDueRecurring(list, p, todayISO());
-    if (due.created.length) {
-      list = due.invoices; p = due.profile;
-      saveInvoices(list); saveProfile(p);
-      setToast(`${due.created.length} recurring invoice draft(s) created`);
+    const tz = browserTimeZone();
+    if (tz && p.timeZone !== tz) {
+      p = { ...p, timeZone: tz };
+      if (hadProfile) saveProfile(p);
     }
     setProfile(p);
-    setInvoices(list);
+    setInvoices(loadInvoices());
     setClients(loadClients());
     setCatalog(loadCatalog());
     const fromLink = shared ? decodeInvoice(shared) : null;
     setDraft(fromLink ?? newInvoice(p));
     if (fromLink) setTab('edit');
-    else if (!localStorage.getItem('invoiceos.studio.profile.v1')) setTab('profile');
+    else if (!hadProfile) setTab('profile');
     if (initialTab) setTab(initialTab);
     setReady(true);
     /* eslint-enable react-hooks/set-state-in-effect */
@@ -140,14 +156,27 @@ export function InvoiceStudio() {
   }, []);
 
   useEffect(() => {
-    if (!ready || clientView || printOnly) return;
+    if (!ready) return;
+    const applyLocal = () => {
+      const due = catchUpRecurring(loadInvoices(), loadProfile());
+      if (!due) return;
+      setInvoices(due.invoices);
+      setProfile(due.profile);
+      flash(`${due.created.length} recurring invoice draft(s) created`);
+    };
+    if (clientView || printOnly) {
+      applyLocal();
+      return;
+    }
     let cancelled = false;
     (async () => {
       const res = await fetch('/api/studio/sync', { cache: 'no-store' }).catch(() => null);
       if (cancelled) return;
-      if (!res || res.status === 503) return setCloud('local');
-      if (res.status === 401) return setCloud('signedout');
-      if (!res.ok) return setCloud('local');
+      if (!res || res.status === 503 || !res.ok) {
+        applyLocal();
+        setCloud(!res || res.status !== 401 ? 'local' : 'signedout');
+        return;
+      }
       let server = await res.json();
       const migratedKey = 'invoiceos.studio.cloudMigrated.v1';
       if (!localStorage.getItem(migratedKey)) {
@@ -169,11 +198,21 @@ export function InvoiceStudio() {
         localStorage.setItem(migratedKey, new Date().toISOString());
       }
       if (cancelled) return;
-      skipPush.current = true;
-      if (server.profile) { setProfile(server.profile); saveProfile(server.profile); }
-      setInvoices(server.invoices); saveInvoices(server.invoices);
+      const tz = browserTimeZone();
+      let profile: BusinessProfile = server.profile ?? loadProfile();
+      const zoneChanged = Boolean(tz && profile.timeZone !== tz);
+      if (zoneChanged) profile = { ...profile, timeZone: tz };
+      const due = generateDueRecurring(server.invoices ?? [], profile, todayISO());
+      profile = due.profile;
+      if (tz && profile.timeZone !== tz) profile = { ...profile, timeZone: tz };
+      // Upload when this visit created drafts or learned the business zone. A skipped push
+      // would leave the server schedule behind and the next visit would recreate the same drafts.
+      skipPush.current = due.created.length === 0 && !zoneChanged;
+      setProfile(profile); saveProfile(profile);
+      setInvoices(due.invoices); saveInvoices(due.invoices);
       setClients(server.clients); saveClients(server.clients);
       setCatalog(server.catalog); saveCatalog(server.catalog);
+      if (due.created.length) flash(`${due.created.length} recurring invoice draft(s) created`);
       setCloud('on');
     })();
     return () => { cancelled = true; };
@@ -205,7 +244,8 @@ export function InvoiceStudio() {
   }
 
   const docWord = draft.kind === 'estimate' ? 'Estimate' : 'Invoice';
-  const lateFeeNow = amountDue(draft, today) - totals.balanceDue;
+  const owed = amountDue(draft, today);
+  const lateFeeNow = Math.max(0, owed - Math.max(0, totals.balanceDue));
   const printPdf = (inv = draft) => {
     const prev = document.title;
     document.title = `${inv.business.name} - ${inv.kind === 'estimate' ? 'Estimate' : 'Invoice'} ${inv.number}`;
@@ -223,7 +263,7 @@ export function InvoiceStudio() {
           <div>
             <div className="text-sm text-gray-500">{draft.business.name} sent you {draft.kind === 'estimate' ? 'an estimate' : 'an invoice'}</div>
             <div className="text-2xl font-black text-gray-900">
-              {formatMoney(draft.kind === 'estimate' ? totals.total : totals.balanceDue, draft.business.currency)}
+              {formatMoney(draft.kind === 'estimate' ? totals.total : owed, draft.business.currency)}
               <span className="ml-2 align-middle"><StatusBadge status={st} /></span>
             </div>
             {draft.kind === 'invoice' && <div className="text-sm text-gray-500">Due {formatDate(draft.dueDate)}</div>}
@@ -231,7 +271,7 @@ export function InvoiceStudio() {
           </div>
           <div className="flex flex-wrap gap-2">
             <button className="inline-flex items-center gap-2 rounded-md border border-gray-300 px-3 py-2 text-sm font-semibold text-gray-800" onClick={() => printPdf()}><Download size={16} />Download PDF</button>
-            {draft.kind === 'invoice' && totals.balanceDue > 0 && payUrl && (
+            {draft.kind === 'invoice' && owed > 0 && payUrl && (
               <a href={payUrl} target="_blank" rel="noreferrer" className="inline-flex items-center gap-2 rounded-md px-4 py-2 text-sm font-bold text-white" style={{ background: draft.business.accentColor }}><CreditCard size={16} />Pay now</a>)}
           </div>
         </div>
@@ -417,6 +457,7 @@ export function InvoiceStudio() {
         <ul className="divide-y divide-[var(--border)]">
           {list.map((inv) => {
             const t = calcTotals(inv);
+            const left = kind === 'invoice' ? amountDue(inv, today) : 0;
             return (
               <li key={inv.id} className="flex flex-wrap items-center justify-between gap-2 py-3">
                 <button className="min-w-0 text-left" onClick={() => openDoc(inv)}>
@@ -426,7 +467,7 @@ export function InvoiceStudio() {
                   </div>
                   <div className="text-xs text-[var(--text-muted)]">
                     {formatDate(inv.issueDate)} · {kind === 'invoice' ? 'due' : 'valid until'} {formatDate(inv.dueDate)} · {formatMoney(t.total, inv.business.currency)}
-                    {kind === 'invoice' && t.amountPaid > 0 && t.balanceDue > 0 ? ` · ${formatMoney(t.balanceDue, inv.business.currency)} left` : ''}
+                    {kind === 'invoice' && t.amountPaid > 0 && left > 0 ? ` · ${formatMoney(left, inv.business.currency)} left` : ''}
                   </div>
                 </button>
                 <div className="flex items-center gap-2">
@@ -564,7 +605,7 @@ export function InvoiceStudio() {
                   <button className={btnSm} onClick={() => printPdf()}><Printer size={13} />PDF</button>
                   <button className={btnSm} onClick={() => markSent(draft)}>Mark sent</button>
                   <button className={btnSm} title="Email the secure link (off unless STUDIO_EMAIL_ENABLED=true)" onClick={() => sendEmail(draft)}><Mail size={13} />Email</button>
-                  {draft.kind === 'invoice' && draft.status !== 'draft' && totals.balanceDue > 0 && (
+                  {draft.kind === 'invoice' && draft.status !== 'draft' && owed > 0 && (
                     <button className={btnSm} onClick={() => setReminder(reminderDraft(draft, today, shareUrl(draft)))}><Bell size={13} />Reminder</button>
                   )}
                   {draft.kind === 'estimate' && draft.estimateStatus !== 'converted' && (
@@ -703,7 +744,7 @@ export function InvoiceStudio() {
                 </div>
                 <div className="mt-4 flex items-center justify-between rounded-lg bg-[var(--surface-high)] px-4 py-3">
                   <span className="text-sm text-[var(--text-muted)]">{draft.kind === 'estimate' ? 'Estimate total' : 'Balance due'}</span>
-                  <span className="text-xl font-black text-[var(--text)]">{formatMoney(draft.kind === 'estimate' ? totals.total : totals.balanceDue, draft.business.currency)}</span>
+                  <span className="text-xl font-black text-[var(--text)]">{formatMoney(draft.kind === 'estimate' ? totals.total : owed, draft.business.currency)}</span>
                 </div>
               </div>
 
@@ -717,20 +758,20 @@ export function InvoiceStudio() {
                       <li key={p.id} className="flex items-center justify-between py-2 text-sm">
                         <span className="text-[var(--text)]">{formatDate(p.date)} · {p.method}{p.reference ? ` #${p.reference}` : ''}</span>
                         <span className="flex items-center gap-3 font-semibold text-[#22c97a]">{formatMoney(p.amount, draft.business.currency)}
-                          <button aria-label="Remove payment" className="text-[var(--danger)]" onClick={() => commit(removePayment(draft, p.id))}><X size={14} /></button></span>
+                          <button aria-label="Remove payment" className="text-[var(--danger)]" onClick={() => commit(removePayment(draft, p.id, today))}><X size={14} /></button></span>
                       </li>
                     ))}
                   </ul>
-                  {totals.balanceDue > 0 && (
+                  {owed > 0 && (
                     <div className="grid grid-cols-2 gap-2 sm:grid-cols-[1fr_1fr_1fr_1fr_auto]">
-                      <input type="number" step="0.01" className={input} placeholder={`Amount (${totals.balanceDue})`} value={pay.amount} onChange={(e) => setPay({ ...pay, amount: e.target.value })} />
+                      <input type="number" step="0.01" className={input} placeholder={`Amount (${owed})`} value={pay.amount} onChange={(e) => setPay({ ...pay, amount: e.target.value })} />
                       <input type="date" className={input} value={pay.date} onChange={(e) => setPay({ ...pay, date: e.target.value })} />
                       <select className={input} value={pay.method} onChange={(e) => setPay({ ...pay, method: e.target.value })}>
                         {['Cash', 'Check', 'Card', 'Stripe', 'ACH', 'Venmo', 'Zelle', 'Cash App', 'PayPal', 'Other'].map((m) => <option key={m}>{m}</option>)}
                       </select>
                       <input className={input} placeholder="Ref / check #" value={pay.reference} onChange={(e) => setPay({ ...pay, reference: e.target.value })} />
                       <button className={btnPrimary + ' justify-center'} onClick={addPayment}>Record</button>
-                      <button className={btnSm + ' col-span-2 w-fit sm:col-span-5'} onClick={() => setPay({ ...pay, amount: String(totals.balanceDue) })}>Fill full balance</button>
+                      <button className={btnSm + ' col-span-2 w-fit sm:col-span-5'} onClick={() => setPay({ ...pay, amount: String(owed) })}>Fill full balance</button>
                     </div>
                   )}
                 </div>

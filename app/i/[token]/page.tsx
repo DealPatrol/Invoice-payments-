@@ -3,7 +3,7 @@ import { InvoiceDocument } from '@/components/studio/InvoiceDocument';
 import { PublicActions } from '@/components/studio/PublicActions';
 import { calcTotals, formatDate, formatMoney } from '@/lib/studio';
 import { amountDue, displayStatus } from '@/lib/studio-ops';
-import { getByToken, hasDatabase } from '@/lib/studio-server';
+import { accountToday, getByToken, hasDatabase } from '@/lib/studio-server';
 
 export const dynamic = 'force-dynamic';
 export const metadata = { robots: { index: false, follow: false } };
@@ -17,7 +17,7 @@ export default async function SharedStudioDoc({ params, searchParams }: {
   const found = await getByToken(token);
   if (!found) notFound();
   const inv = found.invoice;
-  const today = new Date().toISOString().slice(0, 10);
+  const today = await accountToday(found.userId, inv.business.timeZone);
   const due = amountDue(inv, today);
   const status = displayStatus(inv, today);
   const isEstimate = inv.kind === 'estimate';

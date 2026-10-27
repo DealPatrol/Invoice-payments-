@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { appUrl } from '@/lib/config';
 import { amountForStripe, getStripe } from '@/lib/stripe';
-import { getByToken, hasDatabase } from '@/lib/studio-server';
+import { accountToday, getByToken, hasDatabase } from '@/lib/studio-server';
 import { amountDue } from '@/lib/studio-ops';
 
 /**
@@ -24,7 +24,7 @@ export async function POST(request: NextRequest) {
   if (!found || found.invoice.kind !== 'invoice') return NextResponse.json({ error: 'Invalid invoice' }, { status: 400 });
   const { invoice, userId } = found;
   if (invoice.status === 'void') return NextResponse.json({ error: 'Invoice is void' }, { status: 400 });
-  const due = amountDue(invoice, new Date().toISOString().slice(0, 10));
+  const due = amountDue(invoice, await accountToday(userId, invoice.business.timeZone));
   if (due <= 0) return NextResponse.json({ error: 'Invoice is already paid' }, { status: 400 });
 
   const currency = invoice.business.currency.toLowerCase();

@@ -3,7 +3,12 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 
 const create = vi.hoisted(() => vi.fn().mockResolvedValue({ url: 'https://checkout.stripe.test/s' }));
 const findUnique = vi.hoisted(() => vi.fn());
-vi.mock('@/lib/db', () => ({ prisma: { studioDocument: { findUnique } } }));
+vi.mock('@/lib/db', () => ({
+  prisma: {
+    studioDocument: { findUnique },
+    studioWorkspace: { findUnique: vi.fn(async () => null) },
+  },
+}));
 vi.mock('stripe', () => ({ default: class { checkout = { sessions: { create } }; } }));
 
 import { POST } from '@/app/api/studio/checkout/route';

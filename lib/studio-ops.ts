@@ -23,7 +23,8 @@ export function displayStatus(inv: StudioInvoice, today: string): DisplayStatus 
   }
   if (inv.status === 'void') return 'void';
   const t = calcTotals(inv);
-  if (inv.status === 'paid' || (t.total > 0 && t.balanceDue <= 0)) return 'paid';
+  // Settled only when the late fee is covered too. Principal alone must not read as paid.
+  if (inv.status === 'paid' || (t.total > 0 && amountDue(inv, today) <= 0)) return 'paid';
   if (inv.status === 'draft') return 'draft';
   if (inv.dueDate && inv.dueDate < today) return 'overdue';
   if (t.amountPaid > 0) return 'partial';
@@ -50,24 +51,39 @@ export function recordPayment(inv: StudioInvoice, payment: Omit<StudioPayment, '
   if (amount <= 0) throw new Error('Payment amount must be greater than zero');
   const payments = [...inv.payments, { ...payment, amount, id: uid() }];
   const next = { ...inv, payments, updatedAt: new Date().toISOString() };
-  const t = calcTotals(next);
-  return { ...next, status: t.balanceDue <= 0 ? 'paid' : inv.status === 'draft' ? 'sent' : inv.status };
+  const settled = amountDue(next, payment.date) <= 0;
+  return { ...next, status: settled ? 'paid' : inv.status === 'draft' ? 'sent' : inv.status };
 }
 
-export function removePayment(inv: StudioInvoice, paymentId: string): StudioInvoice {
+export function removePayment(inv: StudioInvoice, paymentId: string, today?: string): StudioInvoice {
   const payments = inv.payments.filter((p) => p.id !== paymentId);
   const next = { ...inv, payments };
-  const t = calcTotals(next);
-  return { ...next, status: inv.status === 'paid' && t.balanceDue > 0 ? 'sent' : inv.status };
+  // Default to the due date so omitted `today` does not invent a late fee.
+  const asOf = today || inv.dueDate || '1970-01-01';
+  const stillOwes = amountDue(next, asOf) > 0;
+  return { ...next, status: inv.status === 'paid' && stillOwes ? 'sent' : inv.status };
 }
 
 /* ---------- late fees ---------- */
 
-/** One-time late fee on the open balance, only when opted in and overdue. */
+/**
+ * One-time late fee on the principal still open on the due date.
+ * It stays on the ledger after the fee is collected, so Amount Paid can exceed
+ * the merchandise total without the balance going negative.
+ */
 export function lateFee(inv: StudioInvoice, today: string): number {
   if (inv.kind !== 'invoice' || !inv.applyLateFee || !(inv.business.lateFeePercent > 0)) return 0;
-  if (displayStatus(inv, today) !== 'overdue') return 0;
-  return round2(calcTotals(inv).balanceDue * (inv.business.lateFeePercent / 100));
+  if (inv.status === 'void' || inv.status === 'draft') return 0;
+  if (!inv.dueDate || inv.dueDate >= today) return 0;
+  const totals = calcTotals(inv);
+  // Marked paid with nothing paid past the total: the fee was waived.
+  if (inv.status === 'paid' && totals.balanceDue >= 0) return 0;
+  const openOnDueDate = calcTotals({
+    ...inv,
+    payments: inv.payments.filter((p) => p.date <= inv.dueDate),
+  }).balanceDue;
+  if (openOnDueDate <= 0) return 0;
+  return round2(openOnDueDate * (inv.business.lateFeePercent / 100));
 }
 
 /** What the client owes right now, including any late fee. */

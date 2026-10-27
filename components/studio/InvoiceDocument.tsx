@@ -9,11 +9,11 @@ export function InvoiceDocument({ invoice, today }: { invoice: StudioInvoice; to
   const money = (n: number) => formatMoney(n, b.currency);
   const accent = b.accentColor || '#4f6ef7';
   const isEstimate = invoice.kind === 'estimate';
-  const isPaid = !isEstimate && (invoice.status === 'paid' || (t.total > 0 && t.balanceDue <= 0));
-  const payUrl = !isEstimate && !isPaid ? invoice.paymentLink || b.paymentLinkUrl : '';
   const hasLateTerms = !isEstimate && invoice.applyLateFee && b.lateFeePercent > 0;
   const fee = today ? lateFee(invoice, today) : 0;
   const due = t.balanceDue + fee;
+  const isPaid = !isEstimate && (invoice.status === 'paid' || (t.total > 0 && due <= 0));
+  const payUrl = !isEstimate && !isPaid ? invoice.paymentLink || b.paymentLinkUrl : '';
   const docWord = isEstimate ? 'Estimate' : 'Invoice';
   const showUnit = invoice.items.some((i) => i.unit);
 

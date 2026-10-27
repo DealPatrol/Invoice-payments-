@@ -5,8 +5,8 @@
 import { randomBytes } from 'crypto';
 import type { Prisma } from '@prisma/client';
 import { prisma } from './db';
-import { DEFAULT_PROFILE, normalizeInvoice, uid, type BusinessProfile, type CatalogItem, type StudioClient, type StudioInvoice, type StudioPayment } from './studio';
-import { calcTotals } from './studio';
+import { DEFAULT_PROFILE, normalizeInvoice, todayISO, uid, type BusinessProfile, type CatalogItem, type StudioClient, type StudioInvoice, type StudioPayment } from './studio';
+import { amountDue } from './studio-ops';
 
 export interface StudioSnapshot {
   profile: BusinessProfile | null;
@@ -66,14 +66,26 @@ export async function saveSnapshot(userId: string, snap: StudioSnapshot, prune =
   await prisma.$transaction(ops);
 }
 
+/** Calendar date for late fees: the account zone, then the invoice snapshot, then the server's local zone. */
+export async function accountToday(userId: string, fallbackZone?: string): Promise<string> {
+  const ws = await prisma.studioWorkspace.findUnique({ where: { userId }, select: { profile: true } });
+  const stored = ws?.profile && typeof ws.profile === 'object' && !Array.isArray(ws.profile)
+    ? (ws.profile as { timeZone?: string }).timeZone
+    : undefined;
+  return todayISO(stored || fallbackZone);
+}
+
 /** Merge server-recorded Stripe payments back into a client-sent document. */
-export function mergeServerPayments(client: StudioInvoice, server: StudioInvoice | null): StudioInvoice {
+export function mergeServerPayments(client: StudioInvoice, server: StudioInvoice | null, today = todayISO(client.business.timeZone)): StudioInvoice {
   if (!server) return client;
   const have = new Set(client.payments.map((p) => p.id));
   const extra = server.payments.filter((p) => p.method === 'Stripe' && !have.has(p.id));
   if (!extra.length) return client;
   const merged = { ...client, payments: [...client.payments, ...extra] };
-  return calcTotals(merged).balanceDue <= 0 ? { ...merged, status: 'paid' } : merged;
+  const settled = amountDue(merged, today) <= 0;
+  if (settled) return { ...merged, status: 'paid' };
+  if (merged.status === 'paid') return { ...merged, status: 'sent' };
+  return merged;
 }
 
 export async function shareDocument(userId: string, id: string): Promise<string | null> {
@@ -127,7 +139,8 @@ export async function recordStripePayment(docId: string, userId: string, payment
   if (inv.payments.some((p) => p.reference === payment.reference)) return inv;
   const payments = [...inv.payments, { ...payment, id: uid() }];
   const updated = { ...inv, payments, updatedAt: new Date().toISOString() };
-  const paid = calcTotals(updated).balanceDue <= 0;
+  const today = await accountToday(userId, inv.business.timeZone);
+  const paid = amountDue(updated, today) <= 0;
   const next: StudioInvoice = { ...updated, status: paid ? 'paid' : inv.status === 'draft' ? 'sent' : inv.status };
   await writeDoc(next);
   return next;

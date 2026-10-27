@@ -31,16 +31,16 @@ export function displayStatus(inv: StudioInvoice, today: string): DisplayStatus 
 }
 
 export const STATUS_STYLES: Record<DisplayStatus, { label: string; color: string }> = {
-  draft: { label: 'Draft', color: '#8892b0' },
-  sent: { label: 'Sent', color: '#4f6ef7' },
-  partial: { label: 'Partially paid', color: '#f5a623' },
-  paid: { label: 'Paid', color: '#22c97a' },
-  overdue: { label: 'Overdue', color: '#f7524f' },
-  void: { label: 'Void', color: '#6b7280' },
-  accepted: { label: 'Accepted', color: '#22c97a' },
-  declined: { label: 'Declined', color: '#f7524f' },
-  converted: { label: 'Invoiced', color: '#a78bfa' },
-  expired: { label: 'Expired', color: '#f5a623' },
+  draft: { label: 'Draft', color: 'var(--text-muted)' },
+  sent: { label: 'Sent', color: 'var(--accent)' },
+  partial: { label: 'Partially paid', color: 'var(--warning)' },
+  paid: { label: 'Paid', color: 'var(--success)' },
+  overdue: { label: 'Overdue', color: 'var(--danger)' },
+  void: { label: 'Void', color: 'var(--text-subtle)' },
+  accepted: { label: 'Accepted', color: 'var(--success)' },
+  declined: { label: 'Declined', color: 'var(--danger)' },
+  converted: { label: 'Invoiced', color: '#8b5cf6' },
+  expired: { label: 'Expired', color: 'var(--warning)' },
 };
 
 /* ---------- payments ---------- */

@@ -22,8 +22,8 @@ export default function NetworksPage() {
     <div style={{ background: COLORS.background, minHeight: '100vh' }}>
       <div className="p-8 max-w-6xl mx-auto">
         <h1
-          className="text-4xl font-black tracking-tight mb-2"
-          style={{ color: COLORS.text, fontFamily: '"Syne", sans-serif' }}
+          className="text-2xl font-bold tracking-tight sm:text-[1.75rem] mb-2"
+          style={{ color: COLORS.text }}
         >
           E-Invoice Networks — Roadmap
         </h1>
@@ -41,7 +41,7 @@ export default function NetworksPage() {
             <div
               key={network.id}
               onClick={() => setSelectedNetwork(network.id)}
-              className="rounded-lg border p-6 cursor-pointer transition-all"
+              className="rounded-[var(--radius-lg)] border shadow-[var(--shadow-xs)] p-6 cursor-pointer transition-all"
               style={{
                 background: selectedNetwork === network.id ? COLORS.surfaceHigh : COLORS.surface,
                 borderColor: selectedNetwork === network.id ? COLORS.accent : COLORS.border,
@@ -79,7 +79,7 @@ export default function NetworksPage() {
               {beta.map((network: any) => (
                 <div
                   key={network.id}
-                  className="rounded-lg border p-6 opacity-60"
+                  className="rounded-[var(--radius-lg)] border shadow-[var(--shadow-xs)] p-6 opacity-60"
                   style={{ background: COLORS.surface, borderColor: COLORS.border }}
                 >
                   <div className="flex items-start justify-between mb-3">

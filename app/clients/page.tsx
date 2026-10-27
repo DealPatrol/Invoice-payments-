@@ -39,8 +39,8 @@ export default function ClientsPage() {
         <div className="flex items-center justify-between mb-8">
           <div>
             <h1
-              className="text-4xl font-black tracking-tight mb-2"
-              style={{ color: COLORS.text, fontFamily: '"Syne", sans-serif' }}
+              className="text-2xl font-bold tracking-tight sm:text-[1.75rem] mb-2"
+              style={{ color: COLORS.text }}
             >
               Clients
             </h1>
@@ -61,7 +61,7 @@ export default function ClientsPage() {
 
         <div className="grid gap-4">
           {filtered.map((client) => (
-            <div key={client.id} className="rounded-lg border p-6" style={{ background: COLORS.surface, borderColor: COLORS.border }}>
+            <div key={client.id} className="rounded-[var(--radius-lg)] border shadow-[var(--shadow-xs)] p-6" style={{ background: COLORS.surface, borderColor: COLORS.border }}>
               <div className="flex items-start justify-between mb-3">
                 <div>
                   <h3 className="font-bold text-lg" style={{ color: COLORS.text }}>

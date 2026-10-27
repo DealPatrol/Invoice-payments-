@@ -70,10 +70,10 @@ export default function LoginPage() {
   return (
     <div
       className="min-h-screen flex items-center justify-center p-4"
-      style={{ background: COLORS.background }}
+      style={{ background: 'radial-gradient(1200px 600px at 50% -10%, var(--accent-soft), transparent 60%), var(--background)' }}
     >
       <div
-        className="w-full max-w-md rounded-xl border p-8 space-y-6"
+        className="animate-in w-full max-w-md space-y-6 rounded-[var(--radius-lg)] border p-8 shadow-[var(--shadow-lg)] sm:p-10"
         style={{
           background: COLORS.surface,
           borderColor: COLORS.border,
@@ -90,10 +90,9 @@ export default function LoginPage() {
             </div>
           </div>
           <h1
-            className="text-2xl font-black tracking-tight"
+            className="text-2xl font-bold tracking-tight"
             style={{
               color: COLORS.text,
-              fontFamily: '"Syne", sans-serif',
             }}
           >
             {isSignUp ? 'Create Account' : 'Welcome Back'}
@@ -110,7 +109,7 @@ export default function LoginPage() {
           {isSignUp && (
             <div>
               <label
-                className="block text-xs font-bold uppercase tracking-wider mb-2"
+                className="mb-1.5 block text-[13px] font-medium"
                 style={{ color: COLORS.textMuted }}
               >
                 Full Name
@@ -132,15 +131,15 @@ export default function LoginPage() {
 
           <div>
             <label
-              className="block text-xs font-bold uppercase tracking-wider mb-2"
+              className="mb-1.5 block text-[13px] font-medium"
               style={{ color: COLORS.textMuted }}
             >
               Email Address
             </label>
             <div
-              className="flex items-center gap-3 px-4 py-3 rounded-lg border"
+              className="flex items-center gap-3 px-4 py-3 rounded-[10px] border transition focus-within:border-[var(--accent)] focus-within:ring-4 focus-within:ring-[var(--accent-soft)]"
               style={{
-                background: COLORS.surfaceHigh,
+                background: COLORS.surface,
                 borderColor: COLORS.border,
               }}
             >
@@ -159,15 +158,15 @@ export default function LoginPage() {
 
           <div>
             <label
-              className="block text-xs font-bold uppercase tracking-wider mb-2"
+              className="mb-1.5 block text-[13px] font-medium"
               style={{ color: COLORS.textMuted }}
             >
               Password
             </label>
             <div
-              className="flex items-center gap-3 px-4 py-3 rounded-lg border"
+              className="flex items-center gap-3 px-4 py-3 rounded-[10px] border transition focus-within:border-[var(--accent)] focus-within:ring-4 focus-within:ring-[var(--accent-soft)]"
               style={{
-                background: COLORS.surfaceHigh,
+                background: COLORS.surface,
                 borderColor: COLORS.border,
               }}
             >
@@ -189,7 +188,7 @@ export default function LoginPage() {
             <div
               className="p-3 rounded-lg text-sm"
               style={{
-                background: '#f7524f18',
+                background: 'var(--danger-soft)',
                 color: COLORS.danger,
               }}
             >
@@ -204,7 +203,8 @@ export default function LoginPage() {
             className="w-full py-3 rounded-lg font-bold text-sm transition-all disabled:opacity-50"
             style={{
               background: COLORS.accent,
-              color: COLORS.background,
+              color: 'var(--on-accent)',
+              boxShadow: 'var(--shadow-sm)',
             }}
           >
             {loading

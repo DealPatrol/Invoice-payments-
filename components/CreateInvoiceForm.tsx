@@ -140,7 +140,7 @@ export function CreateInvoiceForm() {
     <>
       {/* Template Selector */}
       <div
-        className="rounded-lg border p-6 mb-8 flex items-center justify-between"
+        className="rounded-[var(--radius-lg)] border shadow-[var(--shadow-xs)] p-6 mb-8 flex items-center justify-between"
         style={{ background: COLORS.surfaceHigh, borderColor: COLORS.border }}
       >
         <div className="flex items-center gap-3">
@@ -168,7 +168,7 @@ export function CreateInvoiceForm() {
 
       <form className="space-y-6" onSubmit={handleSubmit}>
         <div
-          className="rounded-lg border p-6 space-y-4"
+          className="rounded-[var(--radius-lg)] border shadow-[var(--shadow-xs)] p-6 space-y-4"
           style={{ background: COLORS.surfaceHigh, borderColor: COLORS.border }}
         >
           <label className="text-xs font-bold uppercase" style={{ color: COLORS.textMuted }}>
@@ -286,7 +286,7 @@ export function CreateInvoiceForm() {
 
         {/* Line Items */}
         <div
-          className="rounded-lg border p-6"
+          className="rounded-[var(--radius-lg)] border shadow-[var(--shadow-xs)] p-6"
           style={{ background: COLORS.surfaceHigh, borderColor: COLORS.border }}
         >
           <div className="flex justify-between items-center mb-4">
@@ -393,7 +393,7 @@ export function CreateInvoiceForm() {
 
         {/* Notes & Options */}
         <div
-          className="rounded-lg border p-6 space-y-4"
+          className="rounded-[var(--radius-lg)] border shadow-[var(--shadow-xs)] p-6 space-y-4"
           style={{ background: COLORS.surfaceHigh, borderColor: COLORS.border }}
         >
           <textarea

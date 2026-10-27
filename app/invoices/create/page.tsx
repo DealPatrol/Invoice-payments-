@@ -9,8 +9,8 @@ function CreateInvoiceContent() {
     <div className="min-h-screen" style={{ background: COLORS.background }}>
       <div className="p-8 max-w-4xl">
           <h1
-            className="text-4xl font-black tracking-tight mb-2"
-            style={{ color: COLORS.text, fontFamily: '"Syne", sans-serif' }}
+            className="text-2xl font-bold tracking-tight sm:text-[1.75rem] mb-2"
+            style={{ color: COLORS.text }}
           >
             Create Invoice
           </h1>

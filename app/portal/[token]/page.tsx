@@ -37,7 +37,7 @@ export default async function ClientPortal({ params }: { params: Promise<{ token
   };
 
   return (
-    <div className="min-h-screen bg-[#f3f4f6] p-3 sm:p-8">
+    <div className="min-h-screen bg-[var(--canvas)] p-3 sm:p-8">
       <div className="mx-auto max-w-[760px] space-y-4">
         <div className="rounded-xl bg-white p-5 shadow-sm">
           <div className="text-sm text-gray-500">{brands.join(' • ') || 'Client portal'}</div>

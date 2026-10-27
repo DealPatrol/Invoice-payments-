@@ -47,7 +47,7 @@ export default function InvoiceDetailPage(props: { params: Promise<{ id: string 
         </div>
         <p className="text-3xl font-black">{symbol}{invoice.total.toFixed(2)}</p>
       </div>
-      <div className="rounded-lg border p-6 mb-6" style={{ borderColor: COLORS.border }}>
+      <div className="rounded-[var(--radius-lg)] border shadow-[var(--shadow-xs)] p-6 mb-6" style={{ borderColor: COLORS.border }}>
         {invoice.items.map((item, index) => (
           <div key={`${item.description}-${index}`} className="flex justify-between py-2">
             <span>{item.description} × {item.quantity}</span>

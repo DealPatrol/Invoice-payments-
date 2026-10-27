@@ -22,15 +22,15 @@ function StatCard({
 }) {
   return (
     <div
-      className="rounded-lg border p-6"
-      style={{ background: COLORS.surfaceHigh, borderColor: COLORS.border }}
+      className="animate-in rounded-[var(--radius-lg)] border p-5 shadow-[var(--shadow-sm)] transition hover:shadow-[var(--shadow-md)]"
+      style={{ background: COLORS.surface, borderColor: COLORS.border }}
     >
       <div className="flex items-start justify-between mb-2">
         <div>
-          <p className="text-sm" style={{ color: COLORS.textMuted }}>
+          <p className="text-xs font-semibold uppercase tracking-wider" style={{ color: COLORS.textMuted }}>
             {label}
           </p>
-          <p className="text-3xl font-black mt-2" style={{ color: COLORS.text }}>
+          <p className="tabular mt-2 text-[1.9rem] font-bold leading-none tracking-tight" style={{ color: COLORS.text }}>
             {value}
           </p>
           {sub && (
@@ -39,8 +39,8 @@ function StatCard({
             </p>
           )}
         </div>
-        <div className="p-3 rounded-lg" style={{ background: color + '15', color }}>
-          <Icon size={24} />
+        <div className="rounded-[10px] p-2.5" style={{ background: `color-mix(in srgb, ${color} 12%, transparent)`, color }}>
+          <Icon size={20} />
         </div>
       </div>
     </div>
@@ -55,12 +55,12 @@ export default function Dashboard() {
 
   return (
     <div style={{ background: COLORS.background, minHeight: '100vh' }}>
-      <div className="p-8">
+      <div className="mx-auto max-w-[1440px] p-4 sm:p-6 lg:p-10">
           <div className="mb-8 flex flex-wrap items-end justify-between gap-4">
             <div>
               <h1
-                className="text-4xl font-black tracking-tight mb-2"
-                style={{ color: COLORS.text, fontFamily: '"Syne", sans-serif' }}
+                className="text-2xl font-bold tracking-tight sm:text-[1.75rem] mb-2"
+                style={{ color: COLORS.text }}
               >
                 Dashboard
               </h1>
@@ -71,7 +71,7 @@ export default function Dashboard() {
             <Link
               href="/invoices/create"
               className="px-5 py-2.5 rounded-lg font-bold text-sm"
-              style={{ background: COLORS.accent, color: '#fff' }}
+              style={{ background: COLORS.accent, color: 'var(--on-accent)', boxShadow: 'var(--shadow-sm)' }}
             >
               + New Invoice
             </Link>
@@ -80,7 +80,7 @@ export default function Dashboard() {
           <DemoBanner mode={mode} />
 
           {statsLoading ? (
-            <p style={{ color: COLORS.textMuted }}>Loading metrics…</p>
+            <div className="mb-8 grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-5" aria-busy="true">{[0, 1, 2, 3, 4].map((i) => <div key={i} className="skeleton h-[108px]" />)}</div>
           ) : stats ? (
             <>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 mb-8">
@@ -119,7 +119,7 @@ export default function Dashboard() {
               </div>
 
               <div
-                className="rounded-lg border p-4 mb-8 flex items-center justify-between"
+                className="rounded-[var(--radius-lg)] border shadow-[var(--shadow-xs)] p-4 mb-8 flex items-center justify-between"
                 style={{ background: COLORS.surface, borderColor: COLORS.border }}
               >
                 <span style={{ color: COLORS.textMuted }} className="text-sm">
@@ -133,7 +133,7 @@ export default function Dashboard() {
           ) : null}
 
           <div
-            className="rounded-lg border overflow-hidden"
+            className="rounded-[var(--radius-lg)] border shadow-[var(--shadow-sm)] overflow-hidden"
             style={{ background: COLORS.surface, borderColor: COLORS.border }}
           >
             <div
@@ -163,7 +163,7 @@ export default function Dashboard() {
             {recent.map((inv) => (
               <div
                 key={inv.id}
-                className="flex items-center gap-4 px-6 py-4 border-b hover:bg-white/5"
+                className="flex items-center gap-4 px-6 py-4 border-b hover:bg-[var(--surface-sunken)]"
                 style={{ borderColor: COLORS.border }}
               >
                 <span className="font-mono text-sm font-bold" style={{ color: COLORS.accent }}>

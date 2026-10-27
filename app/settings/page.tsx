@@ -21,13 +21,13 @@ export default function SettingsPage() {
         <div className="p-8 max-w-2xl">
           <h1
             className="text-4xl font-black mb-8"
-            style={{ color: COLORS.text, fontFamily: '"Syne", sans-serif' }}
+            style={{ color: COLORS.text }}
           >
             Settings
           </h1>
 
           <section
-            className="rounded-lg border p-6 mb-6"
+            className="rounded-[var(--radius-lg)] border shadow-[var(--shadow-xs)] p-6 mb-6"
             style={{ background: COLORS.surface, borderColor: COLORS.border }}
           >
             <h2 className="font-bold mb-4" style={{ color: COLORS.text }}>
@@ -56,7 +56,7 @@ CRON_SECRET=`}
           </section>
 
           <section
-            className="rounded-lg border p-6 mb-6"
+            className="rounded-[var(--radius-lg)] border shadow-[var(--shadow-xs)] p-6 mb-6"
             style={{ background: COLORS.surface, borderColor: COLORS.border }}
           >
             <h2 className="font-bold mb-4" style={{ color: COLORS.text }}>
@@ -79,7 +79,7 @@ CRON_SECRET=`}
           </section>
 
           <section
-            className="rounded-lg border p-6 mb-6"
+            className="rounded-[var(--radius-lg)] border shadow-[var(--shadow-xs)] p-6 mb-6"
             style={{ background: COLORS.surface, borderColor: COLORS.border }}
           >
             <h2 className="font-bold mb-3" style={{ color: COLORS.text }}>Subscription</h2>
@@ -95,7 +95,7 @@ CRON_SECRET=`}
           </section>
 
           <section
-            className="rounded-lg border p-6"
+            className="rounded-[var(--radius-lg)] border shadow-[var(--shadow-xs)] p-6"
             style={{ background: COLORS.surface, borderColor: COLORS.border }}
           >
             <h2 className="font-bold mb-4" style={{ color: COLORS.text }}>

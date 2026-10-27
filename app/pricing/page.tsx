@@ -74,7 +74,7 @@ export default function PricingPage() {
         <div className="p-8 max-w-5xl">
           <h1
             className="text-4xl font-black mb-2"
-            style={{ color: COLORS.text, fontFamily: '"Syne", sans-serif' }}
+            style={{ color: COLORS.text }}
           >
             Simple pricing
           </h1>

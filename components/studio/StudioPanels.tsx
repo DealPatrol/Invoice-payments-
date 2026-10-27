@@ -12,8 +12,8 @@ import { btn, btnPrimary, card, input, label } from './ui';
 export function StatusBadge({ status }: { status: DisplayStatus }) {
   const s = STATUS_STYLES[status];
   return (
-    <span className="inline-block rounded-full px-2 py-0.5 text-[11px] font-bold" style={{ color: s.color, background: `${s.color}22` }}>
-      {s.label}
+    <span className="inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-[11px] font-semibold ring-1 ring-inset" style={{ color: s.color, background: `color-mix(in srgb, ${s.color} 12%, transparent)`, ['--tw-ring-color' as string]: `color-mix(in srgb, ${s.color} 25%, transparent)` }}>
+      <i className="h-1.5 w-1.5 rounded-full" style={{ background: s.color }} />{s.label}
     </span>
   );
 }
@@ -27,20 +27,20 @@ export function Dashboard({ invoices, today, currency, onOpen }: {
   const money = (n: number) => formatMoney(n, currency);
   const overdue = invoices.filter((i) => displayStatus(i, today) === 'overdue');
   const stats = [
-    { label: 'Outstanding', value: money(s.outstanding), color: '#4f6ef7' },
-    { label: `Overdue (${s.overdueCount})`, value: money(s.overdue), color: '#f7524f' },
-    { label: 'Collected this month', value: money(s.paidThisMonth), color: '#22c97a' },
-    { label: 'Collected all time', value: money(s.paidTotal), color: '#22c97a' },
-    { label: `Open estimates (${s.openEstimates})`, value: money(s.openEstimatesValue), color: '#a78bfa' },
-    { label: 'Avg. days to pay', value: s.avgDaysToPay === null ? '—' : `${s.avgDaysToPay} days`, color: '#f5a623' },
+    { label: 'Outstanding', value: money(s.outstanding), color: 'var(--accent)' },
+    { label: `Overdue (${s.overdueCount})`, value: money(s.overdue), color: 'var(--danger)' },
+    { label: 'Collected this month', value: money(s.paidThisMonth), color: 'var(--success)' },
+    { label: 'Collected all time', value: money(s.paidTotal), color: 'var(--success)' },
+    { label: `Open estimates (${s.openEstimates})`, value: money(s.openEstimatesValue), color: '#8b5cf6' },
+    { label: 'Avg. days to pay', value: s.avgDaysToPay === null ? '—' : `${s.avgDaysToPay} days`, color: 'var(--warning)' },
   ];
   return (
     <div className="space-y-4">
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-3">
         {stats.map((x) => (
           <div key={x.label} className={card}>
-            <div className="text-xs font-semibold uppercase tracking-wide text-[var(--text-muted)]">{x.label}</div>
-            <div className="mt-1 text-xl font-black sm:text-2xl" style={{ color: x.color }}>{x.value}</div>
+            <div className="flex items-center gap-2 text-xs font-medium text-[var(--text-muted)]"><i className="h-2 w-2 rounded-full" style={{ background: x.color }} />{x.label}</div>
+            <div className="tabular mt-2 text-2xl font-bold tracking-tight text-[var(--text)] sm:text-[1.75rem]">{x.value}</div>
           </div>
         ))}
       </div>
@@ -48,16 +48,16 @@ export function Dashboard({ invoices, today, currency, onOpen }: {
         <div className="mb-3 flex items-center justify-between">
           <h2 className="font-bold text-[var(--text)]">Revenue — last 6 months</h2>
           <div className="flex gap-3 text-xs text-[var(--text-muted)]">
-            <span><i className="mr-1 inline-block h-2 w-2 rounded-sm bg-[#4f6ef7]" />Billed</span>
-            <span><i className="mr-1 inline-block h-2 w-2 rounded-sm bg-[#22c97a]" />Collected</span>
+            <span><i className="mr-1 inline-block h-2 w-2 rounded-sm bg-[var(--accent)]" />Billed</span>
+            <span><i className="mr-1 inline-block h-2 w-2 rounded-sm bg-[var(--success)]" />Collected</span>
           </div>
         </div>
         <div className="flex h-44 items-end gap-3">
           {rows.map((r) => (
             <div key={r.month} className="flex flex-1 flex-col items-center gap-1">
               <div className="flex h-36 w-full items-end justify-center gap-1">
-                <div title={money(r.billed)} className="w-1/3 rounded-t bg-[#4f6ef7]" style={{ height: `${(r.billed / max) * 100}%` }} />
-                <div title={money(r.collected)} className="w-1/3 rounded-t bg-[#22c97a]" style={{ height: `${(r.collected / max) * 100}%` }} />
+                <div title={money(r.billed)} className="w-1/3 rounded-t bg-[var(--accent)]" style={{ height: `${(r.billed / max) * 100}%` }} />
+                <div title={money(r.collected)} className="w-1/3 rounded-t bg-[var(--success)]" style={{ height: `${(r.collected / max) * 100}%` }} />
               </div>
               <div className="text-[11px] text-[var(--text-muted)]">
                 {new Date(`${r.month}-01T00:00:00Z`).toLocaleDateString('en-US', { month: 'short', timeZone: 'UTC' })}
@@ -67,14 +67,14 @@ export function Dashboard({ invoices, today, currency, onOpen }: {
         </div>
       </div>
       <div className={card}>
-        <h2 className="mb-2 flex items-center gap-2 font-bold text-[var(--text)]"><AlertTriangle size={16} className="text-[#f7524f]" />Needs attention</h2>
+        <h2 className="mb-2 flex items-center gap-2 font-bold text-[var(--text)]"><AlertTriangle size={16} className="text-[var(--danger)]" />Needs attention</h2>
         {overdue.length === 0 ? <p className="text-sm text-[var(--text-muted)]">Nothing overdue. Nice.</p> : (
           <ul className="divide-y divide-[var(--border)]">
             {overdue.map((inv) => (
               <li key={inv.id}>
                 <button className="flex w-full items-center justify-between py-2 text-left text-sm" onClick={() => onOpen(inv)}>
                   <span className="text-[var(--text)]">{inv.number} · {inv.customer.name} · due {formatDate(inv.dueDate)}</span>
-                  <span className="font-bold text-[#f7524f]">{formatMoney(calcTotals(inv).balanceDue, inv.business.currency)}</span>
+                  <span className="font-bold text-[var(--danger)]">{formatMoney(calcTotals(inv).balanceDue, inv.business.currency)}</span>
                 </button>
               </li>
             ))}

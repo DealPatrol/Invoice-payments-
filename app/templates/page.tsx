@@ -22,7 +22,6 @@ export default function TemplatesPage() {
               className="text-4xl font-black mb-2 tracking-tight"
               style={{
                 color: COLORS.text,
-                fontFamily: '"Syne", sans-serif',
               }}
             >
               Invoice Templates
@@ -45,7 +44,7 @@ export default function TemplatesPage() {
             <div>
               {template ? (
                 <div
-                  className="rounded-lg border p-6 sticky top-8"
+                  className="rounded-[var(--radius-lg)] border shadow-[var(--shadow-xs)] p-6 sticky top-8"
                   style={{
                     background: COLORS.surface,
                     borderColor: COLORS.border,
@@ -165,7 +164,7 @@ export default function TemplatesPage() {
                 </div>
               ) : (
                 <div
-                  className="rounded-lg border p-6 sticky top-8 text-center"
+                  className="rounded-[var(--radius-lg)] border shadow-[var(--shadow-xs)] p-6 sticky top-8 text-center"
                   style={{
                     background: COLORS.surface,
                     borderColor: COLORS.border,

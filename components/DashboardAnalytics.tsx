@@ -28,7 +28,7 @@ export function DashboardAnalytics({
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
       {/* Revenue */}
       <div
-        className="rounded-lg border p-6"
+        className="rounded-[var(--radius-lg)] border shadow-[var(--shadow-xs)] p-6"
         style={{ background: COLORS.surfaceHigh, borderColor: COLORS.border }}
       >
         <div className="flex items-start justify-between mb-3">
@@ -41,7 +41,7 @@ export function DashboardAnalytics({
               {totalRevenue.toLocaleString('en-US', { maximumFractionDigits: 0 })}
             </p>
           </div>
-          <div className="p-3 rounded-lg" style={{ background: COLORS.accent + '15', color: COLORS.accent }}>
+          <div className="p-3 rounded-lg" style={{ background: 'var(--accent-soft)', color: COLORS.accent }}>
             <TrendingUp size={24} />
           </div>
         </div>
@@ -52,7 +52,7 @@ export function DashboardAnalytics({
 
       {/* Paid */}
       <div
-        className="rounded-lg border p-6"
+        className="rounded-[var(--radius-lg)] border shadow-[var(--shadow-xs)] p-6"
         style={{ background: COLORS.surfaceHigh, borderColor: COLORS.border }}
       >
         <div className="flex items-start justify-between mb-3">
@@ -76,7 +76,7 @@ export function DashboardAnalytics({
 
       {/* Pending */}
       <div
-        className="rounded-lg border p-6"
+        className="rounded-[var(--radius-lg)] border shadow-[var(--shadow-xs)] p-6"
         style={{ background: COLORS.surfaceHigh, borderColor: COLORS.border }}
       >
         <div className="flex items-start justify-between mb-3">
@@ -100,7 +100,7 @@ export function DashboardAnalytics({
 
       {/* Overdue */}
       <div
-        className="rounded-lg border p-6"
+        className="rounded-[var(--radius-lg)] border shadow-[var(--shadow-xs)] p-6"
         style={{ background: COLORS.surfaceHigh, borderColor: COLORS.border }}
       >
         <div className="flex items-start justify-between mb-3">

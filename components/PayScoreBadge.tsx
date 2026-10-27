@@ -12,9 +12,9 @@ export function PayScoreBadge({ score }: { score: number }) {
     <span
       className="inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-xs font-bold"
       style={{
-        background: `${color}18`,
+        background: `color-mix(in srgb, ${color} 10%, transparent)`,
         color,
-        border: `1px solid ${color}44`,
+        border: `1px solid color-mix(in srgb, ${color} 27%, transparent)`,
       }}
       title="Smart Pay Score — predicts on-time payment likelihood"
     >

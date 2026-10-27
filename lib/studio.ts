@@ -43,6 +43,13 @@ export interface StudioClient extends StudioCustomer {
   createdAt: string;
 }
 
+export type InvoiceTemplate = 'modern' | 'classic' | 'bold';
+export const INVOICE_TEMPLATES: { id: InvoiceTemplate; name: string; blurb: string }[] = [
+  { id: 'modern', name: 'Modern', blurb: 'Accent bar, colored table header' },
+  { id: 'classic', name: 'Classic', blurb: 'Serif headings, quiet lines' },
+  { id: 'bold', name: 'Bold', blurb: 'Full-color header band' },
+];
+
 export interface BusinessProfile {
   name: string;
   tagline: string;
@@ -54,6 +61,8 @@ export interface BusinessProfile {
   taxId: string;
   logoDataUrl: string;
   accentColor: string;
+  /** Invoice template style. */
+  template?: InvoiceTemplate;
   currency: string;
   invoicePrefix: string;
   nextNumber: number;
@@ -221,7 +230,8 @@ export const DEFAULT_PROFILE: BusinessProfile = {
   website: '',
   taxId: '',
   logoDataUrl: '',
-  accentColor: '#4f6ef7',
+  accentColor: '#4f46e5',
+  template: 'modern',
   currency: 'USD',
   invoicePrefix: 'INV-',
   nextNumber: 1001,

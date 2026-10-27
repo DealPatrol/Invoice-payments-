@@ -31,8 +31,8 @@ export default function ReportsPage() {
 
   return (
     <div style={{ background: COLORS.background, minHeight: '100vh' }}>
-      <div className="p-8">
-        <h1 className="text-4xl font-black tracking-tight mb-2" style={{ color: COLORS.text }}>
+      <div className="mx-auto max-w-[1440px] p-4 sm:p-6 lg:p-10">
+        <h1 className="text-2xl font-bold tracking-tight sm:text-[1.75rem] mb-2" style={{ color: COLORS.text }}>
           Reports & Analytics
         </h1>
         <p className="text-sm mb-8" style={{ color: COLORS.textMuted }}>
@@ -52,7 +52,7 @@ export default function ReportsPage() {
               ].map(([label, value]) => (
                 <div
                   key={label}
-                  className="rounded-lg border p-6"
+                  className="rounded-[var(--radius-lg)] border shadow-[var(--shadow-xs)] p-6"
                   style={{ background: COLORS.surfaceHigh, borderColor: COLORS.border }}
                 >
                   <p className="text-sm" style={{ color: COLORS.textMuted }}>{label}</p>
@@ -61,7 +61,7 @@ export default function ReportsPage() {
               ))}
             </div>
             <div
-              className="rounded-lg border p-6"
+              className="rounded-[var(--radius-lg)] border shadow-[var(--shadow-xs)] p-6"
               style={{ background: COLORS.surface, borderColor: COLORS.border }}
             >
               <h2 className="text-lg font-bold mb-5" style={{ color: COLORS.text }}>

@@ -50,7 +50,7 @@ export default function RemindersPage() {
       <div className="p-8 max-w-4xl">
           <h1
             className="text-4xl font-black mb-2"
-            style={{ color: COLORS.text, fontFamily: '"Syne", sans-serif' }}
+            style={{ color: COLORS.text }}
           >
             Smart Reminders
           </h1>
@@ -61,7 +61,7 @@ export default function RemindersPage() {
           <DemoBanner mode={mode} />
 
           <div
-            className="rounded-lg border p-6 mb-8 grid grid-cols-3 gap-4"
+            className="rounded-[var(--radius-lg)] border shadow-[var(--shadow-xs)] p-6 mb-8 grid grid-cols-3 gap-4"
             style={{ background: COLORS.surface, borderColor: COLORS.border }}
           >
             {[
@@ -89,7 +89,7 @@ export default function RemindersPage() {
               return (
                 <div
                   key={inv.id}
-                  className="rounded-lg border p-6"
+                  className="rounded-[var(--radius-lg)] border shadow-[var(--shadow-xs)] p-6"
                   style={{ background: COLORS.surfaceHigh, borderColor: COLORS.border }}
                 >
                   <div className="flex flex-wrap items-center gap-3 mb-4">

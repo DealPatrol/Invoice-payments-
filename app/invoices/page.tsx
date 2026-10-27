@@ -23,8 +23,8 @@ export default function InvoicesPage() {
         <div className="flex items-center justify-between mb-6">
           <div>
             <h1
-              className="text-4xl font-black tracking-tight mb-2"
-              style={{ color: COLORS.text, fontFamily: '"Syne", sans-serif' }}
+              className="text-2xl font-bold tracking-tight sm:text-[1.75rem] mb-2"
+              style={{ color: COLORS.text }}
             >
               Invoices
             </h1>
@@ -62,7 +62,7 @@ export default function InvoicesPage() {
         <div className="space-y-4">
           {loading && <p style={{ color: COLORS.textMuted }}>Loading invoices…</p>}
           {invoices.map((invoice) => (
-            <div key={invoice.id} className="rounded-lg border p-6" style={{ background: COLORS.surface, borderColor: COLORS.border }}>
+            <div key={invoice.id} className="rounded-[var(--radius-lg)] border shadow-[var(--shadow-xs)] p-6" style={{ background: COLORS.surface, borderColor: COLORS.border }}>
               <div className="flex items-center justify-between">
                 <div>
                   <Link href={`/invoices/${invoice.id}`} className="font-bold text-lg hover:underline" style={{ color: COLORS.accent }}>

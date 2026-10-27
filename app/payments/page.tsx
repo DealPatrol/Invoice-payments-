@@ -22,10 +22,10 @@ export default function PaymentsPage() {
   return (
     <div style={{ background: COLORS.background, minHeight: '100vh' }}>
       <div className="w-full">
-        <div className="p-8">
+        <div className="mx-auto max-w-[1440px] p-4 sm:p-6 lg:p-10">
           <h1
-            className="text-4xl font-black tracking-tight mb-8"
-            style={{ color: COLORS.text, fontFamily: '"Syne", sans-serif' }}
+            className="text-2xl font-bold tracking-tight sm:text-[1.75rem] mb-8"
+            style={{ color: COLORS.text }}
           >
             Payments
           </h1>
@@ -44,7 +44,7 @@ export default function PaymentsPage() {
             ].map((s) => (
               <div
                 key={s.label}
-                className="rounded-lg border p-6"
+                className="rounded-[var(--radius-lg)] border shadow-[var(--shadow-xs)] p-6"
                 style={{ background: COLORS.surfaceHigh, borderColor: COLORS.border }}
               >
                 <p className="text-sm" style={{ color: COLORS.textMuted }}>
@@ -97,7 +97,7 @@ export default function PaymentsPage() {
                 Outstanding
               </h2>
               <div
-                className="rounded-lg border overflow-hidden"
+                className="rounded-[var(--radius-lg)] border shadow-[var(--shadow-sm)] overflow-hidden"
                 style={{ background: COLORS.surface, borderColor: COLORS.border }}
               >
                 {outstanding.map((inv) => (

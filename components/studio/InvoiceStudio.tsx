@@ -30,6 +30,61 @@ function download(name: string, content: string, type: string) {
   a.click();
 }
 
+const LOGO_MAX_EDGE = 256;
+const LOGO_PASSTHROUGH_BYTES = 40 * 1024;
+
+function readAsDataUrl(file: File): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(String(reader.result || ''));
+    reader.onerror = () => reject(reader.error ?? new Error('Could not read image'));
+    reader.readAsDataURL(file);
+  });
+}
+
+function loadImage(file: File): Promise<HTMLImageElement> {
+  return new Promise((resolve, reject) => {
+    const url = URL.createObjectURL(file);
+    const img = new Image();
+    img.onload = () => {
+      URL.revokeObjectURL(url);
+      resolve(img);
+    };
+    img.onerror = () => {
+      URL.revokeObjectURL(url);
+      reject(new Error('Could not read image'));
+    };
+    img.src = url;
+  });
+}
+
+/** Shrink phone photos before they are copied into the profile and every invoice snapshot. */
+async function logoDataUrlFromFile(file: File): Promise<string> {
+  if (file.size > 0 && file.size <= LOGO_PASSTHROUGH_BYTES) return readAsDataUrl(file);
+  const img = await loadImage(file);
+  const edge = Math.max(img.naturalWidth, img.naturalHeight);
+  if (!edge) throw new Error('Could not read image');
+  const scale = Math.min(1, LOGO_MAX_EDGE / edge);
+  const width = Math.max(1, Math.round(img.naturalWidth * scale));
+  const height = Math.max(1, Math.round(img.naturalHeight * scale));
+  const canvas = document.createElement('canvas');
+  canvas.width = width;
+  canvas.height = height;
+  const ctx = canvas.getContext('2d');
+  if (!ctx) throw new Error('Could not read image');
+  ctx.fillStyle = '#ffffff';
+  ctx.fillRect(0, 0, width, height);
+  ctx.drawImage(img, 0, 0, width, height);
+  let quality = 0.82;
+  let dataUrl = canvas.toDataURL('image/jpeg', quality);
+  while (dataUrl.length > 48000 && quality > 0.5) {
+    quality -= 0.16;
+    dataUrl = canvas.toDataURL('image/jpeg', quality);
+  }
+  if (dataUrl.length > 48000) throw new Error('logo too large');
+  return dataUrl;
+}
+
 export function InvoiceStudio() {
   const params = useSearchParams();
   const shared = params.get('doc');
@@ -191,8 +246,8 @@ export function InvoiceStudio() {
   const updateCustomer = (patch: Partial<StudioInvoice['customer']>) => update({ customer: { ...draft.customer, ...patch } });
   const updateItem = (id: string, patch: Partial<StudioLineItem>) =>
     update({ items: draft.items.map((i) => (i.id === id ? { ...i, ...patch } : i)) });
-  const persistProfile = (p: BusinessProfile) => { setProfile(p); saveProfile(p); };
-  const persistInvoices = (list: StudioInvoice[]) => { setInvoices(list); saveInvoices(list); };
+  const persistProfile = (p: BusinessProfile) => { if (!saveProfile(p)) flash('Could not save on this device (storage full)'); setProfile(p); };
+  const persistInvoices = (list: StudioInvoice[]) => { if (!saveInvoices(list)) flash('Could not save on this device (storage full)'); setInvoices(list); };
   const persistClients = (list: StudioClient[]) => { setClients(list); saveClients(list); };
   const persistCatalog = (list: CatalogItem[]) => { setCatalog(list); saveCatalog(list); };
 
@@ -288,8 +343,10 @@ export function InvoiceStudio() {
   const copyLink = async (inv = draft) => {
     const secure = await secureLink(inv);
     if (secure === '') return;
-    await navigator.clipboard.writeText(secure ?? shareUrl(inv)).catch(() => undefined);
-    flash(secure ? 'Secure client link copied' : 'Client view link copied (offline link — sign in for secure links)');
+    try {
+      await navigator.clipboard.writeText(secure ?? shareUrl(inv));
+      flash(secure ? 'Secure client link copied' : 'Client view link copied (offline link — sign in for secure links)');
+    } catch { flash(secure ? `Copy this link: ${secure}` : 'Could not copy link'); }
   };
 
   const sendEmail = async (inv = draft) => {
@@ -321,9 +378,10 @@ export function InvoiceStudio() {
     });
   };
   const onLogo = (file: File) => {
-    const reader = new FileReader();
-    reader.onload = () => persistProfile({ ...profile, logoDataUrl: String(reader.result) });
-    reader.readAsDataURL(file);
+    logoDataUrlFromFile(file)
+      // Resize can take seconds; merge into the profile saved since the file was picked.
+      .then((logoDataUrl) => { persistProfile({ ...loadProfile(), logoDataUrl }); })
+      .catch(() => flash('Could not read that image'));
   };
 
   const openDoc = (inv: StudioInvoice) => { setDraft(inv); setTab('edit'); };
@@ -705,7 +763,7 @@ export function InvoiceStudio() {
           )}
         </div>
 
-        {showPreview && <div className="print-reset overflow-x-auto"><InvoiceDocument invoice={draft} today={today} /></div>}
+        {showPreview && <div className="print-reset overflow-x-auto print:!overflow-visible"><InvoiceDocument invoice={draft} today={today} /></div>}
       </div>
 
       {reminder && (

@@ -1,15 +1,24 @@
 'use client';
 
 import Link from 'next/link';
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { DemoBanner } from '@/components/DemoBanner';
-import { COLORS } from '@/lib/constants';
+import { CURRENCY_SYMBOLS } from '@/lib/constants';
 import { useInvoices } from '@/lib/hooks';
-import { Plus } from 'lucide-react';
+import { FileText, Plus, Trash2 } from 'lucide-react';
+import { DataList, EmptyState, LinkButton, Page, PageHeader, Panel, SearchInput, Segmented, SkeletonRows, Stat, StatGrid, StatusPill, Toolbar, Avatar } from '@/components/ui/kit';
+
+type Filter = 'all' | 'paid' | 'pending' | 'overdue';
 
 export default function InvoicesPage() {
-  const [filter, setFilter] = useState('all');
+  const [filter, setFilter] = useState<Filter>('all');
+  const [q, setQ] = useState('');
   const { invoices, mode, loading, reload } = useInvoices({ status: filter });
+  const { invoices: all } = useInvoices({ status: 'all' });
+
+  const rows = useMemo(() => invoices.filter((i) => `${i.clientName} ${i.invoiceNumber}`.toLowerCase().includes(q.toLowerCase())), [invoices, q]);
+  const sum = (s: string) => all.filter((i) => i.status === s).reduce((t, i) => t + i.total, 0);
+  const money = (n: number, c = 'USD') => `${CURRENCY_SYMBOLS[c] || '$'}${n.toLocaleString(undefined, { maximumFractionDigits: 2 })}`;
 
   async function remove(id: string) {
     if (!confirm('Delete this invoice?')) return;
@@ -18,102 +27,46 @@ export default function InvoicesPage() {
   }
 
   return (
-    <div style={{ background: COLORS.background, minHeight: '100vh' }}>
-      <div className="p-8 max-w-6xl mx-auto">
-        <div className="flex items-center justify-between mb-6">
-          <div>
-            <h1
-              className="text-2xl font-bold tracking-tight sm:text-[1.75rem] mb-2"
-              style={{ color: COLORS.text }}
-            >
-              Invoices
-            </h1>
-            <p style={{ color: COLORS.textMuted }}>Manage all your invoices in one place</p>
-          </div>
-          <Link
-            href="/invoices/create"
-            className="flex items-center gap-2 px-4 py-2 rounded-lg font-medium"
-            style={{ background: COLORS.accent, color: '#ffffff' }}
-          >
-            <Plus size={18} />
-            New Invoice
-          </Link>
+    <Page>
+      <PageHeader title="Invoices" subtitle="Every invoice you’ve sent, in one place." actions={<LinkButton href="/invoices/create"><Plus size={16} />New invoice</LinkButton>} />
+      <DemoBanner mode={mode} />
+      <StatGrid>
+        <Stat label="Paid" value={money(sum('paid'))} tone="success" />
+        <Stat label="Pending" value={money(sum('pending') + sum('sent'))} tone="warning" />
+        <Stat label="Overdue" value={money(sum('overdue'))} tone="danger" />
+      </StatGrid>
+      <Panel flush>
+        <div className="border-b border-[var(--border)] p-4">
+          <Toolbar>
+            <Segmented value={filter} onChange={setFilter} options={(['all', 'paid', 'pending', 'overdue'] as Filter[]).map((v) => ({ value: v, label: v, count: v === 'all' ? all.length : all.filter((i) => i.status === v).length }))} />
+            <SearchInput value={q} onChange={setQ} placeholder="Search client or number" />
+          </Toolbar>
         </div>
-
-        <DemoBanner mode={mode} />
-
-        <div className="flex gap-2 mb-8">
-          {['all', 'paid', 'pending', 'overdue'].map((status) => (
-            <button
-              key={status}
-              onClick={() => setFilter(status)}
-              className="px-4 py-2 rounded-lg font-medium transition-all capitalize"
-              style={{
-                background: filter === status ? COLORS.accent : COLORS.surface,
-                color: filter === status ? '#ffffff' : COLORS.text,
-                border: `1px solid ${filter === status ? COLORS.accent : COLORS.border}`,
-              }}
-            >
-              {status}
-            </button>
-          ))}
-        </div>
-
-        <div className="space-y-4">
-          {loading && <p style={{ color: COLORS.textMuted }}>Loading invoices…</p>}
-          {invoices.map((invoice) => (
-            <div key={invoice.id} className="rounded-[var(--radius-lg)] border shadow-[var(--shadow-xs)] p-6" style={{ background: COLORS.surface, borderColor: COLORS.border }}>
-              <div className="flex items-center justify-between">
-                <div>
-                  <Link href={`/invoices/${invoice.id}`} className="font-bold text-lg hover:underline" style={{ color: COLORS.accent }}>
-                    {invoice.clientName}
-                  </Link>
-                  <p className="text-sm" style={{ color: COLORS.textMuted }}>
-                    {invoice.issuedDate}
-                  </p>
-                </div>
-                <div className="flex items-center gap-4">
-                  <span className="text-xl font-bold" style={{ color: COLORS.text }}>
-                    {invoice.currency} {invoice.total.toLocaleString()}
-                  </span>
-                  <span
-                    className="px-3 py-1 rounded-full text-xs font-bold"
-                    style={{
-                      background:
-                        invoice.status === 'paid'
-                          ? '#dcfce7'
-                          : invoice.status === 'pending'
-                            ? '#fef3c7'
-                            : '#fee2e2',
-                      color:
-                        invoice.status === 'paid'
-                          ? '#166534'
-                          : invoice.status === 'pending'
-                            ? '#92400e'
-                            : '#991b1b',
-                    }}
-                  >
-                    {invoice.status.toUpperCase()}
-                  </span>
-                  <button
-                    onClick={() => remove(invoice.id)}
-                    className="text-sm px-3 py-1 rounded hover:bg-red-100"
-                    style={{ color: '#dc2626' }}
-                  >
-                    Delete
-                  </button>
-                </div>
+        {loading ? <SkeletonRows /> : rows.length === 0 ? (
+          <EmptyState icon={FileText} title={q || filter !== 'all' ? 'No matching invoices' : 'No invoices yet'} body={q || filter !== 'all' ? 'Try a different filter or search.' : 'Create your first invoice and get paid by card or bank.'}
+            action={<LinkButton href="/invoices/create"><Plus size={16} />New invoice</LinkButton>} />
+        ) : (
+          <DataList rows={rows} rowKey={(r) => r.id}
+            columns={[
+              { header: 'Number', cell: (r) => <Link href={`/invoices/${r.id}`} className="font-semibold text-[var(--accent)] hover:underline">{r.invoiceNumber}</Link> },
+              { header: 'Client', cell: (r) => <span className="flex items-center gap-2.5"><Avatar name={r.clientName} />{r.clientName}</span> },
+              { header: 'Issued', cell: (r) => <span className="text-[var(--text-muted)]">{r.issuedDate}</span> },
+              { header: 'Status', cell: (r) => <StatusPill status={r.status} /> },
+              { header: 'Amount', align: 'right', cell: (r) => <span className="font-semibold">{money(r.total, r.currency)}</span> },
+              { header: '', align: 'right', cell: (r) => <button onClick={() => remove(r.id)} aria-label={`Delete ${r.invoiceNumber}`} className="rounded-md p-1.5 text-[var(--text-subtle)] hover:bg-[var(--danger-soft)] hover:text-[var(--danger)]"><Trash2 size={15} /></button> },
+            ]}
+            mobile={(r) => (
+              <div className="flex items-center gap-3">
+                <Avatar name={r.clientName} />
+                <Link href={`/invoices/${r.id}`} className="min-w-0 flex-1">
+                  <p className="truncate font-semibold text-[var(--text)]">{r.clientName}</p>
+                  <p className="text-xs text-[var(--text-muted)]">{r.invoiceNumber} · {r.issuedDate}</p>
+                </Link>
+                <div className="text-right"><p className="tabular font-semibold text-[var(--text)]">{money(r.total, r.currency)}</p><StatusPill status={r.status} /></div>
               </div>
-            </div>
-          ))}
-        </div>
-
-        {!loading && invoices.length === 0 && (
-          <div className="text-center py-12">
-            <p style={{ color: COLORS.textMuted }}>No invoices found</p>
-          </div>
+            )} />
         )}
-      </div>
-    </div>
+      </Panel>
+    </Page>
   );
 }

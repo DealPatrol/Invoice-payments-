@@ -10,6 +10,7 @@ import { InvoiceDocument } from './InvoiceDocument';
 import { CatalogPanel, ClientsPanel, Dashboard, StatusBadge } from './StudioPanels';
 import { BrandSwitcher, ExpensesTimePanel, PortalCard, TaxReportPanel, TrackingCard } from './SuitePanels';
 import { DEFAULT_EXTRAS, billToInvoice, ensureBrands, loadExtras, normalizeExtras, saveExtras, syncActiveBrand, type StudioExtras } from '@/lib/studio-suite';
+import { Avatar, DataList, EmptyState, Panel, SearchInput, Segmented, StatusPill, Toolbar } from '@/components/ui/kit';
 import { btn, btnPrimary, btnSm, card, input, label } from './ui';
 import {
   addDays, calcTotals, decodeInvoice, encodeInvoice, formatInvoiceNumber, formatMoney, formatDate,
@@ -102,6 +103,7 @@ export function InvoiceStudio() {
   const [extras, setExtras] = useState<StudioExtras>(DEFAULT_EXTRAS);
   const [draft, setDraft] = useState<StudioInvoice | null>(null);
   const [toast, setToast] = useState('');
+  const [docFilter, setDocFilter] = useState('all');
   const [query, setQuery] = useState('');
   const [reminder, setReminder] = useState<ReturnType<typeof reminderDraft> | null>(null);
   const [pay, setPay] = useState({ amount: '', date: todayISO(), method: 'Cash', reference: '' });
@@ -448,48 +450,70 @@ export function InvoiceStudio() {
   ];
 
   const renderDocList = (kind: DocKind) => {
-    const list = (kind === 'invoice' ? invoiceList : estimateList)
+    const base = (kind === 'invoice' ? invoiceList : estimateList)
       .filter((i) => `${i.number} ${i.customer.name} ${i.customer.company}`.toLowerCase().includes(query.toLowerCase()));
-    return (
-      <div className={card}>
-        <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
-          <h2 className="font-bold text-[var(--text)]">{kind === 'invoice' ? 'Invoices' : 'Estimates'}</h2>
-          <div className="flex gap-2">
-            <button className={btn} onClick={() => download(`${kind}s-${today}.csv`, invoicesToCSV(list, today), 'text/csv')}><FileSpreadsheet size={16} />CSV</button>
-            <button className={btnPrimary} onClick={() => startNew(kind)}><Plus size={16} />New</button>
-          </div>
-        </div>
-        <input className={input + ' mb-2'} placeholder="Search by number or customer" value={query} onChange={(e) => setQuery(e.target.value)} />
-        {list.length === 0 && <p className="text-sm text-[var(--text-muted)]">Nothing here yet.</p>}
-        <ul className="divide-y divide-[var(--border)]">
-          {list.map((inv) => {
-            const t = calcTotals(inv);
-            return (
-              <li key={inv.id} className="flex flex-wrap items-center justify-between gap-2 py-3">
-                <button className="min-w-0 text-left" onClick={() => openDoc(inv)}>
-                  <div className="flex items-center gap-2 font-semibold text-[var(--text)]">
-                    {inv.number} · {inv.customer.name || 'No customer'} <StatusBadge status={displayStatus(inv, today)} />
-                    {inv.recurring?.active && <Repeat size={13} className="text-[var(--accent)]" aria-label="Recurring" />}
-                    {(inv.views?.length ?? 0) > 0 && <span className="text-xs font-normal text-[var(--text-muted)]">👁 {inv.views!.length}</span>}
-                  </div>
-                  <div className="text-xs text-[var(--text-muted)]">
-                    {formatDate(inv.issueDate)} · {kind === 'invoice' ? 'due' : 'valid until'} {formatDate(inv.dueDate)} · {formatMoney(t.total, inv.business.currency)}
-                    {kind === 'invoice' && t.amountPaid > 0 && t.balanceDue > 0 ? ` · ${formatMoney(t.balanceDue, inv.business.currency)} left` : ''}
-                  </div>
-                </button>
-                <div className="flex items-center gap-2">
-                  {kind === 'estimate' && inv.estimateStatus !== 'converted' && <button className={btnSm} onClick={() => convert(inv)}><ArrowRightLeft size={13} />Invoice</button>}
-                  <button title="Copy client link" className="text-[var(--text-muted)] hover:text-[var(--text)]" onClick={() => copyLink(inv)}><Link2 size={16} /></button>
-                  <button title="Duplicate" className="text-[var(--text-muted)] hover:text-[var(--text)]" onClick={() => duplicate(inv)}><Copy size={16} /></button>
-                  <button title="Delete" className="text-[var(--danger)]" onClick={() => remove(inv.id)}><Trash2 size={16} /></button>
-                </div>
-              </li>
-            );
-          })}
-        </ul>
+    const stat = (i: StudioInvoice) => String(kind === 'invoice' ? displayStatus(i, today) : i.estimateStatus ?? 'draft');
+    const filters = kind === 'invoice' ? ['all', 'draft', 'sent', 'overdue', 'paid'] : ['all', 'draft', 'sent', 'accepted', 'converted'];
+    const active = filters.includes(docFilter) ? docFilter : 'all';
+    const list = active === 'all' ? base : base.filter((i) => stat(i) === active);
+    const word = kind === 'invoice' ? 'invoice' : 'estimate';
+    const actions = (inv: StudioInvoice) => (
+      <div className="flex items-center justify-end gap-0.5">
+        {kind === 'estimate' && inv.estimateStatus !== 'converted' && <button className={btnSm} onClick={() => convert(inv)}><ArrowRightLeft size={13} />Invoice</button>}
+        <button title="Copy client link" aria-label={`Copy client link for ${inv.number}`} className="rounded-md p-1.5 text-[var(--text-subtle)] hover:bg-[var(--surface-high)] hover:text-[var(--text)]" onClick={() => copyLink(inv)}><Link2 size={15} /></button>
+        <button title="Duplicate" aria-label={`Duplicate ${inv.number}`} className="rounded-md p-1.5 text-[var(--text-subtle)] hover:bg-[var(--surface-high)] hover:text-[var(--text)]" onClick={() => duplicate(inv)}><Copy size={15} /></button>
+        <button title="Delete" aria-label={`Delete ${inv.number}`} className="rounded-md p-1.5 text-[var(--text-subtle)] hover:bg-[var(--danger-soft)] hover:text-[var(--danger)]" onClick={() => remove(inv.id)}><Trash2 size={15} /></button>
       </div>
     );
+    return (
+      <Panel flush>
+        <div className="space-y-3 border-b border-[var(--border)] p-4">
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <h2 className="text-[15px] font-semibold text-[var(--text)]">{kind === 'invoice' ? 'Invoices' : 'Estimates'} <span className="font-normal text-[var(--text-subtle)]">· {list.length}</span></h2>
+            <div className="flex gap-2">
+              <button className={btn} onClick={() => download(`${kind}s-${today}.csv`, invoicesToCSV(list, today), 'text/csv')}><FileSpreadsheet size={16} />CSV</button>
+              <button className={btnPrimary} onClick={() => startNew(kind)}><Plus size={16} />New {word}</button>
+            </div>
+          </div>
+          <Toolbar>
+            <Segmented value={active} onChange={setDocFilter}
+              options={filters.map((f) => ({ value: f, label: f, count: f === 'all' ? base.length : base.filter((i) => stat(i) === f).length }))} />
+            <SearchInput value={query} onChange={setQuery} placeholder="Search number or customer" />
+          </Toolbar>
+        </div>
+        {list.length === 0 ? (
+          <EmptyState icon={kind === 'invoice' ? FileText : ScrollText} title={query || active !== 'all' ? `No matching ${word}s` : `No ${word}s yet`}
+            body={query || active !== 'all' ? 'Try a different filter or search.' : kind === 'invoice' ? 'Create an invoice in under a minute and share a pay link.' : 'Send an estimate, then turn it into an invoice in one click.'}
+            action={<button className={btnPrimary} onClick={() => startNew(kind)}><Plus size={16} />New {word}</button>} />
+        ) : (
+          <DataList rows={list} rowKey={(r) => r.id}
+            columns={[
+              { header: 'Number', cell: (inv) => <button className="font-semibold text-[var(--accent)] hover:underline" onClick={() => openDoc(inv)}>{inv.number}</button> },
+              { header: 'Customer', cell: (inv) => <span className="flex items-center gap-2.5"><Avatar name={inv.customer.name || '?'} /><span>{inv.customer.name || 'No customer'}{inv.recurring?.active && <Repeat size={12} className="ml-1.5 inline text-[var(--accent)]" aria-label="Recurring" />}</span></span> },
+              { header: 'Issued', cell: (inv) => <span className="text-[var(--text-muted)]">{formatDate(inv.issueDate)}</span> },
+              { header: kind === 'invoice' ? 'Due' : 'Valid until', cell: (inv) => <span className="text-[var(--text-muted)]">{formatDate(inv.dueDate)}</span> },
+              { header: 'Status', cell: (inv) => kind === 'invoice' ? <StatusBadge status={displayStatus(inv, today)} /> : <StatusPill status={stat(inv)} /> },
+              { header: 'Amount', align: 'right', cell: (inv) => { const t = calcTotals(inv); return <span><span className="font-semibold">{formatMoney(t.total, inv.business.currency)}</span>{kind === 'invoice' && t.amountPaid > 0 && t.balanceDue > 0 && <span className="block text-xs text-[var(--text-muted)]">{formatMoney(t.balanceDue, inv.business.currency)} left</span>}</span>; } },
+              { header: '', align: 'right', cell: actions },
+            ]}
+            mobile={(inv) => (
+              <div className="flex items-center gap-3">
+                <Avatar name={inv.customer.name || '?'} />
+                <button className="min-w-0 flex-1 text-left" onClick={() => openDoc(inv)}>
+                  <p className="truncate font-semibold text-[var(--text)]">{inv.number} · {inv.customer.name || 'No customer'}</p>
+                  <p className="text-xs text-[var(--text-muted)]">{kind === 'invoice' ? 'Due' : 'Valid until'} {formatDate(inv.dueDate)}</p>
+                </button>
+                <div className="flex flex-col items-end gap-1">
+                  <span className="tabular font-semibold text-[var(--text)]">{formatMoney(calcTotals(inv).total, inv.business.currency)}</span>
+                  {kind === 'invoice' ? <StatusBadge status={displayStatus(inv, today)} /> : <StatusPill status={stat(inv)} />}
+                </div>
+              </div>
+            )} />
+        )}
+      </Panel>
+    );
   };
+
 
   const showPreview = tab === 'edit';
 

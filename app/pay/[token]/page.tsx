@@ -4,9 +4,9 @@ import { useEffect, useState, use } from 'react';
 import { useSearchParams } from 'next/navigation';
 import Image from 'next/image';
 import QRCode from 'qrcode';
-import { COLORS, CURRENCY_SYMBOLS } from '@/lib/constants';
+import { CURRENCY_SYMBOLS } from '@/lib/constants';
 import type { Invoice } from '@/lib/types';
-import { CheckCircle, CreditCard, Loader2 } from 'lucide-react';
+import { CheckCircle2, CreditCard, Loader2, Lock, Receipt } from 'lucide-react';
 
 export default function PayPortalPage(props: { params: Promise<{ token: string }> }) {
   const params = use(props.params);
@@ -46,119 +46,70 @@ export default function PayPortalPage(props: { params: Promise<{ token: string }
     }
   }
 
+  const shell = 'min-h-screen bg-[radial-gradient(900px_500px_at_50%_-10%,var(--accent-soft),transparent_60%)] bg-[var(--background)]';
   if (loading) {
     return (
-      <div
-        className="min-h-screen flex items-center justify-center"
-        style={{ background: COLORS.background, color: COLORS.textMuted }}
-      >
-        <Loader2 className="animate-spin" size={32} />
+      <div className={`${shell} flex items-center justify-center p-6`} aria-busy="true">
+        <div className="w-full max-w-md space-y-4 rounded-[var(--radius-lg)] border border-[var(--border)] bg-[var(--surface)] p-8 shadow-[var(--shadow-lg)]">
+          <div className="skeleton h-4 w-24" /><div className="skeleton h-8 w-40" /><div className="skeleton h-12 w-full" /><div className="skeleton h-11 w-full" />
+        </div>
       </div>
     );
   }
 
   if (!invoice) {
     return (
-      <div
-        className="min-h-screen flex items-center justify-center p-8"
-        style={{ background: COLORS.background, color: COLORS.danger }}
-      >
-        {error || 'Invoice not found'}
+      <div className={`${shell} flex items-center justify-center p-6`}>
+        <div className="max-w-sm rounded-[var(--radius-lg)] border border-[var(--border)] bg-[var(--surface)] p-8 text-center shadow-[var(--shadow-md)]">
+          <p className="font-semibold text-[var(--text)]">We couldn’t open this invoice</p>
+          <p className="mt-1 text-sm text-[var(--danger)]">{error || 'Invoice not found'}</p>
+        </div>
       </div>
     );
   }
 
   const sym = CURRENCY_SYMBOLS[invoice.currency] || '$';
   const isPaid = invoice.status === 'paid' || paid;
-  const lateFee =
-    invoice.status === 'overdue' && invoice.lateFeePercent
-      ? invoice.total * (invoice.lateFeePercent / 100)
-      : 0;
+  const lateFee = invoice.status === 'overdue' && invoice.lateFeePercent ? invoice.total * (invoice.lateFeePercent / 100) : 0;
   const amountDue = invoice.total + lateFee;
+  const fmt = (n: number) => `${sym}${n.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 
   return (
-    <div
-      className="min-h-screen flex items-center justify-center p-6"
-      style={{ background: COLORS.background }}
-    >
-      <div
-        className="w-full max-w-md rounded-2xl border p-8"
-        style={{ background: COLORS.surface, borderColor: COLORS.border }}
-      >
-        <p className="text-xs font-bold uppercase tracking-widest mb-1" style={{ color: COLORS.accent }}>
-          InvoiceOS Pay
-        </p>
-        <h1 className="text-2xl font-black mb-1" style={{ color: COLORS.text }}>
-          {invoice.invoiceNumber}
-        </h1>
-        <p className="text-sm mb-6" style={{ color: COLORS.textMuted }}>
-          {invoice.clientName}
-        </p>
-
-        {isPaid ? (
-          <div className="text-center py-8">
-            <CheckCircle size={48} style={{ color: COLORS.success, margin: '0 auto' }} />
-            <p className="font-bold mt-4" style={{ color: COLORS.success }}>
-              Payment received — thank you!
-            </p>
-          </div>
-        ) : (
-          <>
-            <p className="text-4xl font-black font-mono mb-2" style={{ color: COLORS.text }}>
-              {sym}
-              {amountDue.toLocaleString(undefined, {
-                minimumFractionDigits: 2,
-                maximumFractionDigits: 2,
-              })}
-            </p>
-            {lateFee > 0 && (
-              <p className="text-xs mb-4" style={{ color: COLORS.warning }}>
-                Includes {sym}
-                {lateFee.toFixed(2)} late fee ({invoice.lateFeePercent}%)
-              </p>
-            )}
-            <p className="text-sm mb-6" style={{ color: COLORS.textMuted }}>
-              Due {new Date(invoice.dueDate).toLocaleDateString()}
-            </p>
-
-            {qr && (
-              <div className="flex justify-center mb-6">
-                <Image
-                  src={qr}
-                  alt="Pay link QR code"
-                  width={200}
-                  height={200}
-                  className="rounded-lg"
-                />
-              </div>
-            )}
-
-            <button
-              type="button"
-              onClick={payNow}
-              disabled={paying}
-              className="w-full flex items-center justify-center gap-2 py-3 rounded-lg font-bold disabled:opacity-50"
-              style={{ background: COLORS.accent, color: '#fff' }}
-            >
-              {paying ? (
-                <Loader2 className="animate-spin" size={20} />
-              ) : (
-                <CreditCard size={20} />
+    <div className={`${shell} flex items-center justify-center p-4 sm:p-6`}>
+      <div className="animate-in w-full max-w-md overflow-hidden rounded-[var(--radius-lg)] border border-[var(--border)] bg-[var(--surface)] shadow-[var(--shadow-lg)]">
+        <div className="flex items-center justify-between border-b border-[var(--border)] px-6 py-4">
+          <span className="flex items-center gap-2 text-sm font-semibold text-[var(--text)]"><span className="grid h-7 w-7 place-items-center rounded-lg bg-[var(--accent)] text-[var(--on-accent)]"><Receipt size={14} /></span>InvoiceOS Pay</span>
+          <span className="text-xs font-medium text-[var(--text-muted)]">{invoice.invoiceNumber}</span>
+        </div>
+        <div className="p-6 sm:p-8">
+          <p className="text-sm text-[var(--text-muted)]">Billed to <span className="font-medium text-[var(--text)]">{invoice.clientName}</span></p>
+          {isPaid ? (
+            <div className="py-8 text-center">
+              <span className="mx-auto grid h-14 w-14 place-items-center rounded-full bg-[var(--success-soft)] text-[var(--success)]"><CheckCircle2 size={30} /></span>
+              <p className="mt-4 text-lg font-semibold text-[var(--text)]">Payment received</p>
+              <p className="text-sm text-[var(--text-muted)]">Thank you! A receipt is on its way.</p>
+            </div>
+          ) : (
+            <>
+              <p className="mt-4 text-xs font-medium uppercase tracking-wider text-[var(--text-subtle)]">Amount due</p>
+              <p className="tabular mt-1 text-[2.5rem] font-bold leading-none tracking-tight text-[var(--text)]">{fmt(amountDue)}</p>
+              <p className="mt-2 text-sm text-[var(--text-muted)]">Due {new Date(invoice.dueDate).toLocaleDateString()}</p>
+              {lateFee > 0 && <p className="mt-3 rounded-lg bg-[var(--warning-soft)] px-3 py-2 text-xs text-[var(--warning)]">Includes {fmt(lateFee)} late fee ({invoice.lateFeePercent}%)</p>}
+              <button type="button" onClick={payNow} disabled={paying}
+                className="mt-6 flex w-full items-center justify-center gap-2 rounded-[10px] bg-[var(--accent)] py-3 text-sm font-semibold text-[var(--on-accent)] shadow-[var(--shadow-md)] transition hover:bg-[var(--accent-hover)] disabled:opacity-50">
+                {paying ? <Loader2 className="animate-spin" size={18} /> : <CreditCard size={18} />}Pay {fmt(amountDue)}
+              </button>
+              {error && <p className="mt-3 text-center text-sm text-[var(--danger)]">{error}</p>}
+              {qr && (
+                <div className="mt-6 flex items-center gap-4 rounded-[var(--radius-md)] border border-[var(--border)] bg-[var(--surface-high)] p-3">
+                  <Image src={qr} alt="Pay link QR code" width={88} height={88} className="rounded-md bg-white" />
+                  <p className="text-xs text-[var(--text-muted)]">Scan to pay on your phone. Apple Pay and Google Pay work where available.</p>
+                </div>
               )}
-              Pay with card (Stripe)
-            </button>
-
-            {error && (
-              <p className="mt-3 text-sm text-center" style={{ color: COLORS.danger }}>
-                {error}
-              </p>
-            )}
-
-            <p className="text-xs text-center mt-6" style={{ color: COLORS.textMuted }}>
-              Secure checkout · Apple Pay & Google Pay where available
-            </p>
-          </>
-        )}
+            </>
+          )}
+        </div>
+        <p className="flex items-center justify-center gap-1.5 border-t border-[var(--border)] bg-[var(--surface-high)] py-3 text-xs text-[var(--text-subtle)]"><Lock size={12} />Secure checkout powered by Stripe</p>
       </div>
     </div>
   );

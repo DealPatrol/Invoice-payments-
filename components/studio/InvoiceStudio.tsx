@@ -238,7 +238,8 @@ export function InvoiceStudio() {
 
   const onLogo = (file: File) => {
     logoDataUrlFromFile(file)
-      .then((logoDataUrl) => { persistProfile({ ...profile, logoDataUrl }); })
+      // Resize can take seconds; merge into the profile saved since the file was picked.
+      .then((logoDataUrl) => { persistProfile({ ...loadProfile(), logoDataUrl }); })
       .catch(() => flash('Could not read that image'));
   };
 

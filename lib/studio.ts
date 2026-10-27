@@ -190,8 +190,11 @@ export function todayISO(): string {
 }
 
 export function addDays(iso: string, days: number): string {
+  if (!iso) return '';
   const [y, m, d] = iso.split('-').map(Number);
+  if (!y || !m || !d) return '';
   const dt = new Date(Date.UTC(y, m - 1, d + days));
+  if (Number.isNaN(dt.getTime())) return '';
   return dt.toISOString().slice(0, 10);
 }
 
@@ -292,8 +295,14 @@ export function loadProfile(): BusinessProfile {
   }
 }
 
-export function saveProfile(profile: BusinessProfile) {
-  localStorage.setItem(PROFILE_KEY, JSON.stringify(profile));
+export function saveProfile(profile: BusinessProfile): boolean {
+  if (typeof window === 'undefined') return false;
+  try {
+    localStorage.setItem(PROFILE_KEY, JSON.stringify(profile));
+    return true;
+  } catch {
+    return false;
+  }
 }
 
 export function loadInvoices(): StudioInvoice[] {
@@ -339,14 +348,21 @@ export const saveClients = (list: StudioClient[]) => localStorage.setItem(CLIENT
 export const loadCatalog = () => loadList<CatalogItem>(CATALOG_KEY);
 export const saveCatalog = (list: CatalogItem[]) => localStorage.setItem(CATALOG_KEY, JSON.stringify(list));
 
-export function saveInvoices(list: StudioInvoice[]) {
-  localStorage.setItem(INVOICES_KEY, JSON.stringify(list));
+export function saveInvoices(list: StudioInvoice[]): boolean {
+  if (typeof window === 'undefined') return false;
+  try {
+    localStorage.setItem(INVOICES_KEY, JSON.stringify(list));
+    return true;
+  } catch {
+    return false;
+  }
 }
 
 /* ---------- shareable links (base64url JSON) ---------- */
 
 export function encodeInvoice(inv: StudioInvoice): string {
-  const json = JSON.stringify(inv);
+  // Logo data URLs are tens of KB and push the shared URL past browser, mail, and host limits.
+  const json = JSON.stringify({ ...inv, business: { ...inv.business, logoDataUrl: '' } });
   const bytes = new TextEncoder().encode(json);
   let bin = '';
   bytes.forEach((b) => { bin += String.fromCharCode(b); });

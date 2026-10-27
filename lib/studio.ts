@@ -5,7 +5,43 @@
  */
 
 export type DiscountType = 'percent' | 'amount';
-export type StudioStatus = 'draft' | 'sent' | 'paid';
+export type StudioStatus = 'draft' | 'sent' | 'paid' | 'void';
+export type DocKind = 'invoice' | 'estimate';
+export type EstimateStatus = 'draft' | 'sent' | 'accepted' | 'declined' | 'converted';
+export type RecurringInterval = 'weekly' | 'biweekly' | 'monthly' | 'quarterly' | 'yearly';
+export type DisplayStatus = 'draft' | 'sent' | 'partial' | 'paid' | 'overdue' | 'void' | 'accepted' | 'declined' | 'converted' | 'expired';
+
+export interface TaxPreset { name: string; rate: number }
+
+export interface StudioPayment {
+  id: string;
+  date: string; // yyyy-mm-dd
+  amount: number;
+  method: string; // cash, check, card, Venmo, Stripe, …
+  reference: string;
+}
+
+export interface RecurringRule {
+  interval: RecurringInterval;
+  nextDate: string; // next issue date
+  endDate: string; // '' = forever
+  active: boolean;
+}
+
+export interface CatalogItem {
+  id: string;
+  name: string;
+  details: string;
+  unit: string;
+  unitPrice: number;
+  taxable: boolean;
+}
+
+export interface StudioClient extends StudioCustomer {
+  id: string;
+  notes: string;
+  createdAt: string;
+}
 
 export interface BusinessProfile {
   name: string;
@@ -25,6 +61,11 @@ export interface BusinessProfile {
   defaultTaxRate: number;
   defaultNotes: string;
   paymentInstructions: string;
+  estimatePrefix: string;
+  nextEstimateNumber: number;
+  taxPresets: TaxPreset[];
+  paymentLinkUrl: string; // e.g. a Stripe Payment Link (test mode) shown as a Pay button
+  lateFeePercent: number;
 }
 
 export interface StudioCustomer {
@@ -46,8 +87,18 @@ export interface StudioLineItem {
 
 export interface StudioInvoice {
   id: string;
+  kind: DocKind;
   number: string;
   status: StudioStatus;
+  estimateStatus: EstimateStatus;
+  clientId: string;
+  payments: StudioPayment[];
+  recurring: RecurringRule | null;
+  paymentLink: string;
+  convertedFromId: string;
+  convertedToId: string;
+  sentAt: string;
+  remindersSent: string[];
   issueDate: string; // yyyy-mm-dd
   dueDate: string;
   termsDays: number;
@@ -97,7 +148,11 @@ export function lineTotal(item: Pick<StudioLineItem, 'quantity' | 'unitPrice'>):
   return round2((Number(item.quantity) || 0) * (Number(item.unitPrice) || 0));
 }
 
-export function calcTotals(inv: Pick<StudioInvoice, 'items' | 'discountType' | 'discountValue' | 'taxRate' | 'shipping' | 'amountPaid'>): InvoiceTotals {
+export function paidAmount(inv: { amountPaid?: number; payments?: StudioPayment[] }): number {
+  return round2((Number(inv.amountPaid) || 0) + (inv.payments ?? []).reduce((s, p) => s + (Number(p.amount) || 0), 0));
+}
+
+export function calcTotals(inv: Pick<StudioInvoice, 'items' | 'discountType' | 'discountValue' | 'taxRate' | 'shipping' | 'amountPaid'> & { payments?: StudioPayment[] }): InvoiceTotals {
   const subtotal = round2(inv.items.reduce((s, i) => s + lineTotal(i), 0));
   const rawDiscount = inv.discountType === 'percent'
     ? subtotal * ((Number(inv.discountValue) || 0) / 100)
@@ -107,7 +162,7 @@ export function calcTotals(inv: Pick<StudioInvoice, 'items' | 'discountType' | '
   const tax = round2(taxable * ((Number(inv.taxRate) || 0) / 100));
   const shipping = round2(Number(inv.shipping) || 0);
   const total = round2(taxable + tax + shipping);
-  const amountPaid = round2(Number(inv.amountPaid) || 0);
+  const amountPaid = paidAmount(inv);
   return { subtotal, discount, taxable, tax, shipping, total, amountPaid, balanceDue: round2(total - amountPaid) };
 }
 
@@ -166,6 +221,11 @@ export const DEFAULT_PROFILE: BusinessProfile = {
   defaultTaxRate: 0,
   defaultNotes: 'Thank you for your business!',
   paymentInstructions: '',
+  estimatePrefix: 'EST-',
+  nextEstimateNumber: 101,
+  taxPresets: [{ name: 'No tax', rate: 0 }],
+  paymentLinkUrl: '',
+  lateFeePercent: 0,
 };
 
 export const EMPTY_CUSTOMER: StudioCustomer = { name: '', company: '', email: '', phone: '', address: '' };
@@ -174,16 +234,28 @@ export function newLineItem(partial: Partial<StudioLineItem> = {}): StudioLineIt
   return { id: uid(), description: '', details: '', quantity: 1, unit: '', unitPrice: 0, ...partial };
 }
 
-export function newInvoice(profile: BusinessProfile): StudioInvoice {
-  const issueDate = todayISO();
+export function newInvoice(profile: BusinessProfile, kind: DocKind = 'invoice', today = todayISO()): StudioInvoice {
+  const issueDate = today;
   const now = new Date().toISOString();
   return {
     id: uid(),
-    number: formatInvoiceNumber(profile.invoicePrefix, profile.nextNumber),
+    kind,
+    number: kind === 'estimate'
+      ? formatInvoiceNumber(profile.estimatePrefix, profile.nextEstimateNumber)
+      : formatInvoiceNumber(profile.invoicePrefix, profile.nextNumber),
     status: 'draft',
+    estimateStatus: 'draft',
+    clientId: '',
+    payments: [],
+    recurring: null,
+    paymentLink: '',
+    convertedFromId: '',
+    convertedToId: '',
+    sentAt: '',
+    remindersSent: [],
     issueDate,
-    termsDays: profile.defaultTermsDays,
-    dueDate: addDays(issueDate, profile.defaultTermsDays),
+    termsDays: kind === 'estimate' ? 30 : profile.defaultTermsDays,
+    dueDate: addDays(issueDate, kind === 'estimate' ? 30 : profile.defaultTermsDays),
     serviceDate: '',
     poNumber: '',
     customer: { ...EMPTY_CUSTOMER },
@@ -228,11 +300,44 @@ export function loadInvoices(): StudioInvoice[] {
   if (typeof window === 'undefined') return [];
   try {
     const raw = localStorage.getItem(INVOICES_KEY);
-    return raw ? (JSON.parse(raw) as StudioInvoice[]) : [];
+    return raw ? (JSON.parse(raw) as Partial<StudioInvoice>[]).map(normalizeInvoice) : [];
   } catch {
     return [];
   }
 }
+
+/** Upgrade records saved by older versions so every field exists. */
+export function normalizeInvoice(raw: Partial<StudioInvoice>): StudioInvoice {
+  const base = newInvoice({ ...DEFAULT_PROFILE, ...(raw.business ?? {}) }, raw.kind ?? 'invoice', raw.issueDate || todayISO());
+  return {
+    ...base,
+    ...raw,
+    business: { ...DEFAULT_PROFILE, ...(raw.business ?? {}) },
+    customer: { ...EMPTY_CUSTOMER, ...(raw.customer ?? {}) },
+    items: (raw.items ?? base.items).map((i) => ({ ...newLineItem(), ...i })),
+    payments: raw.payments ?? [],
+    remindersSent: raw.remindersSent ?? [],
+  } as StudioInvoice;
+}
+
+const CLIENTS_KEY = 'invoiceos.studio.clients.v1';
+const CATALOG_KEY = 'invoiceos.studio.catalog.v1';
+
+function loadList<T>(key: string): T[] {
+  if (typeof window === 'undefined') return [];
+  try {
+    const raw = localStorage.getItem(key);
+    const parsed = raw ? JSON.parse(raw) : [];
+    return Array.isArray(parsed) ? parsed : [];
+  } catch {
+    return [];
+  }
+}
+
+export const loadClients = () => loadList<StudioClient>(CLIENTS_KEY);
+export const saveClients = (list: StudioClient[]) => localStorage.setItem(CLIENTS_KEY, JSON.stringify(list));
+export const loadCatalog = () => loadList<CatalogItem>(CATALOG_KEY);
+export const saveCatalog = (list: CatalogItem[]) => localStorage.setItem(CATALOG_KEY, JSON.stringify(list));
 
 export function saveInvoices(list: StudioInvoice[]) {
   localStorage.setItem(INVOICES_KEY, JSON.stringify(list));
@@ -253,7 +358,7 @@ export function decodeInvoice(encoded: string): StudioInvoice | null {
     const b64 = encoded.replace(/-/g, '+').replace(/_/g, '/');
     const bin = atob(b64 + '==='.slice((b64.length + 3) % 4));
     const bytes = Uint8Array.from(bin, (c) => c.charCodeAt(0));
-    return JSON.parse(new TextDecoder().decode(bytes)) as StudioInvoice;
+    return normalizeInvoice(JSON.parse(new TextDecoder().decode(bytes)));
   } catch {
     return null;
   }

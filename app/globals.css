@@ -156,3 +156,4 @@ a {
   .invoice-doc { box-shadow: none; border-radius: 0; max-width: none; width: 8.5in; height: 11in; min-height: 0; overflow: hidden; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
   .inv-bar { border-radius: 0; }
 }
+.inv-paylink { color: var(--inv-accent); font-weight: 700; text-decoration: underline; }

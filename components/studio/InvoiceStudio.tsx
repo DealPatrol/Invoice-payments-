@@ -9,7 +9,7 @@ import {
 import { InvoiceDocument } from './InvoiceDocument';
 import { CatalogPanel, ClientsPanel, Dashboard, StatusBadge } from './StudioPanels';
 import { BrandSwitcher, ExpensesTimePanel, PortalCard, TaxReportPanel, TrackingCard } from './SuitePanels';
-import { DEFAULT_EXTRAS, billToInvoice, ensureBrands, loadExtras, normalizeExtras, saveExtras, syncActiveBrand, type StudioExtras } from '@/lib/studio-suite';
+import { DEFAULT_EXTRAS, billToInvoice, ensureBrands, hasStoredExtras, loadExtras, normalizeExtras, releaseBilledWork, saveExtras, syncActiveBrand, type StudioExtras } from '@/lib/studio-suite';
 import { Avatar, DataList, EmptyState, Panel, SearchInput, Segmented, StatusPill, Toolbar } from '@/components/ui/kit';
 import { btn, btnPrimary, btnSm, card, input, label } from './ui';
 import {
@@ -129,7 +129,7 @@ export function InvoiceStudio() {
     setInvoices(list);
     setClients(loadClients());
     setCatalog(loadCatalog());
-    const x = ensureBrands(loadExtras(), p);
+    const x = releaseBilledWork(ensureBrands(loadExtras(), p), new Set(list.map((i) => i.id)));
     saveExtras(x); setExtras(x);
     const fromLink = shared ? decodeInvoice(shared) : null;
     setDraft(fromLink ?? { ...newInvoice(p), brandId: x.activeBrandId });
@@ -166,7 +166,7 @@ export function InvoiceStudio() {
             clients: [...server.clients, ...loadClients().filter((c) => !server.clients.some((s: StudioClient) => s.id === c.id))],
             catalog: [...server.catalog, ...loadCatalog().filter((c) => !server.catalog.some((s: CatalogItem) => s.id === c.id))],
             invoices: [...server.invoices, ...localOnly],
-            extras: server.extras && Object.keys(server.extras).length ? server.extras : loadExtras(),
+            extras: hasStoredExtras(normalizeExtras(server.extras)) ? server.extras : loadExtras(),
             prune: false,
           };
           const put = await fetch('/api/studio/sync', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(merged) });
@@ -181,7 +181,10 @@ export function InvoiceStudio() {
       setInvoices(server.invoices); saveInvoices(server.invoices);
       setClients(server.clients); saveClients(server.clients);
       setCatalog(server.catalog); saveCatalog(server.catalog);
-      if (server.extras && Object.keys(server.extras).length) { const sx = ensureBrands(normalizeExtras(server.extras), server.profile ?? loadProfile()); setExtras(sx); saveExtras(sx); }
+      if (hasStoredExtras(normalizeExtras(server.extras))) {
+        const sx = releaseBilledWork(ensureBrands(normalizeExtras(server.extras), server.profile ?? loadProfile()), new Set((server.invoices as StudioInvoice[]).map((i) => i.id)));
+        setExtras(sx); saveExtras(sx);
+      }
       setCloud('on');
     })();
     return () => { cancelled = true; };
@@ -261,6 +264,17 @@ export function InvoiceStudio() {
   const updateItem = (id: string, patch: Partial<StudioLineItem>) =>
     update({ items: draft.items.map((i) => (i.id === id ? { ...i, ...patch } : i)) });
   const persistExtras = (x: StudioExtras) => { if (!saveExtras(x)) flash('Could not save on this device (storage full)'); setExtras(x); };
+  /**
+   * When the open draft is replaced without being saved, any work billed to
+   * it must become billable again — otherwise its lines are discarded with
+   * the draft while the work stays marked billed. Saved drafts are untouched.
+   */
+  const releaseDraftWork = (outgoing: StudioInvoice | null, saved: StudioInvoice[], current: StudioExtras) => {
+    if (!outgoing || saved.some((i) => i.id === outgoing.id)) return current;
+    const released = releaseBilledWork(current, new Set(saved.map((i) => i.id)));
+    if (released !== current) persistExtras(released);
+    return released;
+  };
   const persistProfile = (p: BusinessProfile) => {
     if (!saveProfile(p)) flash('Could not save on this device (storage full)');
     setProfile(p);
@@ -269,7 +283,8 @@ export function InvoiceStudio() {
   const switchBrand = (id: string) => {
     const b = extras.brands.find((x) => x.id === id);
     if (!b) return;
-    const nx = { ...syncActiveBrand(extras, profile), activeBrandId: id };
+    const base = releaseDraftWork(draft, invoices, extras);
+    const nx = { ...syncActiveBrand(base, profile), activeBrandId: id };
     persistExtras(nx); saveProfile(b.profile); setProfile(b.profile);
     setDraft({ ...newInvoice(b.profile), brandId: id });
     flash(`Switched to ${b.profile.name || 'business'}`);
@@ -333,6 +348,7 @@ export function InvoiceStudio() {
   };
 
   const startNew = (kind: DocKind = 'invoice', client?: StudioClient) => {
+    releaseDraftWork(draft, invoices, extras);
     const inv = { ...newInvoice(profile, kind), brandId: extras.activeBrandId };
     if (client) { inv.customer = { name: client.name, company: client.company, email: client.email, phone: client.phone, address: client.address }; inv.clientId = client.id; }
     setDraft(inv);
@@ -350,7 +366,11 @@ export function InvoiceStudio() {
 
   const remove = (id: string) => {
     if (!confirm('Delete this document from this device?')) return;
-    persistInvoices(invoices.filter((i) => i.id !== id));
+    const remaining = invoices.filter((i) => i.id !== id);
+    persistInvoices(remaining);
+    // Work billed to the deleted document becomes billable again.
+    const released = releaseBilledWork(extras, new Set(remaining.map((i) => i.id)));
+    if (released !== extras) persistExtras(released);
     if (draft.id === id) setDraft(newInvoice(profile));
   };
 
@@ -430,7 +450,7 @@ export function InvoiceStudio() {
       .catch(() => flash('Could not read that image'));
   };
 
-  const openDoc = (inv: StudioInvoice) => { setDraft(inv); setTab('edit'); };
+  const openDoc = (inv: StudioInvoice) => { releaseDraftWork(draft, invoices, extras); setDraft(inv); setTab('edit'); };
   const saved = invoices.some((i) => i.id === draft.id);
   const status = displayStatus(draft, today);
   const inBrand = (i: StudioInvoice) => !extras.activeBrandId || !i.brandId || i.brandId === extras.activeBrandId;
@@ -545,7 +565,7 @@ export function InvoiceStudio() {
 
       <div className={showPreview ? 'grid gap-6 xl:grid-cols-[minmax(0,540px)_minmax(0,1fr)]' : 'mx-auto max-w-4xl'}>
         <div className="no-print space-y-4">
-          {tab === 'dashboard' && <Dashboard invoices={invoices} today={today} currency={profile.currency} onOpen={openDoc} />}
+          {tab === 'dashboard' && <Dashboard invoices={invoices.filter(inBrand)} today={today} currency={profile.currency} onOpen={openDoc} />}
           {tab === 'invoices' && renderDocList('invoice')}
           {tab === 'estimates' && renderDocList('estimate')}
           {tab === 'clients' && <ClientsPanel clients={clients} invoices={invoices} onChange={persistClients} onNewFor={(c) => startNew('invoice', c)} />}

@@ -3,7 +3,7 @@
  * overdue reminder scheduling, view tracking, and tax summaries.
  * Pure functions so they run in the browser, on the server, and in tests.
  */
-import { DEFAULT_PROFILE, calcTotals, newLineItem, paidAmount, uid, type BusinessProfile, type StudioInvoice } from './studio';
+import { DEFAULT_PROFILE, calcTotals, newLineItem, uid, type BusinessProfile, type StudioInvoice } from './studio';
 import { daysBetween } from './studio-ops';
 
 export interface Brand { id: string; profile: BusinessProfile }
@@ -59,10 +59,39 @@ export function normalizeExtras(raw: Partial<StudioExtras> | null | undefined): 
   };
 }
 
+/** True when extras actually hold stored work, as opposed to a normalized empty
+ *  shape. An empty cloud account must never count as "present" extras, or it
+ *  wipes the local time, expenses, and brands on sign-in (see loadSnapshot). */
+export function hasStoredExtras(x: StudioExtras | null | undefined): boolean {
+  if (!x) return false;
+  return x.brands.length > 0 || x.expenses.length > 0 || x.time.length > 0;
+}
+
+/**
+ * Reclaims work billed to invoices that were never saved. Billing marks work
+ * as billed the moment it is added to a draft, but the lines live only on that
+ * draft — so reloading, switching business, or opening another document used
+ * to strand the work as "billed" with no invoice to show for it. Call this
+ * whenever a draft is abandoned and whenever extras are hydrated, with the
+ * ids of the invoices that actually exist.
+ */
+export function releaseBilledWork(extras: StudioExtras, savedInvoiceIds: Set<string>): StudioExtras {
+  let changed = false;
+  const clear = (invoiceId: string) => {
+    if (invoiceId && !savedInvoiceIds.has(invoiceId)) { changed = true; return ''; }
+    return invoiceId;
+  };
+  const expenses = extras.expenses.map((e) => ({ ...e, invoiceId: clear(e.invoiceId) }));
+  const time = extras.time.map((t) => ({ ...t, invoiceId: clear(t.invoiceId) }));
+  return changed ? { ...extras, expenses, time } : extras;
+}
+
 /** Builds brands from the current profile plus any missing starter brands. */
 export function ensureBrands(extras: StudioExtras, current: BusinessProfile): StudioExtras {
   if (extras.brands.length) return extras;
-  const first: Brand = { id: uid(), profile: current };
+  // Preserve an already-chosen brand id (e.g. the open draft's brandId) so a
+  // re-seed cannot orphan the draft from brand-filtered lists.
+  const first: Brand = { id: extras.activeBrandId || uid(), profile: current };
   const rest = STARTER_BRANDS.filter((s) => s.name.toLowerCase() !== current.name.toLowerCase())
     .map((s) => ({ id: uid(), profile: { ...current, ...s, nextNumber: 1001, logoDataUrl: '', paymentLinkUrl: '' } }));
   return { ...extras, brands: [first, ...rest], activeBrandId: first.id };
@@ -84,7 +113,13 @@ export function unbilled(extras: StudioExtras, brandId: string) {
   };
 }
 
-/** Adds time entries and billable expenses as line items and marks them billed. */
+/**
+ * Adds time entries and billable expenses as line items and marks them billed.
+ * The billed marks are provisional until the invoice is actually saved: callers
+ * must run releaseBilledWork() with the saved invoice ids whenever the draft
+ * is abandoned (or extras are hydrated), or the work is stranded as billed
+ * with no invoice holding its lines.
+ */
 export function billToInvoice(inv: StudioInvoice, extras: StudioExtras, expenseIds: string[], timeIds: string[]): { invoice: StudioInvoice; extras: StudioExtras } {
   const exp = extras.expenses.filter((e) => expenseIds.includes(e.id) && !e.invoiceId);
   const tim = extras.time.filter((t) => timeIds.includes(t.id) && !t.invoiceId);
@@ -184,9 +219,18 @@ export function taxSummary(invoices: StudioInvoice[], extras: StudioExtras, year
       r.taxCollected += p.amount * ratio;
       if (q(p.date)) { q(p.date).collected += p.amount; q(p.date).taxCollected += p.amount * ratio; }
     }
-    if (!inv.payments.length && inv.amountPaid > 0 && inv.issueDate.startsWith(y)) {
-      r.collected += paidAmount(inv); r.taxCollected += paidAmount(inv) * ratio;
-      if (q(inv.issueDate)) q(inv.issueDate).collected += paidAmount(inv);
+    // amountPaid is the earlier deposit, recorded separately from payments
+    // (see the "Earlier deposit" line in the editor). It used to be counted
+    // only when the invoice had no payments at all, so the deposit vanished
+    // from the report the moment a later payment was recorded. Count it
+    // always, dated by the issue date, alongside the dated payments above —
+    // and count its sales tax in the matching quarter too (it was missing
+    // from quarters even in the deposit-only case).
+    if (inv.amountPaid > 0 && inv.issueDate.startsWith(y)) {
+      const deposit = Number(inv.amountPaid) || 0;
+      r.collected += deposit; r.taxCollected += deposit * ratio;
+      const quarter = q(inv.issueDate);
+      if (quarter) { quarter.collected += deposit; quarter.taxCollected += deposit * ratio; }
     }
   }
   const cats = new Map<string, number>();

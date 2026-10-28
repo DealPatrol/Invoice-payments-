@@ -36,7 +36,7 @@ export function DashboardAnalytics({
             <p className="text-sm" style={{ color: COLORS.textMuted }}>
               Total Revenue
             </p>
-            <p className="text-3xl font-black mt-2" style={{ color: COLORS.accent }}>
+            <p className="tabular text-3xl font-semibold mt-2" style={{ color: COLORS.accent }}>
               {symbol}
               {totalRevenue.toLocaleString('en-US', { maximumFractionDigits: 0 })}
             </p>
@@ -45,7 +45,7 @@ export function DashboardAnalytics({
             <TrendingUp size={24} />
           </div>
         </div>
-        <p className="text-xs" style={{ color: '#22c55e' }}>
+        <p className="text-xs" style={{ color: 'var(--success)' }}>
           ↑ {conversionRate}% conversion rate
         </p>
       </div>
@@ -60,12 +60,12 @@ export function DashboardAnalytics({
             <p className="text-sm" style={{ color: COLORS.textMuted }}>
               Paid
             </p>
-            <p className="text-3xl font-black mt-2" style={{ color: '#22c55e' }}>
+            <p className="tabular text-3xl font-semibold mt-2" style={{ color: 'var(--success)' }}>
               {symbol}
               {paidAmount.toLocaleString('en-US', { maximumFractionDigits: 0 })}
             </p>
           </div>
-          <div className="p-3 rounded-lg" style={{ background: '#22c97a18', color: '#22c55e' }}>
+          <div className="p-3 rounded-lg" style={{ background: '#22c97a18', color: 'var(--success)' }}>
             <CheckCircle size={24} />
           </div>
         </div>
@@ -84,12 +84,12 @@ export function DashboardAnalytics({
             <p className="text-sm" style={{ color: COLORS.textMuted }}>
               Pending
             </p>
-            <p className="text-3xl font-black mt-2" style={{ color: '#f59e0b' }}>
+            <p className="tabular text-3xl font-semibold mt-2" style={{ color: 'var(--warning)' }}>
               {symbol}
               {pendingAmount.toLocaleString('en-US', { maximumFractionDigits: 0 })}
             </p>
           </div>
-          <div className="p-3 rounded-lg" style={{ background: '#fef3c715', color: '#f59e0b' }}>
+          <div className="p-3 rounded-lg" style={{ background: '#fef3c715', color: 'var(--warning)' }}>
             <Clock size={24} />
           </div>
         </div>
@@ -108,16 +108,16 @@ export function DashboardAnalytics({
             <p className="text-sm" style={{ color: COLORS.textMuted }}>
               Overdue
             </p>
-            <p className="text-3xl font-black mt-2" style={{ color: '#dc2626' }}>
+            <p className="tabular text-3xl font-semibold mt-2" style={{ color: 'var(--danger)' }}>
               {symbol}
               {overdueAmount.toLocaleString('en-US', { maximumFractionDigits: 0 })}
             </p>
           </div>
-          <div className="p-3 rounded-lg" style={{ background: '#fee2e215', color: '#dc2626' }}>
+          <div className="p-3 rounded-lg" style={{ background: '#fee2e215', color: 'var(--danger)' }}>
             <AlertCircle size={24} />
           </div>
         </div>
-        <p className="text-xs" style={{ color: '#dc2626' }}>
+        <p className="text-xs" style={{ color: 'var(--danger)' }}>
           Requires immediate attention
         </p>
       </div>

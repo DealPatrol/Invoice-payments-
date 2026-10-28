@@ -5,7 +5,8 @@ import { TemplateGallery } from '@/components/TemplateGallery';
 import { COLORS } from '@/lib/constants';
 import { getTemplateById } from '@/lib/templates';
 import Link from 'next/link';
-import { ArrowRight } from 'lucide-react';
+import { ArrowRight, LayoutTemplate } from 'lucide-react';
+import { btnPrimary, EmptyState, Page, PageHeader, Pill } from '@/components/ui/kit';
 
 export default function TemplatesPage() {
   const [selectedTemplate, setSelectedTemplate] = useState<string | undefined>();
@@ -13,24 +14,8 @@ export default function TemplatesPage() {
   const template = selectedTemplate ? getTemplateById(selectedTemplate) : null;
 
   return (
-    <div style={{ background: COLORS.background, minHeight: '100vh' }}>
-      <div className="flex-1 overflow-auto">
-        <div className="max-w-7xl mx-auto p-8">
-          {/* Header */}
-          <div className="mb-12">
-            <h1
-              className="text-4xl font-black mb-2 tracking-tight"
-              style={{
-                color: COLORS.text,
-              }}
-            >
-              Invoice Templates
-            </h1>
-            <p className="text-lg" style={{ color: COLORS.textMuted }}>
-              Browse and select from 80+ professional invoice templates tailored for your industry
-            </p>
-          </div>
-
+    <Page>
+      <PageHeader eyebrow="Grow" title="Invoice templates" subtitle="80+ professional templates tailored to your industry. Pick one to preview." />
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
             {/* Gallery */}
             <div className="lg:col-span-2">
@@ -43,20 +28,12 @@ export default function TemplatesPage() {
             {/* Preview Panel */}
             <div>
               {template ? (
-                <div
-                  className="rounded-[var(--radius-lg)] border shadow-[var(--shadow-xs)] p-6 sticky top-8"
-                  style={{
-                    background: COLORS.surface,
-                    borderColor: COLORS.border,
-                  }}
-                >
-                  <h3 className="text-xl font-bold mb-4" style={{ color: COLORS.text }}>
-                    Preview
-                  </h3>
+                <div className="sticky top-8 rounded-[var(--radius-lg)] border border-[var(--border)] bg-[var(--surface)] p-5 shadow-[var(--shadow-sm)]">
+                  <div className="mb-4 flex items-center justify-between"><h3 className="font-semibold text-[var(--text)]">{template.name}</h3><Pill tone="accent">Preview</Pill></div>
 
                   {/* Live Preview */}
                   <div
-                    className="rounded-lg p-6 mb-6 h-80"
+                    className="mb-5 h-72 rounded-[var(--radius-md)] p-5 shadow-inner"
                     style={{
                       background: template.colorScheme.background,
                       border: `2px solid ${template.colorScheme.primary}`,
@@ -152,33 +129,19 @@ export default function TemplatesPage() {
                   {/* Action Button */}
                   <Link
                     href={`/invoices/create?template=${template.id}`}
-                    className="w-full py-3 rounded-lg font-semibold flex items-center justify-center gap-2 text-center transition-all"
-                    style={{
-                      background: COLORS.accent,
-                      color: '#ffffff',
-                    }}
+                    className={btnPrimary + " w-full justify-center"}
                   >
                     Use This Template
                     <ArrowRight size={16} />
                   </Link>
                 </div>
               ) : (
-                <div
-                  className="rounded-[var(--radius-lg)] border shadow-[var(--shadow-xs)] p-6 sticky top-8 text-center"
-                  style={{
-                    background: COLORS.surface,
-                    borderColor: COLORS.border,
-                  }}
-                >
-                  <p style={{ color: COLORS.textMuted }}>
-                    Select a template to preview and use
-                  </p>
+                <div className="sticky top-8 rounded-[var(--radius-lg)] border border-[var(--border)] bg-[var(--surface)]">
+                  <EmptyState icon={LayoutTemplate} title="No template selected" body="Select a template to preview and use it." />
                 </div>
               )}
             </div>
           </div>
-        </div>
-      </div>
-    </div>
+    </Page>
   );
 }

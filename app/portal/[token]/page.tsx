@@ -1,4 +1,6 @@
 import { notFound } from 'next/navigation';
+import { ChevronRight, FileText, Lock } from 'lucide-react';
+import { EmptyState, Panel, StatusPill } from '@/components/ui/kit';
 import { calcTotals, formatDate, formatMoney } from '@/lib/studio';
 import { amountDue, displayStatus } from '@/lib/studio-ops';
 import { hasDatabase, loadPortal } from '@/lib/studio-server';
@@ -20,41 +22,42 @@ export default async function ClientPortal({ params }: { params: Promise<{ token
   const brands = Array.from(new Set(portal.docs.map((d) => d.business.name).filter(Boolean)));
 
   const Row = ({ d }: { d: (typeof portal.docs)[number] }) => {
-    const status = d.kind === 'estimate' ? d.estimateStatus : displayStatus(d, today);
+    const status = d.kind === 'estimate' ? d.estimateStatus ?? 'sent' : displayStatus(d, today);
     const amount = d.kind === 'estimate' ? calcTotals(d).total : amountDue(d, today);
     return (
-      <a href={`/i/${d.shareToken}`} className="flex items-center justify-between gap-3 border-b border-gray-100 px-4 py-3 last:border-0 hover:bg-gray-50">
-        <div>
-          <div className="font-semibold text-gray-900">{d.number} <span className="text-sm font-normal text-gray-500">• {d.business.name}</span></div>
-          <div className="text-sm text-gray-500">Issued {formatDate(d.issueDate)}{d.kind === 'invoice' ? ` • Due ${formatDate(d.dueDate)}` : ''}</div>
+      <a href={`/i/${d.shareToken}`} className="group flex items-center gap-4 px-5 py-4 transition hover:bg-[var(--surface-high)]">
+        <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-[var(--accent-soft)] text-[var(--accent)]"><FileText size={18} /></span>
+        <div className="min-w-0 flex-1">
+          <p className="truncate font-semibold text-[var(--text)]">{d.number} <span className="font-normal text-[var(--text-muted)]">· {d.business.name}</span></p>
+          <p className="text-xs text-[var(--text-muted)]">Issued {formatDate(d.issueDate)}{d.kind === 'invoice' ? ` · Due ${formatDate(d.dueDate)}` : ''}</p>
         </div>
-        <div className="text-right">
-          <div className="font-bold text-gray-900">{formatMoney(amount, d.business.currency)}</div>
-          <span className={`rounded-full px-2 py-0.5 text-xs font-semibold uppercase ${status === 'overdue' ? 'bg-red-100 text-red-700' : status === 'paid' ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-600'}`}>{status}</span>
+        <div className="flex flex-col items-end gap-1">
+          <span className="tabular font-semibold text-[var(--text)]">{formatMoney(amount, d.business.currency)}</span>
+          <StatusPill status={String(status)} />
         </div>
+        <ChevronRight size={16} className="hidden text-[var(--text-subtle)] transition group-hover:translate-x-0.5 sm:block" />
       </a>
     );
   };
 
   return (
-    <div className="min-h-screen bg-[#f3f4f6] p-3 sm:p-8">
-      <div className="mx-auto max-w-[760px] space-y-4">
-        <div className="rounded-xl bg-white p-5 shadow-sm">
-          <div className="text-sm text-gray-500">{brands.join(' • ') || 'Client portal'}</div>
-          <h1 className="text-2xl font-black text-gray-900">Hi {name.split(' ')[0]}, here are your invoices</h1>
-          <div className="mt-2 text-gray-700">Open balance: <span className="font-bold">{formatMoney(open, currency)}</span></div>
+    <div className="min-h-screen bg-[radial-gradient(900px_500px_at_50%_-10%,var(--accent-soft),transparent_60%)] bg-[var(--background)] p-3 sm:p-10">
+      <div className="mx-auto max-w-[760px] space-y-5">
+        <div className="animate-in rounded-[var(--radius-lg)] border border-[var(--border)] bg-[var(--surface)] p-6 shadow-[var(--shadow-md)]">
+          <p className="text-xs font-semibold uppercase tracking-[0.12em] text-[var(--accent)]">{brands.join(' · ') || 'Client portal'}</p>
+          <h1 className="mt-1 text-2xl font-bold tracking-tight text-[var(--text)]">Hi {name.split(' ')[0]}, here are your invoices</h1>
+          <div className="mt-5 grid grid-cols-2 gap-3">
+            <div className="rounded-[var(--radius-md)] bg-[var(--surface-high)] p-4"><p className="text-xs text-[var(--text-muted)]">Open balance</p><p className="tabular mt-1 text-2xl font-bold" style={{ color: open > 0 ? 'var(--warning)' : 'var(--success)' }}>{formatMoney(open, currency)}</p></div>
+            <div className="rounded-[var(--radius-md)] bg-[var(--surface-high)] p-4"><p className="text-xs text-[var(--text-muted)]">Documents</p><p className="tabular mt-1 text-2xl font-bold text-[var(--text)]">{portal.docs.length}</p></div>
+          </div>
         </div>
-        <section className="overflow-hidden rounded-xl bg-white shadow-sm">
-          <h2 className="border-b border-gray-100 px-4 py-3 font-bold text-gray-900">Invoices ({invoices.length})</h2>
-          {invoices.length ? invoices.map((d) => <Row key={d.id} d={d} />) : <p className="px-4 py-3 text-sm text-gray-500">No invoices yet.</p>}
-        </section>
+        <Panel title={`Invoices (${invoices.length})`} flush>
+          {invoices.length ? <div className="divide-y divide-[var(--border)]">{invoices.map((d) => <Row key={d.id} d={d} />)}</div> : <EmptyState icon={FileText} title="No invoices yet" />}
+        </Panel>
         {estimates.length > 0 && (
-          <section className="overflow-hidden rounded-xl bg-white shadow-sm">
-            <h2 className="border-b border-gray-100 px-4 py-3 font-bold text-gray-900">Estimates ({estimates.length})</h2>
-            {estimates.map((d) => <Row key={d.id} d={d} />)}
-          </section>
+          <Panel title={`Estimates (${estimates.length})`} flush><div className="divide-y divide-[var(--border)]">{estimates.map((d) => <Row key={d.id} d={d} />)}</div></Panel>
         )}
-        <p className="text-center text-xs text-gray-400">This private link is only for {portal.email}. Don&apos;t share it.</p>
+        <p className="flex items-center justify-center gap-1.5 text-center text-xs text-[var(--text-subtle)]"><Lock size={12} />This private link is only for {portal.email}. Don&apos;t share it.</p>
       </div>
     </div>
   );

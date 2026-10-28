@@ -1,16 +1,17 @@
 // Color System
+// Design tokens (CSS variables in app/globals.css) so every screen follows light/dark mode.
 export const COLORS = {
-  background: '#0f1419',
-  surface: '#111520',
-  surfaceHigh: '#1a1f2e',
-  text: '#e8ecf8',
-  textMuted: '#8892b0',
-  border: '#2a2d39',
-  accent: '#4f6ef7',
-  accentGlow: '#4f6ef710',
-  success: '#22c97a',
-  warning: '#f5a623',
-  danger: '#f7524f',
+  background: 'var(--background)',
+  surface: 'var(--surface)',
+  surfaceHigh: 'var(--surface-high)',
+  text: 'var(--text)',
+  textMuted: 'var(--text-muted)',
+  border: 'var(--border)',
+  accent: 'var(--accent)',
+  accentGlow: 'var(--accent-soft)',
+  success: 'var(--success)',
+  warning: 'var(--warning)',
+  danger: 'var(--danger)',
 };
 
 export const NETWORKS = [
@@ -165,9 +166,9 @@ export const SAMPLE_CLIENTS = [
 ];
 
 export const STATUS_COLORS: Record<string, { bg: string; text: string; border: string }> = {
-  draft: { bg: '#8892b015', text: '#8892b0', border: '#8892b0' },
-  sent: { bg: '#4f6ef715', text: '#4f6ef7', border: '#4f6ef7' },
-  pending: { bg: '#f5a62315', text: '#f5a623', border: '#f5a623' },
-  paid: { bg: '#22c97a15', text: '#22c97a', border: '#22c97a' },
-  overdue: { bg: '#f7524f15', text: '#f7524f', border: '#f7524f' },
+  draft: { bg: 'var(--surface-high)', text: 'var(--text-muted)', border: 'var(--border-strong)' },
+  sent: { bg: 'var(--accent-soft)', text: 'var(--accent)', border: 'var(--accent)' },
+  pending: { bg: 'var(--warning-soft)', text: 'var(--warning)', border: 'var(--warning)' },
+  paid: { bg: 'var(--success-soft)', text: 'var(--success)', border: 'var(--success)' },
+  overdue: { bg: 'var(--danger-soft)', text: 'var(--danger)', border: 'var(--danger)' },
 };

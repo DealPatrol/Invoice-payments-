@@ -1,9 +1,9 @@
 'use client';
 
 import { useState } from 'react';
-import { COLORS } from '@/lib/constants';
+import Link from 'next/link';
 import { PRICING } from '@/lib/config';
-import { Check } from 'lucide-react';
+import { ArrowRight, Bell, Check, ShieldCheck, Sparkles, Zap } from 'lucide-react';
 
 const tiers = [
   {
@@ -68,104 +68,66 @@ export default function PricingPage() {
     }
   }
 
+  const perks = [
+    { icon: Zap, title: 'Get paid faster', body: 'Pay links, QR codes and a client portal on every invoice.' },
+    { icon: Bell, title: 'Automatic reminders', body: 'Polite nudges and late fees run on a schedule you set.' },
+    { icon: ShieldCheck, title: 'Zero platform fees', body: 'You only pay Stripe processing. We never take a cut.' },
+  ];
   return (
-    <div style={{ background: COLORS.background, minHeight: '100vh' }}>
-      <div className="w-full">
-        <div className="p-8 max-w-5xl">
-          <h1
-            className="text-4xl font-black mb-2"
-            style={{ color: COLORS.text, fontFamily: '"Syne", sans-serif' }}
-          >
-            Simple pricing
-          </h1>
-          <p className="text-sm mb-2" style={{ color: COLORS.textMuted }}>
-            Cheaper than FreshBooks or QuickBooks for solopreneurs — profitable at ~100 users on
-            Growth ($29 × 100 = $2,900/mo revenue vs ~$50 infra).
-          </p>
-          <p className="text-xs mb-10" style={{ color: COLORS.success }}>
-            You only pay Stripe processing (2.9% + 30¢). We never take a cut of invoice payments.
-          </p>
-
-          <div className="grid md:grid-cols-3 gap-6">
-            {tiers.map(({ key, highlight, features }) => {
-              const tier = PRICING[key];
-              return (
-                <div
-                  key={key}
-                  className="rounded-xl border p-6 flex flex-col"
-                  style={{
-                    background: highlight ? COLORS.surfaceHigh : COLORS.surface,
-                    borderColor: highlight ? COLORS.accent : COLORS.border,
-                    boxShadow: highlight ? `0 0 0 1px ${COLORS.accent}` : undefined,
-                  }}
-                >
-                  {highlight && (
-                    <span
-                      className="text-xs font-bold uppercase mb-3 self-start px-2 py-1 rounded"
-                      style={{ background: COLORS.accentGlow, color: COLORS.accent }}
-                    >
-                      Best for 100 users
-                    </span>
-                  )}
-                  <h2 className="text-xl font-black" style={{ color: COLORS.text }}>
-                    {tier.name}
-                  </h2>
-                  <p className="mt-2 mb-6">
-                    <span className="text-4xl font-black" style={{ color: COLORS.accent }}>
-                      ${tier.price}
-                    </span>
-                    <span className="text-sm" style={{ color: COLORS.textMuted }}>
-                      /mo
-                    </span>
-                  </p>
-                  <ul className="space-y-3 flex-1 mb-8">
-                    {features.map((f) => (
-                      <li
-                        key={f}
-                        className="flex gap-2 text-sm"
-                        style={{ color: COLORS.textMuted }}
-                      >
-                        <Check size={16} style={{ color: COLORS.success, flexShrink: 0 }} />
-                        {f}
-                      </li>
-                    ))}
-                  </ul>
-                  <button
-                    type="button"
-                    onClick={() => subscribe(key)}
-                    disabled={loading !== null}
-                    className="block text-center py-3 rounded-lg font-bold text-sm"
-                    style={{
-                      background: highlight ? COLORS.accent : 'transparent',
-                      color: highlight ? '#fff' : COLORS.accent,
-                      border: highlight ? 'none' : `1px solid ${COLORS.accent}`,
-                    }}
-                  >
-                    {loading === key ? 'Opening checkout…' : 'Choose plan'}
-                  </button>
-                </div>
-              );
-            })}
+    <div className="min-h-screen bg-[var(--background)]">
+      <section className="relative overflow-hidden border-b border-[var(--border)]">
+        <div aria-hidden className="pointer-events-none absolute inset-0" style={{ background: 'radial-gradient(60% 80% at 50% 0%, color-mix(in srgb, var(--accent) 18%, transparent), transparent 70%)' }} />
+        <div className="relative mx-auto max-w-5xl px-5 py-16 text-center sm:py-20">
+          <span className="inline-flex items-center gap-1.5 rounded-full border border-[var(--border)] bg-[var(--surface)] px-3 py-1 text-xs font-medium text-[var(--text-muted)]"><Sparkles size={13} className="text-[var(--accent)]" />Invoicing for people who do the work</span>
+          <h1 className="mx-auto mt-5 max-w-3xl text-4xl font-semibold tracking-tight text-[var(--text)] sm:text-5xl">Send beautiful invoices. <span className="text-[var(--accent)]">Get paid in days</span>, not weeks.</h1>
+          <p className="mx-auto mt-4 max-w-xl text-base text-[var(--text-muted)]">Estimates, invoices, reminders, time tracking and a client pay portal — cheaper than FreshBooks or QuickBooks.</p>
+          <div className="mt-7 flex flex-wrap justify-center gap-3">
+            <Link href="/studio" className="inline-flex items-center gap-2 rounded-[var(--radius-md)] bg-[var(--accent)] px-5 py-3 text-sm font-semibold text-[var(--on-accent)] shadow-sm transition hover:brightness-110">Start free <ArrowRight size={16} /></Link>
+            <a href="#plans" className="inline-flex items-center rounded-[var(--radius-md)] border border-[var(--border)] bg-[var(--surface)] px-5 py-3 text-sm font-semibold text-[var(--text)] transition hover:bg-[var(--surface-high)]">See plans</a>
           </div>
-          {error && <p className="mt-6 text-sm" style={{ color: COLORS.danger }}>{error}</p>}
-
-          <div
-            className="mt-12 rounded-lg border p-6"
-            style={{ background: COLORS.surface, borderColor: COLORS.border }}
-          >
-            <h3 className="font-bold mb-2" style={{ color: COLORS.text }}>
-              Why we&apos;re different
-            </h3>
-            <ul className="text-sm space-y-2" style={{ color: COLORS.textMuted }}>
-              <li>· Smart Pay Score™ — competitors charge extra for “insights” add-ons</li>
-              <li>· Client pay portal + QR — many tools lock this behind $50+ plans</li>
-              <li>· E-invoice standard labels today; network delivery remains on the roadmap</li>
-              <li>· Open exchange rates (Frankfurter/ECB) — no paid FX API required</li>
-              <li>· Supabase + Stripe + Vercel — stack stays under ~$50/mo until you scale</li>
-            </ul>
+          <div className="mx-auto mt-12 grid max-w-4xl gap-4 text-left sm:grid-cols-3">
+            {perks.map(({ icon: Icon, title, body }) => (
+              <div key={title} className="rounded-[var(--radius-lg)] border border-[var(--border)] bg-[var(--surface)] p-5 shadow-[var(--shadow-sm)]">
+                <span className="grid h-9 w-9 place-items-center rounded-lg bg-[var(--accent-soft)] text-[var(--accent)]"><Icon size={18} /></span>
+                <h3 className="mt-3 font-semibold text-[var(--text)]">{title}</h3>
+                <p className="mt-1 text-sm text-[var(--text-muted)]">{body}</p>
+              </div>))}
           </div>
         </div>
-      </div>
+      </section>
+
+      <section id="plans" className="mx-auto max-w-5xl px-5 py-14">
+        <div className="text-center">
+          <h2 className="text-3xl font-semibold tracking-tight text-[var(--text)]">Simple pricing</h2>
+          <p className="mt-2 text-sm text-[var(--text-muted)]">Only Stripe processing (2.9% + 30¢) on payments. Cancel anytime.</p>
+        </div>
+        <div className="mt-10 grid gap-5 md:grid-cols-3">
+          {tiers.map(({ key, highlight, features }) => {
+            const tier = PRICING[key];
+            return (
+              <div key={key} className={`relative flex flex-col rounded-[var(--radius-lg)] border bg-[var(--surface)] p-6 shadow-[var(--shadow-sm)] ${highlight ? 'border-[var(--accent)] ring-1 ring-[var(--accent)] md:-translate-y-2' : 'border-[var(--border)]'}`}>
+                {highlight && <span className="absolute -top-3 left-6 rounded-full bg-[var(--accent)] px-3 py-1 text-[11px] font-semibold uppercase tracking-wide text-[var(--on-accent)]">Most popular</span>}
+                <h3 className="text-lg font-semibold text-[var(--text)]">{tier.name}</h3>
+                <p className="mt-3"><span className="tabular text-4xl font-semibold text-[var(--text)]">${tier.price}</span><span className="text-sm text-[var(--text-muted)]">/mo</span></p>
+                <ul className="mt-6 flex-1 space-y-2.5">
+                  {features.map((f) => <li key={f} className="flex gap-2 text-sm text-[var(--text-muted)]"><Check size={16} className="mt-0.5 shrink-0 text-[var(--success)]" />{f}</li>)}
+                </ul>
+                <button type="button" onClick={() => subscribe(key)} disabled={loading !== null}
+                  className={`mt-8 rounded-[var(--radius-md)] py-3 text-sm font-semibold transition disabled:opacity-60 ${highlight ? 'bg-[var(--accent)] text-[var(--on-accent)] hover:brightness-110' : 'border border-[var(--border)] text-[var(--text)] hover:bg-[var(--surface-high)]'}`}>
+                  {loading === key ? 'Opening checkout…' : `Choose ${tier.name}`}
+                </button>
+              </div>
+            );
+          })}
+        </div>
+        {error && <p role="alert" className="mt-6 text-center text-sm text-[var(--danger)]">{error}</p>}
+        <div className="mt-14 rounded-[var(--radius-lg)] border border-[var(--border)] bg-[var(--surface)] p-6">
+          <h3 className="font-semibold text-[var(--text)]">Why we&apos;re different</h3>
+          <ul className="mt-3 grid gap-2 text-sm text-[var(--text-muted)] sm:grid-cols-2">
+            {['Smart Pay Score™ included — no “insights” add-on', 'Client pay portal + QR on every plan', 'E-invoice standard labels today; network delivery on the roadmap', 'Open exchange rates (Frankfurter/ECB) built in'].map((t) => <li key={t} className="flex gap-2"><Check size={16} className="mt-0.5 shrink-0 text-[var(--accent)]" />{t}</li>)}
+          </ul>
+        </div>
+      </section>
     </div>
   );
 }

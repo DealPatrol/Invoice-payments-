@@ -10,6 +10,7 @@ import { InvoiceDocument } from './InvoiceDocument';
 import { CatalogPanel, ClientsPanel, Dashboard, StatusBadge } from './StudioPanels';
 import { BrandSwitcher, ExpensesTimePanel, PortalCard, TaxReportPanel, TrackingCard } from './SuitePanels';
 import { DEFAULT_EXTRAS, billToInvoice, ensureBrands, hasStoredExtras, loadExtras, normalizeExtras, releaseBilledWork, saveExtras, syncActiveBrand, type StudioExtras } from '@/lib/studio-suite';
+import { Avatar, DataList, EmptyState, Panel, SearchInput, Segmented, StatusPill, Toolbar } from '@/components/ui/kit';
 import { btn, btnPrimary, btnSm, card, input, label } from './ui';
 import {
   addDays, calcTotals, decodeInvoice, encodeInvoice, formatInvoiceNumber, formatMoney, formatDate,
@@ -17,8 +18,7 @@ import {
   saveInvoices, saveProfile, lineTotal, todayISO, uid,
   STUDIO_CURRENCIES, TERMS_OPTIONS, UNIT_SUGGESTIONS, DEFAULT_PROFILE,
   type BusinessProfile, type CatalogItem, type DocKind, type EstimateStatus, type RecurringInterval,
-  type StudioClient, type StudioInvoice, type StudioLineItem, type StudioStatus,
-} from '@/lib/studio';
+  type StudioClient, type StudioInvoice, type StudioLineItem, type StudioStatus, INVOICE_TEMPLATES } from '@/lib/studio';
 import {
   advanceDate, amountDue, convertEstimate, displayStatus, generateDueRecurring, invoicesToCSV, recordPayment, reminderDraft, removePayment,
 } from '@/lib/studio-ops';
@@ -103,6 +103,7 @@ export function InvoiceStudio() {
   const [extras, setExtras] = useState<StudioExtras>(DEFAULT_EXTRAS);
   const [draft, setDraft] = useState<StudioInvoice | null>(null);
   const [toast, setToast] = useState('');
+  const [docFilter, setDocFilter] = useState('all');
   const [query, setQuery] = useState('');
   const [reminder, setReminder] = useState<ReturnType<typeof reminderDraft> | null>(null);
   const [pay, setPay] = useState({ amount: '', date: todayISO(), method: 'Cash', reference: '' });
@@ -208,7 +209,13 @@ export function InvoiceStudio() {
 
   const totals = useMemo(() => (draft ? calcTotals(draft) : null), [draft]);
 
-  if (!ready || !draft || !totals) return <div className="p-8 text-[var(--text-muted)]">Loading studio…</div>;
+  if (!ready || !draft || !totals) return (
+    <div className="mx-auto max-w-[1440px] space-y-6 p-4 sm:p-6 lg:p-10" aria-busy="true" aria-label="Loading studio">
+      <div className="skeleton h-8 w-56" /><div className="skeleton h-10 w-full max-w-3xl" />
+      <div className="grid grid-cols-2 gap-4 lg:grid-cols-3">{[0, 1, 2, 3, 4, 5].map((i) => <div key={i} className="skeleton h-24" />)}</div>
+      <div className="skeleton h-64" />
+    </div>
+  );
 
   if (printOnly) {
     return <div className="print-reset min-h-screen bg-white"><InvoiceDocument invoice={draft} today={today} /></div>;
@@ -228,7 +235,7 @@ export function InvoiceStudio() {
     const st = displayStatus(draft, today);
     const payUrl = draft.paymentLink || draft.business.paymentLinkUrl;
     return (
-      <div className="print-reset min-h-screen bg-[#f3f4f6] p-3 sm:p-8">
+      <div className="print-reset min-h-screen bg-[var(--canvas)] p-3 sm:p-8">
         <div className="no-print mx-auto mb-4 flex max-w-[860px] flex-wrap items-center justify-between gap-3 rounded-xl bg-white p-4 shadow-sm">
           <div>
             <div className="text-sm text-gray-500">{draft.business.name} sent you {draft.kind === 'estimate' ? 'an estimate' : 'an invoice'}</div>
@@ -246,7 +253,7 @@ export function InvoiceStudio() {
           </div>
         </div>
         <div className="mx-auto max-w-[860px] overflow-x-auto"><InvoiceDocument invoice={draft} today={today} /></div>
-        {toast && <div className="no-print fixed bottom-6 left-1/2 -translate-x-1/2 rounded-lg bg-gray-900 px-4 py-2 text-sm text-white">{toast}</div>}
+        {toast && <div role="status" className="no-print animate-in fixed bottom-6 left-1/2 -translate-x-1/2 rounded-full bg-[var(--ink)] px-4 py-2.5 text-sm font-medium text-white shadow-[var(--shadow-lg)]">{toast}</div>}
       </div>
     );
   }
@@ -463,60 +470,82 @@ export function InvoiceStudio() {
   ];
 
   const renderDocList = (kind: DocKind) => {
-    const list = (kind === 'invoice' ? invoiceList : estimateList)
+    const base = (kind === 'invoice' ? invoiceList : estimateList)
       .filter((i) => `${i.number} ${i.customer.name} ${i.customer.company}`.toLowerCase().includes(query.toLowerCase()));
-    return (
-      <div className={card}>
-        <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
-          <h2 className="font-bold text-[var(--text)]">{kind === 'invoice' ? 'Invoices' : 'Estimates'}</h2>
-          <div className="flex gap-2">
-            <button className={btn} onClick={() => download(`${kind}s-${today}.csv`, invoicesToCSV(list, today), 'text/csv')}><FileSpreadsheet size={16} />CSV</button>
-            <button className={btnPrimary} onClick={() => startNew(kind)}><Plus size={16} />New</button>
-          </div>
-        </div>
-        <input className={input + ' mb-2'} placeholder="Search by number or customer" value={query} onChange={(e) => setQuery(e.target.value)} />
-        {list.length === 0 && <p className="text-sm text-[var(--text-muted)]">Nothing here yet.</p>}
-        <ul className="divide-y divide-[var(--border)]">
-          {list.map((inv) => {
-            const t = calcTotals(inv);
-            return (
-              <li key={inv.id} className="flex flex-wrap items-center justify-between gap-2 py-3">
-                <button className="min-w-0 text-left" onClick={() => openDoc(inv)}>
-                  <div className="flex items-center gap-2 font-semibold text-[var(--text)]">
-                    {inv.number} · {inv.customer.name || 'No customer'} <StatusBadge status={displayStatus(inv, today)} />
-                    {inv.recurring?.active && <Repeat size={13} className="text-[var(--accent)]" aria-label="Recurring" />}
-                    {(inv.views?.length ?? 0) > 0 && <span className="text-xs font-normal text-[var(--text-muted)]">👁 {inv.views!.length}</span>}
-                  </div>
-                  <div className="text-xs text-[var(--text-muted)]">
-                    {formatDate(inv.issueDate)} · {kind === 'invoice' ? 'due' : 'valid until'} {formatDate(inv.dueDate)} · {formatMoney(t.total, inv.business.currency)}
-                    {kind === 'invoice' && t.amountPaid > 0 && t.balanceDue > 0 ? ` · ${formatMoney(t.balanceDue, inv.business.currency)} left` : ''}
-                  </div>
-                </button>
-                <div className="flex items-center gap-2">
-                  {kind === 'estimate' && inv.estimateStatus !== 'converted' && <button className={btnSm} onClick={() => convert(inv)}><ArrowRightLeft size={13} />Invoice</button>}
-                  <button title="Copy client link" className="text-[var(--text-muted)] hover:text-[var(--text)]" onClick={() => copyLink(inv)}><Link2 size={16} /></button>
-                  <button title="Duplicate" className="text-[var(--text-muted)] hover:text-[var(--text)]" onClick={() => duplicate(inv)}><Copy size={16} /></button>
-                  <button title="Delete" className="text-[var(--danger)]" onClick={() => remove(inv.id)}><Trash2 size={16} /></button>
-                </div>
-              </li>
-            );
-          })}
-        </ul>
+    const stat = (i: StudioInvoice) => String(kind === 'invoice' ? displayStatus(i, today) : i.estimateStatus ?? 'draft');
+    const filters = kind === 'invoice' ? ['all', 'draft', 'sent', 'overdue', 'paid'] : ['all', 'draft', 'sent', 'accepted', 'converted'];
+    const active = filters.includes(docFilter) ? docFilter : 'all';
+    const list = active === 'all' ? base : base.filter((i) => stat(i) === active);
+    const word = kind === 'invoice' ? 'invoice' : 'estimate';
+    const actions = (inv: StudioInvoice) => (
+      <div className="flex items-center justify-end gap-0.5">
+        {kind === 'estimate' && inv.estimateStatus !== 'converted' && <button className={btnSm} onClick={() => convert(inv)}><ArrowRightLeft size={13} />Invoice</button>}
+        <button title="Copy client link" aria-label={`Copy client link for ${inv.number}`} className="rounded-md p-1.5 text-[var(--text-subtle)] hover:bg-[var(--surface-high)] hover:text-[var(--text)]" onClick={() => copyLink(inv)}><Link2 size={15} /></button>
+        <button title="Duplicate" aria-label={`Duplicate ${inv.number}`} className="rounded-md p-1.5 text-[var(--text-subtle)] hover:bg-[var(--surface-high)] hover:text-[var(--text)]" onClick={() => duplicate(inv)}><Copy size={15} /></button>
+        <button title="Delete" aria-label={`Delete ${inv.number}`} className="rounded-md p-1.5 text-[var(--text-subtle)] hover:bg-[var(--danger-soft)] hover:text-[var(--danger)]" onClick={() => remove(inv.id)}><Trash2 size={15} /></button>
       </div>
     );
+    return (
+      <Panel flush>
+        <div className="space-y-3 border-b border-[var(--border)] p-4">
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <h2 className="text-[15px] font-semibold text-[var(--text)]">{kind === 'invoice' ? 'Invoices' : 'Estimates'} <span className="font-normal text-[var(--text-subtle)]">· {list.length}</span></h2>
+            <div className="flex gap-2">
+              <button className={btn} onClick={() => download(`${kind}s-${today}.csv`, invoicesToCSV(list, today), 'text/csv')}><FileSpreadsheet size={16} />CSV</button>
+              <button className={btnPrimary} onClick={() => startNew(kind)}><Plus size={16} />New {word}</button>
+            </div>
+          </div>
+          <Toolbar>
+            <Segmented value={active} onChange={setDocFilter}
+              options={filters.map((f) => ({ value: f, label: f, count: f === 'all' ? base.length : base.filter((i) => stat(i) === f).length }))} />
+            <SearchInput value={query} onChange={setQuery} placeholder="Search number or customer" />
+          </Toolbar>
+        </div>
+        {list.length === 0 ? (
+          <EmptyState icon={kind === 'invoice' ? FileText : ScrollText} title={query || active !== 'all' ? `No matching ${word}s` : `No ${word}s yet`}
+            body={query || active !== 'all' ? 'Try a different filter or search.' : kind === 'invoice' ? 'Create an invoice in under a minute and share a pay link.' : 'Send an estimate, then turn it into an invoice in one click.'}
+            action={<button className={btnPrimary} onClick={() => startNew(kind)}><Plus size={16} />New {word}</button>} />
+        ) : (
+          <DataList rows={list} rowKey={(r) => r.id}
+            columns={[
+              { header: 'Number', cell: (inv) => <button className="font-semibold text-[var(--accent)] hover:underline" onClick={() => openDoc(inv)}>{inv.number}</button> },
+              { header: 'Customer', cell: (inv) => <span className="flex items-center gap-2.5"><Avatar name={inv.customer.name || '?'} /><span>{inv.customer.name || 'No customer'}{inv.recurring?.active && <Repeat size={12} className="ml-1.5 inline text-[var(--accent)]" aria-label="Recurring" />}</span></span> },
+              { header: 'Issued', cell: (inv) => <span className="text-[var(--text-muted)]">{formatDate(inv.issueDate)}</span> },
+              { header: kind === 'invoice' ? 'Due' : 'Valid until', cell: (inv) => <span className="text-[var(--text-muted)]">{formatDate(inv.dueDate)}</span> },
+              { header: 'Status', cell: (inv) => kind === 'invoice' ? <StatusBadge status={displayStatus(inv, today)} /> : <StatusPill status={stat(inv)} /> },
+              { header: 'Amount', align: 'right', cell: (inv) => { const t = calcTotals(inv); return <span><span className="font-semibold">{formatMoney(t.total, inv.business.currency)}</span>{kind === 'invoice' && t.amountPaid > 0 && t.balanceDue > 0 && <span className="block text-xs text-[var(--text-muted)]">{formatMoney(t.balanceDue, inv.business.currency)} left</span>}</span>; } },
+              { header: '', align: 'right', cell: actions },
+            ]}
+            mobile={(inv) => (
+              <div className="flex items-center gap-3">
+                <Avatar name={inv.customer.name || '?'} />
+                <button className="min-w-0 flex-1 text-left" onClick={() => openDoc(inv)}>
+                  <p className="truncate font-semibold text-[var(--text)]">{inv.number} · {inv.customer.name || 'No customer'}</p>
+                  <p className="text-xs text-[var(--text-muted)]">{kind === 'invoice' ? 'Due' : 'Valid until'} {formatDate(inv.dueDate)}</p>
+                </button>
+                <div className="flex flex-col items-end gap-1">
+                  <span className="tabular font-semibold text-[var(--text)]">{formatMoney(calcTotals(inv).total, inv.business.currency)}</span>
+                  {kind === 'invoice' ? <StatusBadge status={displayStatus(inv, today)} /> : <StatusPill status={stat(inv)} />}
+                </div>
+              </div>
+            )} />
+        )}
+      </Panel>
+    );
   };
+
 
   const showPreview = tab === 'edit';
 
   return (
-    <div className="print-reset p-4 sm:p-6 lg:p-8">
-      <div className="no-print mb-5 flex flex-wrap items-center justify-between gap-3">
+    <div className="print-reset mx-auto max-w-[1440px] p-4 sm:p-6 lg:p-10">
+      <div className="no-print mb-6 flex flex-wrap items-end justify-between gap-4">
         <div>
-          <h1 className="flex items-center gap-2 text-2xl font-black text-[var(--text)]">Invoice Studio
-            <span className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-semibold ${cloud === 'on' ? 'bg-green-500/15 text-green-600' : 'bg-gray-500/15 text-[var(--text-muted)]'}`}>
+          <h1 className="flex flex-wrap items-center gap-3 text-2xl font-bold tracking-tight text-[var(--text)] sm:text-[1.75rem]">Invoice Studio
+            <span className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-semibold ${cloud === 'on' ? 'bg-[var(--success-soft)] text-[var(--success)]' : 'bg-[var(--surface-high)] text-[var(--text-muted)]'}`}>
               {cloud === 'on' ? <><Cloud size={12} />Synced to account</> : <><CloudOff size={12} />{cloud === 'signedout' ? 'Not signed in — this device only' : 'This device only'}</>}
             </span></h1>
-          <p className="text-sm text-[var(--text-muted)]">Invoices, estimates, clients and payments for any business.{cloud === 'on' ? ' Saved to your account and this device.' : cloud === 'signedout' ? <> <a className="underline" href="/login?callbackUrl=/studio">Sign in</a> to sync across devices and send secure client links.</> : ' Saved on this device — back up anytime.'}</p>
+          <p className="mt-1 text-sm text-[var(--text-muted)]">Invoices, estimates, clients and payments for any business.{cloud === 'on' ? ' Saved to your account and this device.' : cloud === 'signedout' ? <> <a className="underline" href="/login?callbackUrl=/studio">Sign in</a> to sync across devices and send secure client links.</> : ' Saved on this device — back up anytime.'}</p>
         </div>
         <div className="flex flex-wrap items-center gap-2">
           <BrandSwitcher extras={extras} onSwitch={(b) => switchBrand(b.id)} onAdd={addBrand} />
@@ -525,10 +554,10 @@ export function InvoiceStudio() {
         </div>
       </div>
 
-      <div className="no-print mb-5 flex gap-1 overflow-x-auto rounded-lg border border-[var(--border)] bg-[var(--surface)] p-1 lg:w-fit">
+      <div role="tablist" className="no-print sticky top-14 z-20 -mx-4 mb-6 flex gap-1 overflow-x-auto border-b border-[var(--border)] bg-[color-mix(in_srgb,var(--background)_88%,transparent)] px-4 backdrop-blur-md sm:mx-0 sm:px-0 lg:top-0">
         {tabs.map(({ id, label: l, icon: Icon }) => (
-          <button key={id} onClick={() => setTab(id)}
-            className={`flex shrink-0 items-center gap-2 whitespace-nowrap rounded-md px-3 py-2 text-sm font-semibold ${tab === id ? 'bg-[var(--accent)] text-white' : 'text-[var(--text-muted)]'}`}>
+          <button key={id} role="tab" aria-selected={tab === id} onClick={() => setTab(id)}
+            className={`relative flex shrink-0 items-center gap-2 whitespace-nowrap px-3 py-3 text-sm font-medium transition ${tab === id ? 'text-[var(--accent)] after:absolute after:inset-x-2 after:bottom-[-1px] after:h-0.5 after:rounded-full after:bg-[var(--accent)]' : 'text-[var(--text-muted)] hover:text-[var(--text)]'}`}>
             <Icon size={15} />{l}
           </button>
         ))}
@@ -584,6 +613,25 @@ export function InvoiceStudio() {
                   <input type="number" step="0.01" className={input} value={profile.defaultTaxRate} onChange={(e) => persistProfile({ ...profile, defaultTaxRate: Number(e.target.value) || 0 })} /></div>
                 <div><label className={label}>Brand color</label>
                   <input type="color" className={input + ' h-10 p-1'} value={profile.accentColor} onChange={(e) => persistProfile({ ...profile, accentColor: e.target.value })} /></div>
+                <div className="sm:col-span-2"><span className={label}>Invoice template</span>
+                  <div role="radiogroup" aria-label="Invoice template" className="grid grid-cols-3 gap-3">
+                    {INVOICE_TEMPLATES.map((t) => {
+                      const on = (profile.template ?? 'modern') === t.id;
+                      return (
+                        <button key={t.id} type="button" role="radio" aria-checked={on} onClick={() => persistProfile({ ...profile, template: t.id })}
+                          className={`rounded-[var(--radius-md)] border p-3 text-left transition ${on ? 'border-[var(--accent)] ring-2 ring-[var(--accent-soft)]' : 'border-[var(--border)] hover:border-[var(--border-strong)]'}`}>
+                          <span aria-hidden className="mb-2 block h-12 overflow-hidden rounded-md border border-[var(--border)] bg-white">
+                            {t.id === 'modern' && <span className="block h-1.5" style={{ background: profile.accentColor }} />}
+                            {t.id === 'bold' && <span className="block h-5" style={{ background: profile.accentColor }} />}
+                            {t.id === 'classic' && <span className="mx-2 mt-2 block h-px bg-slate-800" />}
+                            <span className="mx-2 mt-2 block h-1 w-1/2 rounded bg-slate-200" /><span className="mx-2 mt-1 block h-1 w-1/3 rounded bg-slate-200" />
+                          </span>
+                          <span className="block text-sm font-semibold text-[var(--text)]">{t.name}</span>
+                          <span className="block text-xs text-[var(--text-muted)]">{t.blurb}</span>
+                        </button>
+                      );
+                    })}
+                  </div></div>
                 <div className="sm:col-span-2"><label className={label}>Tax presets</label>
                   <div className="space-y-2">
                     {profile.taxPresets.map((t, i) => (
@@ -788,7 +836,7 @@ export function InvoiceStudio() {
                     {draft.payments.map((p) => (
                       <li key={p.id} className="flex items-center justify-between py-2 text-sm">
                         <span className="text-[var(--text)]">{formatDate(p.date)} · {p.method}{p.reference ? ` #${p.reference}` : ''}</span>
-                        <span className="flex items-center gap-3 font-semibold text-[#22c97a]">{formatMoney(p.amount, draft.business.currency)}
+                        <span className="flex items-center gap-3 font-semibold text-[var(--success)]">{formatMoney(p.amount, draft.business.currency)}
                           <button aria-label="Remove payment" className="text-[var(--danger)]" onClick={() => commit(removePayment(draft, p.id))}><X size={14} /></button></span>
                       </li>
                     ))}
@@ -855,7 +903,7 @@ export function InvoiceStudio() {
         </div>
       )}
 
-      {toast && <div className="no-print fixed bottom-6 left-1/2 z-50 -translate-x-1/2 rounded-lg bg-[var(--accent)] px-4 py-2 text-sm font-semibold text-white shadow-lg">{toast}</div>}
+      {toast && <div role="status" className="no-print animate-in fixed bottom-24 left-1/2 z-50 -translate-x-1/2 rounded-full bg-[var(--ink)] px-4 py-2.5 text-sm font-medium text-white shadow-[var(--shadow-lg)] ring-1 ring-white/10 lg:bottom-8">{toast}</div>}
     </div>
   );
 }

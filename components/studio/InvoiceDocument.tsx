@@ -7,7 +7,7 @@ export function InvoiceDocument({ invoice, today }: { invoice: StudioInvoice; to
   const c = invoice.customer;
   const t = calcTotals(invoice);
   const money = (n: number) => formatMoney(n, b.currency);
-  const accent = b.accentColor || '#4f6ef7';
+  const accent = b.accentColor || '#4f46e5';
   const isEstimate = invoice.kind === 'estimate';
   const isPaid = !isEstimate && (invoice.status === 'paid' || (t.total > 0 && t.balanceDue <= 0));
   const payUrl = !isEstimate && !isPaid ? invoice.paymentLink || b.paymentLinkUrl : '';
@@ -18,7 +18,7 @@ export function InvoiceDocument({ invoice, today }: { invoice: StudioInvoice; to
   const showUnit = invoice.items.some((i) => i.unit);
 
   return (
-    <article className="invoice-doc" style={{ ['--inv-accent' as string]: accent }}>
+    <article className={`invoice-doc tpl-${b.template ?? 'modern'}`} style={{ ['--inv-accent' as string]: accent }}>
       <div className="inv-bar" />
       <header className="inv-header">
         <div className="inv-brand">

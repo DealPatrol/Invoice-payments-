@@ -2,7 +2,8 @@
 
 import { useEffect, useState } from 'react';
 import { DemoBanner } from '@/components/DemoBanner';
-import { COLORS } from '@/lib/constants';
+import { BarChart3 } from 'lucide-react';
+import { EmptyState, Page, PageHeader, Panel, SkeletonRows, Stat, StatGrid, toneColor } from '@/components/ui/kit';
 import type { ReportsData } from '@/lib/types';
 
 const money = new Intl.NumberFormat('en-US', {
@@ -29,63 +30,42 @@ export default function ReportsPage() {
       });
   }, []);
 
+  const aging = reports ? ([
+    ['Current', reports.aging.current, 'success'],
+    ['1–30 days', reports.aging.days1to30, 'warning'],
+    ['31–60 days', reports.aging.days31to60, 'danger'],
+    ['60+ days', reports.aging.days60plus, 'danger'],
+  ] as const) : [];
+  const agingTotal = Math.max(1, aging.reduce((t, a) => t + a[1], 0));
   return (
-    <div style={{ background: COLORS.background, minHeight: '100vh' }}>
-      <div className="p-8">
-        <h1 className="text-4xl font-black tracking-tight mb-2" style={{ color: COLORS.text }}>
-          Reports & Analytics
-        </h1>
-        <p className="text-sm mb-8" style={{ color: COLORS.textMuted }}>
-          Live revenue, collections, and accounts-receivable aging.
-        </p>
-        <DemoBanner mode={mode === 'postgres' ? undefined : 'demo'} />
-        {error && <p style={{ color: COLORS.danger }}>{error}</p>}
-        {!reports && !error && <p style={{ color: COLORS.textMuted }}>Loading reports…</p>}
-        {reports && (
-          <>
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
-              {[
-                ['Revenue collected', money.format(reports.revenue)],
-                ['Total billed', money.format(reports.totalBilled)],
-                ['Outstanding', money.format(reports.outstanding)],
-                ['Collection rate', `${reports.collectionRate}%`],
-              ].map(([label, value]) => (
-                <div
-                  key={label}
-                  className="rounded-lg border p-6"
-                  style={{ background: COLORS.surfaceHigh, borderColor: COLORS.border }}
-                >
-                  <p className="text-sm" style={{ color: COLORS.textMuted }}>{label}</p>
-                  <p className="text-2xl font-black mt-2" style={{ color: COLORS.text }}>{value}</p>
+    <Page>
+      <PageHeader eyebrow="Grow" title="Reports & analytics" subtitle="Revenue, collections and accounts-receivable aging." />
+      <DemoBanner mode={mode === 'postgres' ? undefined : 'demo'} />
+      {error && <Panel><EmptyState icon={BarChart3} title="Reports unavailable" body={error} /></Panel>}
+      {!reports && !error && <Panel flush><SkeletonRows rows={4} /></Panel>}
+      {reports && (
+        <div className="space-y-5">
+          <StatGrid cols={4}>
+            <Stat label="Revenue collected" value={money.format(reports.revenue)} tone="success" />
+            <Stat label="Total billed" value={money.format(reports.totalBilled)} tone="accent" />
+            <Stat label="Outstanding" value={money.format(reports.outstanding)} tone="warning" />
+            <Stat label="Collection rate" value={`${reports.collectionRate}%`} tone="violet" />
+          </StatGrid>
+          <Panel title="Accounts receivable aging">
+            <div className="mb-5 flex h-3 overflow-hidden rounded-full bg-[var(--surface-high)]">
+              {aging.map(([l, v, t]) => <div key={l} style={{ width: `${(v / agingTotal) * 100}%`, background: toneColor(t) }} />)}
+            </div>
+            <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
+              {aging.map(([l, v, t]) => (
+                <div key={l} className="rounded-[var(--radius-md)] border border-[var(--border)] p-4">
+                  <p className="flex items-center gap-1.5 text-xs font-medium text-[var(--text-muted)]"><i className="h-2 w-2 rounded-full" style={{ background: toneColor(t) }} />{l}</p>
+                  <p className="tabular mt-1.5 text-xl font-semibold text-[var(--text)]">{money.format(v)}</p>
                 </div>
               ))}
             </div>
-            <div
-              className="rounded-lg border p-6"
-              style={{ background: COLORS.surface, borderColor: COLORS.border }}
-            >
-              <h2 className="text-lg font-bold mb-5" style={{ color: COLORS.text }}>
-                Accounts receivable aging
-              </h2>
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                {[
-                  ['Current', reports.aging.current],
-                  ['1–30 days', reports.aging.days1to30],
-                  ['31–60 days', reports.aging.days31to60],
-                  ['60+ days', reports.aging.days60plus],
-                ].map(([label, value]) => (
-                  <div key={label as string}>
-                    <p className="text-xs uppercase" style={{ color: COLORS.textMuted }}>{label}</p>
-                    <p className="text-xl font-bold mt-1" style={{ color: COLORS.text }}>
-                      {money.format(value as number)}
-                    </p>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </>
-        )}
-      </div>
-    </div>
+          </Panel>
+        </div>
+      )}
+    </Page>
   );
 }

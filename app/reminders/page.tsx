@@ -2,7 +2,8 @@
 
 import { DemoBanner } from '@/components/DemoBanner';
 import { PayScoreBadge } from '@/components/PayScoreBadge';
-import { COLORS, CURRENCY_SYMBOLS } from '@/lib/constants';
+import { CURRENCY_SYMBOLS } from '@/lib/constants';
+import { Avatar, EmptyState, Page, PageHeader, Panel, Pill, SkeletonRows, StatusPill } from '@/components/ui/kit';
 import { useInvoices } from '@/lib/hooks';
 import { Bell, Mail, MessageSquare } from 'lucide-react';
 
@@ -45,88 +46,50 @@ export default function RemindersPage() {
   const { invoices, mode, loading } = useInvoices({ status: 'all' });
   const actionable = invoices.filter((i) => i.status !== 'paid' && i.status !== 'draft');
 
+  const overdue = actionable.filter((i) => i.status === 'overdue').length;
   return (
-    <div style={{ background: COLORS.background, minHeight: '100vh' }}>
-      <div className="p-8 max-w-4xl">
-          <h1
-            className="text-4xl font-black mb-2"
-            style={{ color: COLORS.text, fontFamily: '"Syne", sans-serif' }}
-          >
-            Smart Reminders
-          </h1>
-          <p className="text-sm mb-8" style={{ color: COLORS.textMuted }}>
-            Automated due-date and overdue email follow-ups, including configured late fees.
-          </p>
-
-          <DemoBanner mode={mode} />
-
-          <div
-            className="rounded-lg border p-6 mb-8 grid grid-cols-3 gap-4"
-            style={{ background: COLORS.surface, borderColor: COLORS.border }}
-          >
-            {[
-              { icon: Mail, label: 'Email', desc: 'Resend API' },
-              { icon: MessageSquare, label: 'SMS', desc: 'Roadmap' },
-              { icon: Bell, label: 'In-app', desc: 'Always on' },
-            ].map(({ icon: Icon, label, desc }) => (
-              <div key={label} className="text-center">
-                <Icon size={28} className="mx-auto mb-2" style={{ color: COLORS.accent }} />
-                <p className="font-bold text-sm" style={{ color: COLORS.text }}>
-                  {label}
-                </p>
-                <p className="text-xs" style={{ color: COLORS.textMuted }}>
-                  {desc}
-                </p>
-              </div>
-            ))}
+    <Page>
+      <PageHeader eyebrow="Grow" title="Smart reminders" subtitle="Automatic due-date and overdue follow-ups, including configured late fees." />
+      <DemoBanner mode={mode} />
+      <div className="mb-5 grid grid-cols-1 gap-3 sm:grid-cols-3 sm:gap-4">
+        {[
+          { icon: Mail, label: 'Email', desc: 'Sent via Resend', tone: 'success' as const, state: 'Active' },
+          { icon: Bell, label: 'In-app', desc: 'Always on', tone: 'success' as const, state: 'Active' },
+          { icon: MessageSquare, label: 'SMS', desc: 'On the roadmap', tone: 'neutral' as const, state: 'Soon' },
+        ].map(({ icon: Icon, label, desc, tone, state }) => (
+          <div key={label} className="flex items-center gap-3 rounded-[var(--radius-lg)] border border-[var(--border)] bg-[var(--surface)] p-4 shadow-[var(--shadow-xs)]">
+            <span className="grid h-10 w-10 place-items-center rounded-lg bg-[var(--accent-soft)] text-[var(--accent)]"><Icon size={18} /></span>
+            <span className="flex-1"><span className="block font-semibold text-[var(--text)]">{label}</span><span className="text-xs text-[var(--text-muted)]">{desc}</span></span>
+            <Pill tone={tone}>{state}</Pill>
           </div>
-
-          {loading && <p style={{ color: COLORS.textMuted }}>Loading…</p>}
-
-          <div className="space-y-4">
-            {actionable.map((inv) => {
-              const plan = reminderPlan(inv);
-              return (
-                <div
-                  key={inv.id}
-                  className="rounded-lg border p-6"
-                  style={{ background: COLORS.surfaceHigh, borderColor: COLORS.border }}
-                >
-                  <div className="flex flex-wrap items-center gap-3 mb-4">
-                    <span className="font-mono font-bold" style={{ color: COLORS.accent }}>
-                      {inv.invoiceNumber}
-                    </span>
-                    <span style={{ color: COLORS.text }}>{inv.clientName}</span>
-                    <span className="font-mono text-sm" style={{ color: COLORS.text }}>
-                      {CURRENCY_SYMBOLS[inv.currency]}
-                      {inv.total.toLocaleString()}
-                    </span>
-                    {inv.payScore != null && <PayScoreBadge score={inv.payScore} />}
-                  </div>
-                  <ul className="space-y-2">
-                    {plan.map((step, i) => (
-                      <li
-                        key={i}
-                        className="flex gap-3 text-sm py-2 border-b last:border-0"
-                        style={{ borderColor: COLORS.border, color: COLORS.textMuted }}
-                      >
-                        <Bell size={14} style={{ color: COLORS.accent, flexShrink: 0 }} />
-                        <span>
-                          <strong style={{ color: COLORS.text }}>{step.day}</strong> ·{' '}
-                          {step.channel} — {step.tone}
-                        </span>
-                      </li>
-                    ))}
-                  </ul>
+        ))}
+      </div>
+      <Panel title={<span>Scheduled follow-ups <span className="font-normal text-[var(--text-subtle)]">· {actionable.length} invoices{overdue ? `, ${overdue} overdue` : ''}</span></span>} flush>
+        {loading ? <SkeletonRows rows={3} /> : actionable.length === 0 ? (
+          <EmptyState icon={Bell} title="All caught up" body="No outstanding invoices need reminders." />
+        ) : (
+          <ul className="divide-y divide-[var(--border)]">
+            {actionable.map((inv) => (
+              <li key={inv.id} className="p-4 sm:px-5">
+                <div className="flex flex-wrap items-center gap-3">
+                  <Avatar name={inv.clientName} />
+                  <span className="min-w-0 flex-1"><span className="block truncate font-semibold text-[var(--text)]">{inv.clientName}</span><span className="text-xs text-[var(--text-muted)]">{inv.invoiceNumber}</span></span>
+                  {inv.payScore != null && <PayScoreBadge score={inv.payScore} />}
+                  <StatusPill status={inv.status} />
+                  <span className="tabular font-semibold text-[var(--text)]">{CURRENCY_SYMBOLS[inv.currency]}{inv.total.toLocaleString()}</span>
                 </div>
-              );
-            })}
-          </div>
-
-          {actionable.length === 0 && !loading && (
-            <p style={{ color: COLORS.textMuted }}>No outstanding invoices need reminders.</p>
-          )}
-        </div>
-    </div>
+                <ol className="mt-3 flex flex-wrap gap-2 sm:pl-12">
+                  {reminderPlan(inv).map((step, i) => (
+                    <li key={i} className="flex items-center gap-2 rounded-full border border-[var(--border)] bg-[var(--surface-high)] px-3 py-1 text-xs text-[var(--text-muted)]">
+                      <Bell size={12} className="text-[var(--accent)]" /><b className="font-semibold text-[var(--text)]">{step.day}</b>{step.tone}
+                    </li>
+                  ))}
+                </ol>
+              </li>
+            ))}
+          </ul>
+        )}
+      </Panel>
+    </Page>
   );
 }

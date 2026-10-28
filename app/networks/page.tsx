@@ -1,7 +1,8 @@
 'use client';
 
-import { COLORS, NETWORKS } from '@/lib/constants';
-import { CheckCircle, Clock } from 'lucide-react';
+import { NETWORKS } from '@/lib/constants';
+import { CheckCircle, Clock, Globe } from 'lucide-react';
+import { Page, PageHeader, Panel, Pill } from '@/components/ui/kit';
 import { useState } from 'react';
 
 export default function NetworksPage() {
@@ -18,112 +19,34 @@ export default function NetworksPage() {
     'AU RCTI': { regions: ['Australia'] },
   };
 
+  const card = (network: any, soon: boolean) => {
+    const on = selectedNetwork === network.id;
+    return (
+      <button type="button" key={network.id} onClick={() => setSelectedNetwork(on ? null : network.id)} aria-pressed={on}
+        className={`flex flex-col rounded-[var(--radius-lg)] border bg-[var(--surface)] p-5 text-left shadow-[var(--shadow-xs)] transition hover:border-[var(--border-strong)] ${on ? 'border-[var(--accent)] ring-1 ring-[var(--accent)]' : 'border-[var(--border)]'}`}>
+        <span className="flex items-start justify-between gap-3">
+          <span className="grid h-9 w-9 place-items-center rounded-lg bg-[var(--accent-soft)] text-[var(--accent)]"><Globe size={17} /></span>
+          <Pill tone={soon ? 'warning' : 'violet'}>{soon ? 'Beta' : 'Roadmap'}</Pill>
+        </span>
+        <span className="mt-3 font-semibold text-[var(--text)]">{network.name}</span>
+        <span className="mt-1 text-sm text-[var(--text-muted)]">{network.description}</span>
+        {on && details[network.id] && (
+          <span className="mt-3 flex flex-wrap gap-1.5">{details[network.id].regions.map((r) => <span key={r} className="rounded-full bg-[var(--surface-high)] px-2 py-0.5 text-xs text-[var(--text-muted)]">{r}</span>)}</span>
+        )}
+      </button>
+    );
+  };
   return (
-    <div style={{ background: COLORS.background, minHeight: '100vh' }}>
-      <div className="p-8 max-w-6xl mx-auto">
-        <h1
-          className="text-4xl font-black tracking-tight mb-2"
-          style={{ color: COLORS.text, fontFamily: '"Syne", sans-serif' }}
-        >
-          E-Invoice Networks — Roadmap
-        </h1>
-        <p className="text-sm mb-12" style={{ color: COLORS.textMuted }}>
-          Planned integrations. Network delivery is not currently available.
-        </p>
-
-        {/* Live Networks */}
-        <h2 className="text-lg font-bold mb-6" style={{ color: COLORS.text }}>
-          <CheckCircle size={20} className="inline mr-2" />
-          Planned Networks
-        </h2>
-        <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mb-12">
-          {live.map((network: any) => (
-            <div
-              key={network.id}
-              onClick={() => setSelectedNetwork(network.id)}
-              className="rounded-lg border p-6 cursor-pointer transition-all"
-              style={{
-                background: selectedNetwork === network.id ? COLORS.surfaceHigh : COLORS.surface,
-                borderColor: selectedNetwork === network.id ? COLORS.accent : COLORS.border,
-                borderWidth: selectedNetwork === network.id ? 2 : 1,
-              }}
-            >
-              <div className="flex items-start justify-between mb-3">
-                <div>
-                  <h3 className="text-lg font-bold" style={{ color: COLORS.text }}>
-                    {network.name}
-                  </h3>
-                  <p className="text-sm mt-1" style={{ color: COLORS.textMuted }}>
-                    {network.description}
-                  </p>
-                </div>
-                <span
-                  className="text-xs font-bold px-3 py-1 rounded-full"
-                  style={{ background: '#22c97a18', color: '#15803d' }}
-                >
-                  ROADMAP
-                </span>
-              </div>
-            </div>
-          ))}
-        </div>
-
-        {/* Beta Networks */}
-        {beta.length > 0 && (
-          <>
-            <h2 className="text-lg font-bold mb-6" style={{ color: COLORS.text }}>
-              <Clock size={20} className="inline mr-2" />
-              Coming Soon
-            </h2>
-            <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-              {beta.map((network: any) => (
-                <div
-                  key={network.id}
-                  className="rounded-lg border p-6 opacity-60"
-                  style={{ background: COLORS.surface, borderColor: COLORS.border }}
-                >
-                  <div className="flex items-start justify-between mb-3">
-                    <div>
-                      <h3 className="text-lg font-bold" style={{ color: COLORS.text }}>
-                        {network.name}
-                      </h3>
-                      <p className="text-sm mt-1" style={{ color: COLORS.textMuted }}>
-                        {network.description}
-                      </p>
-                    </div>
-                    <span
-                      className="text-xs font-bold px-3 py-1 rounded-full"
-                      style={{ background: '#fef3c7', color: '#92400e' }}
-                    >
-                      BETA
-                    </span>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </>
-        )}
-
-        {selectedNetwork && (
-          <div className="mt-12 p-6 rounded-lg" style={{ background: COLORS.surfaceHigh, border: `1px solid ${COLORS.border}` }}>
-            <h3 className="text-lg font-bold mb-4" style={{ color: COLORS.text }}>
-              Network Details
-            </h3>
-            <div>
-              <p className="text-sm font-bold mb-2" style={{ color: COLORS.text }}>
-                Supported Regions:
-              </p>
-              <ul className="space-y-1">
-                {(details[selectedNetwork as keyof typeof details]?.regions || []).map((region) => (
-                  <li key={region} style={{ color: COLORS.textMuted }}>
-                    • {region}
-                  </li>
-                ))}
-              </ul>
-            </div>
-          </div>
-        )}
-      </div>
-    </div>
+    <Page>
+      <PageHeader eyebrow="Grow" title="E-invoice networks" subtitle="Planned integrations. Network delivery is not available yet — tap a network to see regions." />
+      <Panel title={<span className="flex items-center gap-2"><CheckCircle size={16} className="text-[var(--accent)]" />Planned networks</span>}>
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">{live.map((n: any) => card(n, false))}</div>
+      </Panel>
+      {beta.length > 0 && (
+        <div className="mt-5"><Panel title={<span className="flex items-center gap-2"><Clock size={16} className="text-[var(--warning)]" />Coming soon</span>}>
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">{beta.map((n: any) => card(n, true))}</div>
+        </Panel></div>
+      )}
+    </Page>
   );
 }

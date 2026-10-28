@@ -9,8 +9,8 @@ export function DemoBanner({ mode }: { mode?: 'demo' | 'postgres' }) {
     <div
       className="mb-6 flex items-center gap-3 rounded-lg border px-4 py-3 text-sm"
       style={{
-        background: `${COLORS.accent}12`,
-        borderColor: `${COLORS.accent}44`,
+        background: `var(--accent-soft)`,
+        borderColor: `color-mix(in srgb, var(--accent) 30%, transparent)`,
         color: COLORS.text,
       }}
     >

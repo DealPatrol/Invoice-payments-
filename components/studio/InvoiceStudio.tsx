@@ -111,6 +111,9 @@ export function InvoiceStudio() {
   const [cloud, setCloud] = useState<'checking' | 'local' | 'signedout' | 'on'>('checking');
   const skipPush = useRef(true);
   const pushTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  // Sync applies after an await, so it must keep the draft open at that moment.
+  const draftRef = useRef<StudioInvoice | null>(null);
+  useEffect(() => { draftRef.current = draft; }, [draft]);
 
   useEffect(() => {
     // Hydrate from localStorage after mount (not available during SSR).
@@ -181,7 +184,11 @@ export function InvoiceStudio() {
       setClients(server.clients); saveClients(server.clients);
       setCatalog(server.catalog); saveCatalog(server.catalog);
       if (hasStoredExtras(normalizeExtras(server.extras))) {
-        const sx = releaseBilledWork(ensureBrands(normalizeExtras(server.extras), server.profile ?? loadProfile()), new Set((server.invoices as StudioInvoice[]).map((i) => i.id)));
+        const savedIds = new Set((server.invoices as StudioInvoice[]).map((i) => i.id));
+        // Provisional marks on the draft still on screen are not abandoned.
+        const openId = draftRef.current?.id;
+        if (openId) savedIds.add(openId);
+        const sx = releaseBilledWork(ensureBrands(normalizeExtras(server.extras), server.profile ?? loadProfile()), savedIds);
         setExtras(sx); saveExtras(sx);
       }
       setCloud('on');
@@ -362,7 +369,10 @@ export function InvoiceStudio() {
     const remaining = invoices.filter((i) => i.id !== id);
     persistInvoices(remaining);
     // Work billed to the deleted document becomes billable again.
-    const released = releaseBilledWork(extras, new Set(remaining.map((i) => i.id)));
+    // A different document's delete must not clear the draft still on screen.
+    const keep = new Set(remaining.map((i) => i.id));
+    if (draft.id !== id) keep.add(draft.id);
+    const released = releaseBilledWork(extras, keep);
     if (released !== extras) persistExtras(released);
     if (draft.id === id) setDraft(newInvoice(profile));
   };

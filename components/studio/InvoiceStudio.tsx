@@ -10,7 +10,7 @@ import { InvoiceDocument } from './InvoiceDocument';
 import { CatalogPanel, ClientsPanel, Dashboard, StatusBadge } from './StudioPanels';
 import { BrandSwitcher, ExpensesTimePanel, PortalCard, TaxReportPanel, TrackingCard } from './SuitePanels';
 import { DEFAULT_EXTRAS, billToInvoice, ensureBrands, hasStoredExtras, loadExtras, normalizeExtras, releaseBilledWork, saveExtras, syncActiveBrand, type StudioExtras } from '@/lib/studio-suite';
-import { Avatar, DataList, EmptyState, Panel, SearchInput, Segmented, StatusPill, Toolbar } from '@/components/ui/kit';
+import { Avatar, DataList, EmptyState, Panel, SearchInput, Segmented, Toolbar } from '@/components/ui/kit';
 import { btn, btnPrimary, btnSm, card, input, label } from './ui';
 import {
   addDays, calcTotals, decodeInvoice, encodeInvoice, formatInvoiceNumber, formatMoney, formatDate,
@@ -472,8 +472,12 @@ export function InvoiceStudio() {
   const renderDocList = (kind: DocKind) => {
     const base = (kind === 'invoice' ? invoiceList : estimateList)
       .filter((i) => `${i.number} ${i.customer.name} ${i.customer.company}`.toLowerCase().includes(query.toLowerCase()));
-    const stat = (i: StudioInvoice) => String(kind === 'invoice' ? displayStatus(i, today) : i.estimateStatus ?? 'draft');
-    const filters = kind === 'invoice' ? ['all', 'draft', 'sent', 'overdue', 'paid'] : ['all', 'draft', 'sent', 'accepted', 'converted'];
+    // displayStatus, not the stored field: deposits are `partial`, voided invoices are `void`,
+    // and a sent estimate past its valid-until date is `expired`.
+    const stat = (i: StudioInvoice) => displayStatus(i, today);
+    const filters = kind === 'invoice'
+      ? ['all', 'draft', 'sent', 'partial', 'overdue', 'paid', 'void']
+      : ['all', 'draft', 'sent', 'expired', 'accepted', 'declined', 'converted'];
     const active = filters.includes(docFilter) ? docFilter : 'all';
     const list = active === 'all' ? base : base.filter((i) => stat(i) === active);
     const word = kind === 'invoice' ? 'invoice' : 'estimate';
@@ -512,7 +516,7 @@ export function InvoiceStudio() {
               { header: 'Customer', cell: (inv) => <span className="flex items-center gap-2.5"><Avatar name={inv.customer.name || '?'} /><span>{inv.customer.name || 'No customer'}{inv.recurring?.active && <Repeat size={12} className="ml-1.5 inline text-[var(--accent)]" aria-label="Recurring" />}</span></span> },
               { header: 'Issued', cell: (inv) => <span className="text-[var(--text-muted)]">{formatDate(inv.issueDate)}</span> },
               { header: kind === 'invoice' ? 'Due' : 'Valid until', cell: (inv) => <span className="text-[var(--text-muted)]">{formatDate(inv.dueDate)}</span> },
-              { header: 'Status', cell: (inv) => kind === 'invoice' ? <StatusBadge status={displayStatus(inv, today)} /> : <StatusPill status={stat(inv)} /> },
+              { header: 'Status', cell: (inv) => <StatusBadge status={stat(inv)} /> },
               { header: 'Amount', align: 'right', cell: (inv) => { const t = calcTotals(inv); return <span><span className="font-semibold">{formatMoney(t.total, inv.business.currency)}</span>{kind === 'invoice' && t.amountPaid > 0 && t.balanceDue > 0 && <span className="block text-xs text-[var(--text-muted)]">{formatMoney(t.balanceDue, inv.business.currency)} left</span>}</span>; } },
               { header: '', align: 'right', cell: actions },
             ]}
@@ -525,7 +529,7 @@ export function InvoiceStudio() {
                 </button>
                 <div className="flex flex-col items-end gap-1">
                   <span className="tabular font-semibold text-[var(--text)]">{formatMoney(calcTotals(inv).total, inv.business.currency)}</span>
-                  {kind === 'invoice' ? <StatusBadge status={displayStatus(inv, today)} /> : <StatusPill status={stat(inv)} />}
+                  <StatusBadge status={stat(inv)} />
                 </div>
               </div>
             )} />

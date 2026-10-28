@@ -7,7 +7,7 @@ import type { Prisma } from '@prisma/client';
 import { prisma } from './db';
 import { DEFAULT_PROFILE, normalizeInvoice, uid, type BusinessProfile, type CatalogItem, type StudioClient, type StudioInvoice, type StudioPayment } from './studio';
 import { calcTotals } from './studio';
-import { normalizeExtras, recordViewOn, type StudioExtras } from './studio-suite';
+import { hasStoredExtras, normalizeExtras, type StudioExtras } from './studio-suite';
 
 export interface StudioSnapshot {
   profile: BusinessProfile | null;
@@ -32,12 +32,17 @@ export async function loadSnapshot(userId: string): Promise<StudioSnapshot> {
     prisma.studioWorkspace.findUnique({ where: { userId } }),
     prisma.studioDocument.findMany({ where: { userId }, orderBy: { createdAt: 'desc' } }),
   ]);
+  // An empty account must report no extras at all. normalizeExtras() always
+  // returns a full object, so returning it unconditionally made the client
+  // treat "no cloud data" as "cloud data exists" and overwrite local time,
+  // expenses, and brands with an empty set on sign-in.
+  const storedExtras = normalizeExtras(ws?.extras as Partial<StudioExtras> | undefined);
   return {
     profile: ws ? { ...DEFAULT_PROFILE, ...(ws.profile as object) } : null,
     clients: (ws?.clients as unknown as StudioClient[]) ?? [],
     catalog: (ws?.catalog as unknown as CatalogItem[]) ?? [],
     invoices: docs.map((d) => normalizeInvoice({ ...(d.data as object), shareToken: d.shareToken ?? '' })),
-    extras: normalizeExtras(ws?.extras as Partial<StudioExtras> | undefined),
+    extras: hasStoredExtras(storedExtras) ? storedExtras : undefined,
   };
 }
 
@@ -143,12 +148,40 @@ export function mergeServerTracking(client: StudioInvoice, server: StudioInvoice
   return { ...client, views: server.views ?? [], remindersSent: reminders };
 }
 
-/** Records that the client opened the secure link. Never throws (tracking must not break the page). */
+/**
+ * Records that the client opened the secure link. Never throws (tracking must
+ * not break the page). The old version read the invoice once and then wrote
+ * that whole snapshot back, so a Stripe payment recorded between the read and
+ * the write was silently erased. This version writes optimistically: it reads
+ * the current row, appends the view, and only commits if the row has not
+ * changed since the read (updatedAt guard). If a concurrent payment moved the
+ * row, it re-reads and retries, so the payment survives. After repeated
+ * contention it gives up on the tracking event rather than risk overwriting
+ * a payment.
+ */
 export async function recordView(token: string, at = new Date().toISOString()) {
   try {
-    const found = await getByToken(token);
-    if (!found) return;
-    await writeDoc(recordViewOn(found.invoice, at));
+    if (!/^[A-Za-z0-9_-]{32}$/.test(token)) return;
+    for (let attempt = 0; attempt < 3; attempt++) {
+      const doc = await prisma.studioDocument.findUnique({ where: { shareToken: token } });
+      if (!doc) return;
+      const inv = normalizeInvoice(doc.data as object);
+      const next = { ...inv, views: [...(inv.views ?? []), at].slice(-50) };
+      const { shareToken: _t, ...data } = next;
+      void _t;
+      const stamp = (doc as { updatedAt?: unknown }).updatedAt;
+      if (stamp) {
+        const res = await prisma.studioDocument.updateMany({
+          where: { id: doc.id, updatedAt: stamp as Date },
+          data: { data: json(data) },
+        });
+        if (res.count > 0) return;
+        continue; // Row moved under us (e.g. a Stripe payment) — re-read and retry.
+      }
+      await prisma.studioDocument.update({ where: { id: doc.id }, data: { data: json(data) } });
+      return;
+    }
+    console.warn('[studio] view tracking skipped after repeated contention');
   } catch (e) {
     console.warn('[studio] view tracking failed', e);
   }

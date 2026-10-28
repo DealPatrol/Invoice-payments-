@@ -9,11 +9,13 @@ vi.mock('@/lib/db', () => ({
       findFirst: vi.fn(async ({ where }) => { const d = db.docs.get(where.id); return d && d.userId === where.userId ? d : null; }),
       findUnique: vi.fn(async ({ where }) => [...db.docs.values()].find((d) => d.shareToken === where.shareToken) ?? null),
       update: vi.fn(async ({ where, data }) => { const d = db.docs.get(where.id)!; Object.assign(d, data); return d; }),
+      updateMany: vi.fn(async ({ where, data }) => { const d = db.docs.get(where.id)!; Object.assign(d, data); return { count: 1 }; }),
     },
   },
 }));
 
-import { getByToken, mergeServerPayments, newShareToken, recordStripePayment, respondToEstimate, shareDocument } from '@/lib/studio-server';
+import { getByToken, mergeServerPayments, newShareToken, recordStripePayment, recordView, respondToEstimate, shareDocument } from '@/lib/studio-server';
+import { prisma } from '@/lib/db';
 import { processStripeEvent } from '@/lib/stripe-webhook';
 import { DEFAULT_PROFILE, newInvoice, newLineItem } from '@/lib/studio';
 import { emailEnabled, logProvider, recipientAllowed, sendStudioEmail } from '@/lib/studio-mail';
@@ -89,6 +91,28 @@ describe('stripe webhook → studio payments', () => {
   it('sync keeps server-recorded Stripe payments the browser has not seen', () => {
     const server = { ...inv, payments: [{ id: 'p1', date: '2026-10-27', amount: 200, method: 'Stripe', reference: 'cs' }] };
     expect(mergeServerPayments(inv, server).status).toBe('paid');
+  });
+});
+
+describe('secure-link view tracking', () => {
+  it('does not erase a Stripe payment recorded while the view is being written', async () => {
+    const token = 'v'.repeat(32);
+    const viewInv = { ...inv, views: [] as string[] };
+    db.docs.set(viewInv.id, { id: viewInv.id, userId: 'u1', data: viewInv, shareToken: token, updatedAt: new Date('2026-10-27T00:00:00Z') } as never);
+    // First write attempt loses the race: a payment lands first, so the
+    // guarded write reports 0 rows and recordView must retry from fresh data.
+    const updateMany = (prisma.studioDocument as unknown as { updateMany: ReturnType<typeof vi.fn> }).updateMany;
+    updateMany.mockImplementationOnce(async () => {
+      const d = db.docs.get(viewInv.id)!;
+      const data = d.data as typeof viewInv;
+      d.data = { ...data, payments: [{ id: 'p-stripe', date: '2026-10-27', amount: 200, method: 'Stripe', reference: 'cs_test_1' }] };
+      return { count: 0 };
+    });
+    await recordView(token, '2026-10-27T12:00:00Z');
+    const data = db.docs.get(viewInv.id)!.data as typeof viewInv;
+    expect(data.payments).toHaveLength(1);
+    expect(data.payments[0].method).toBe('Stripe');
+    expect(data.views).toEqual(['2026-10-27T12:00:00Z']);
   });
 });
 

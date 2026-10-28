@@ -74,7 +74,7 @@ export default function PricingPage() {
     { icon: ShieldCheck, title: 'Zero platform fees', body: 'You only pay Stripe processing. We never take a cut.' },
   ];
   return (
-    <div className="min-h-screen bg-[var(--bg)]">
+    <div className="min-h-screen bg-[var(--background)]">
       <section className="relative overflow-hidden border-b border-[var(--border)]">
         <div aria-hidden className="pointer-events-none absolute inset-0" style={{ background: 'radial-gradient(60% 80% at 50% 0%, color-mix(in srgb, var(--accent) 18%, transparent), transparent 70%)' }} />
         <div className="relative mx-auto max-w-5xl px-5 py-16 text-center sm:py-20">
@@ -82,7 +82,7 @@ export default function PricingPage() {
           <h1 className="mx-auto mt-5 max-w-3xl text-4xl font-semibold tracking-tight text-[var(--text)] sm:text-5xl">Send beautiful invoices. <span className="text-[var(--accent)]">Get paid in days</span>, not weeks.</h1>
           <p className="mx-auto mt-4 max-w-xl text-base text-[var(--text-muted)]">Estimates, invoices, reminders, time tracking and a client pay portal — cheaper than FreshBooks or QuickBooks.</p>
           <div className="mt-7 flex flex-wrap justify-center gap-3">
-            <Link href="/studio" className="inline-flex items-center gap-2 rounded-[var(--radius-md)] bg-[var(--accent)] px-5 py-3 text-sm font-semibold text-white shadow-sm transition hover:brightness-110">Start free <ArrowRight size={16} /></Link>
+            <Link href="/studio" className="inline-flex items-center gap-2 rounded-[var(--radius-md)] bg-[var(--accent)] px-5 py-3 text-sm font-semibold text-[var(--on-accent)] shadow-sm transition hover:brightness-110">Start free <ArrowRight size={16} /></Link>
             <a href="#plans" className="inline-flex items-center rounded-[var(--radius-md)] border border-[var(--border)] bg-[var(--surface)] px-5 py-3 text-sm font-semibold text-[var(--text)] transition hover:bg-[var(--surface-high)]">See plans</a>
           </div>
           <div className="mx-auto mt-12 grid max-w-4xl gap-4 text-left sm:grid-cols-3">
@@ -106,14 +106,14 @@ export default function PricingPage() {
             const tier = PRICING[key];
             return (
               <div key={key} className={`relative flex flex-col rounded-[var(--radius-lg)] border bg-[var(--surface)] p-6 shadow-[var(--shadow-sm)] ${highlight ? 'border-[var(--accent)] ring-1 ring-[var(--accent)] md:-translate-y-2' : 'border-[var(--border)]'}`}>
-                {highlight && <span className="absolute -top-3 left-6 rounded-full bg-[var(--accent)] px-3 py-1 text-[11px] font-semibold uppercase tracking-wide text-white">Most popular</span>}
+                {highlight && <span className="absolute -top-3 left-6 rounded-full bg-[var(--accent)] px-3 py-1 text-[11px] font-semibold uppercase tracking-wide text-[var(--on-accent)]">Most popular</span>}
                 <h3 className="text-lg font-semibold text-[var(--text)]">{tier.name}</h3>
                 <p className="mt-3"><span className="tabular text-4xl font-semibold text-[var(--text)]">${tier.price}</span><span className="text-sm text-[var(--text-muted)]">/mo</span></p>
                 <ul className="mt-6 flex-1 space-y-2.5">
                   {features.map((f) => <li key={f} className="flex gap-2 text-sm text-[var(--text-muted)]"><Check size={16} className="mt-0.5 shrink-0 text-[var(--success)]" />{f}</li>)}
                 </ul>
                 <button type="button" onClick={() => subscribe(key)} disabled={loading !== null}
-                  className={`mt-8 rounded-[var(--radius-md)] py-3 text-sm font-semibold transition disabled:opacity-60 ${highlight ? 'bg-[var(--accent)] text-white hover:brightness-110' : 'border border-[var(--border)] text-[var(--text)] hover:bg-[var(--surface-high)]'}`}>
+                  className={`mt-8 rounded-[var(--radius-md)] py-3 text-sm font-semibold transition disabled:opacity-60 ${highlight ? 'bg-[var(--accent)] text-[var(--on-accent)] hover:brightness-110' : 'border border-[var(--border)] text-[var(--text)] hover:bg-[var(--surface-high)]'}`}>
                   {loading === key ? 'Opening checkout…' : `Choose ${tier.name}`}
                 </button>
               </div>

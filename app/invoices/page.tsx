@@ -10,14 +10,33 @@ import { DataList, EmptyState, LinkButton, Page, PageHeader, Panel, SearchInput,
 
 type Filter = 'all' | 'paid' | 'pending' | 'overdue';
 
+/** Pending is the outstanding bucket: checkout promotes drafts to `sent`. */
+function inSegment(status: string, filter: Filter) {
+  switch (filter) {
+    case 'all':
+      return true;
+    case 'pending':
+      return status === 'pending' || status === 'sent';
+    case 'paid':
+    case 'overdue':
+      return status === filter;
+    default: {
+      const unhandled: never = filter;
+      return unhandled;
+    }
+  }
+}
+
 export default function InvoicesPage() {
   const [filter, setFilter] = useState<Filter>('all');
   const [q, setQ] = useState('');
-  const { invoices, mode, loading, reload } = useInvoices({ status: filter });
-  const { invoices: all } = useInvoices({ status: 'all' });
+  const { invoices, mode, loading, reload } = useInvoices({ status: 'all' });
 
-  const rows = useMemo(() => invoices.filter((i) => `${i.clientName} ${i.invoiceNumber}`.toLowerCase().includes(q.toLowerCase())), [invoices, q]);
-  const sum = (s: string) => all.filter((i) => i.status === s).reduce((t, i) => t + i.total, 0);
+  const rows = useMemo(
+    () => invoices.filter((i) => inSegment(i.status, filter) && `${i.clientName} ${i.invoiceNumber}`.toLowerCase().includes(q.toLowerCase())),
+    [invoices, filter, q],
+  );
+  const sum = (s: string) => invoices.filter((i) => i.status === s).reduce((t, i) => t + i.total, 0);
   const money = (n: number, c = 'USD') => `${CURRENCY_SYMBOLS[c] || '$'}${n.toLocaleString(undefined, { maximumFractionDigits: 2 })}`;
 
   async function remove(id: string) {
@@ -38,7 +57,7 @@ export default function InvoicesPage() {
       <Panel flush>
         <div className="border-b border-[var(--border)] p-4">
           <Toolbar>
-            <Segmented value={filter} onChange={setFilter} options={(['all', 'paid', 'pending', 'overdue'] as Filter[]).map((v) => ({ value: v, label: v, count: v === 'all' ? all.length : all.filter((i) => i.status === v).length }))} />
+            <Segmented value={filter} onChange={setFilter} options={(['all', 'paid', 'pending', 'overdue'] as Filter[]).map((v) => ({ value: v, label: v, count: invoices.filter((i) => inSegment(i.status, v)).length }))} />
             <SearchInput value={q} onChange={setQ} placeholder="Search client or number" />
           </Toolbar>
         </div>
@@ -63,6 +82,7 @@ export default function InvoicesPage() {
                   <p className="text-xs text-[var(--text-muted)]">{r.invoiceNumber} · {r.issuedDate}</p>
                 </Link>
                 <div className="text-right"><p className="tabular font-semibold text-[var(--text)]">{money(r.total, r.currency)}</p><StatusPill status={r.status} /></div>
+                <button onClick={() => remove(r.id)} aria-label={`Delete ${r.invoiceNumber}`} className="shrink-0 rounded-md p-1.5 text-[var(--text-subtle)] hover:bg-[var(--danger-soft)] hover:text-[var(--danger)]"><Trash2 size={15} /></button>
               </div>
             )} />
         )}

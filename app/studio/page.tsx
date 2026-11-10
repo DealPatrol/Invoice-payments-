@@ -1,7 +1,7 @@
 import { Suspense } from 'react';
 import { InvoiceStudio } from '@/components/studio/InvoiceStudio';
 
-export const metadata = { title: 'Invoice Studio - InvoiceOS' };
+export const metadata = { title: 'Invoice Studio - Invoice Laboratory' };
 
 export default function StudioPage() {
   return (

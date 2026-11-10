@@ -1,0 +1,62 @@
+/* Invoice Laboratory marketing pages: paper / ink / copper editorial theme. Scoped to .il-site. */
+.il-site{--paper:#f3efe6;--paper-2:#ebe5d8;--ink:#1a1814;--ink-2:#4a4540;--copper:#8c4a22;--copper-2:#a85c2e;--rule:#d8cfbe;
+  background:var(--paper);color:var(--ink);font:17px/1.6 var(--font-sans);min-height:100vh}
+.il-site *{box-sizing:border-box}
+.il-site h1,.il-site h2,.il-site h3,.il-site .serif{font-family:var(--font-serif),"Iowan Old Style","Palatino Linotype",Palatino,Georgia,serif;font-weight:600;letter-spacing:-.01em;line-height:1.15}
+.il-site a{color:var(--copper)}
+.il-site .wrap{max-width:1080px;margin:0 auto;padding:0 24px}
+.il-site header.top{border-bottom:1px solid var(--rule);position:sticky;top:0;z-index:20;background:color-mix(in srgb,var(--paper) 92%,transparent);backdrop-filter:blur(8px)}
+.il-site header.top .wrap{display:flex;align-items:center;justify-content:space-between;height:64px;gap:16px}
+.il-site .logo{font-family:var(--font-serif),Georgia,serif;font-size:22px;font-weight:700;color:var(--ink);text-decoration:none;white-space:nowrap}
+.il-site .logo span{color:var(--copper)}
+.il-site nav.links a{color:var(--ink-2);text-decoration:none;margin-left:22px;font-size:15px}
+.il-site nav.links a.signin{color:var(--ink);font-weight:600}
+.il-site .btn{display:inline-block;background:var(--copper);color:#fff8ef;padding:14px 22px;border-radius:6px;text-decoration:none;font-weight:600;border:1px solid var(--copper);text-align:center}
+.il-site .btn:hover{background:var(--copper-2)}
+.il-site .btn.ghost{background:transparent;color:var(--ink);border-color:var(--ink)}
+.il-site .btn.small{padding:8px 14px;font-size:14px}
+.il-site .eyebrow{text-transform:uppercase;letter-spacing:.14em;font-size:12px;color:var(--copper);font-weight:700}
+.il-site .hero{padding:72px 0 56px;display:grid;grid-template-columns:1.1fr .9fr;gap:48px;align-items:center}
+.il-site .hero h1{font-size:56px;margin:12px 0 18px}
+.il-site .hero p.lead{font-size:20px;color:var(--ink-2);max-width:34ch}
+.il-site .cta-row{display:flex;gap:12px;flex-wrap:wrap;margin-top:26px}
+.il-site .fine{font-size:13px;color:var(--ink-2);margin-top:12px}
+.il-site .card{background:#fbf8f2;border:1px solid var(--rule);border-radius:10px;padding:22px;box-shadow:0 1px 0 var(--rule),0 18px 40px -24px rgba(26,24,20,.35)}
+.il-site .est-head{display:flex;justify-content:space-between;border-bottom:2px solid var(--ink);padding-bottom:10px;margin-bottom:8px;gap:12px}
+.il-site .est-head b{font-family:var(--font-serif),Georgia,serif;font-size:19px}
+.il-site .line{display:grid;grid-template-columns:1fr auto;gap:8px;padding:9px 0;border-bottom:1px dashed var(--rule);font-size:15px}
+.il-site .badge{display:inline-block;font-size:11px;font-weight:700;letter-spacing:.04em;padding:2px 7px;border-radius:99px;margin-left:6px;vertical-align:middle}
+.il-site .b-book{background:#efe3d6;color:var(--copper)}
+.il-site .b-def{background:#e7e3dc;color:var(--ink-2)}
+.il-site .b-need{background:var(--ink);color:var(--paper)}
+.il-site .muted{color:var(--ink-2)}
+.il-site section{padding:64px 0;border-top:1px solid var(--rule)}
+.il-site section h2{font-size:38px;margin:8px 0 18px}
+.il-site .grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:28px}
+.il-site .grid2{display:grid;grid-template-columns:repeat(2,1fr);gap:28px}
+.il-site .step .num{font-family:var(--font-serif),Georgia,serif;font-size:44px;color:var(--copper);line-height:1}
+.il-site .step h3{font-size:22px;margin:8px 0}
+.il-site ul.plain{padding-left:18px}
+.il-site .problem li{margin:10px 0}
+.il-site .feature h3{font-size:20px;margin:0 0 6px}
+.il-site .feature{border-left:3px solid var(--copper);padding-left:16px}
+.il-site .price{display:flex;flex-direction:column}
+.il-site .price .amt{font-family:var(--font-serif),Georgia,serif;font-size:44px;margin:6px 0}
+.il-site .price .amt small{font-size:16px;color:var(--ink-2)}
+.il-site .price ul{padding-left:18px;margin:12px 0 20px;flex:1}
+.il-site .price li{margin:4px 0}
+.il-site .price.feat{border:2px solid var(--copper)}
+.il-site details{border-bottom:1px solid var(--rule);padding:16px 0}
+.il-site summary{cursor:pointer;font-weight:600;font-size:18px}
+.il-site details p{margin-top:8px;color:var(--ink-2)}
+.il-site .closing{text-align:center;padding:80px 0}
+.il-site .closing h2{font-size:44px}
+.il-site footer{border-top:1px solid var(--rule);padding:28px 0;font-size:14px;color:var(--ink-2)}
+.il-site .layouts{display:grid;grid-template-columns:repeat(4,1fr);gap:16px}
+.il-site .layouts figure{margin:0}
+.il-site .layouts img{width:100%;height:auto;border:1px solid var(--rule);border-radius:6px;background:#fff;display:block}
+.il-site .layouts figcaption{font-size:13px;color:var(--ink-2);margin-top:6px}
+.il-site .panel{max-width:640px;margin:64px auto;padding:0 24px}
+.il-site ol.steps{padding-left:22px}
+.il-site ol.steps li{margin:10px 0}
+@media (max-width:860px){.il-site .hero{grid-template-columns:1fr;padding-top:40px}.il-site .hero h1{font-size:40px}.il-site .grid3,.il-site .grid2{grid-template-columns:1fr}.il-site nav.links a:not(.signin){display:none}.il-site .layouts{grid-template-columns:repeat(2,1fr)}.il-site section h2{font-size:30px}}

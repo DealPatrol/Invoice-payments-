@@ -55,7 +55,7 @@ export function EstimateReview({ token }: { token: string }) {
     <div className={shell}>
       <article className="mx-auto w-full max-w-lg overflow-hidden rounded-[var(--radius-lg)] border border-[var(--border)] bg-[var(--surface)] shadow-[var(--shadow-lg)]">
         <header className="flex items-center justify-between border-b border-[var(--border)] px-6 py-4">
-          <span className="flex items-center gap-2 text-sm font-semibold text-[var(--text)]"><span className="grid h-7 w-7 place-items-center rounded-lg bg-[var(--accent)] text-[var(--on-accent)]"><Receipt size={14} /></span>InvoiceOS</span>
+          <span className="flex items-center gap-2 text-sm font-semibold text-[var(--text)]"><span className="grid h-7 w-7 place-items-center rounded-lg bg-[var(--accent)] text-[var(--on-accent)]"><Receipt size={14} /></span>Invoice Laboratory</span>
           <span className="text-xs font-medium text-[var(--text-muted)]">{estimate.estimateNumber}</span>
         </header>
         <div className="space-y-5 p-6">

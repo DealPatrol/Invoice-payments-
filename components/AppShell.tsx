@@ -7,7 +7,7 @@ import { Camera, ClipboardList, FileText, LayoutDashboard, Menu, X, Receipt, Bri
 import { Sidebar, isActive } from './Sidebar';
 
 const TABS = [
-  { href: '/', label: 'Home', icon: LayoutDashboard },
+  { href: '/dashboard', label: 'Home', icon: LayoutDashboard },
   { href: '/jobs', label: 'Jobs', icon: Briefcase },
   { href: '/estimates/new', label: 'Photo', icon: Camera, primary: true },
   { href: '/estimates', label: 'Estimates', icon: ClipboardList },
@@ -23,7 +23,8 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   const setOpen = (value: boolean) => setOpenPath(value ? pathname : null);
 
   const isPrintView = pathname === '/studio' && (searchParams.get('print') === '1' || searchParams.get('view') === '1');
-  const isPublicPage = pathname === '/login' || pathname.startsWith('/pay/') || pathname.startsWith('/i/') || pathname.startsWith('/portal/') || pathname.startsWith('/estimate/') || isPrintView;
+  const isMarketingPage = pathname === '/' || pathname === '/pricing' || pathname === '/welcome';
+  const isPublicPage = isMarketingPage || pathname === '/login' || pathname.startsWith('/pay/') || pathname.startsWith('/i/') || pathname.startsWith('/portal/') || pathname.startsWith('/estimate/') || isPrintView;
 
   if (isPublicPage) return children;
 
@@ -31,7 +32,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
     <div className="flex min-h-screen">
       <header className="no-print fixed inset-x-0 top-0 z-30 flex h-14 items-center gap-3 border-b border-[var(--border)] bg-[color-mix(in_srgb,var(--surface)_85%,transparent)] px-4 backdrop-blur-md lg:hidden">
         <button aria-label="Open menu" onClick={() => setOpen(true)} className="-ml-1 rounded-lg p-1.5 text-[var(--text)] hover:bg-[var(--surface-high)]"><Menu size={20} /></button>
-        <span className="flex items-center gap-2 font-bold tracking-tight text-[var(--text)]"><span className="grid h-6 w-6 place-items-center rounded-md bg-[var(--accent)] text-[var(--on-accent)]"><Receipt size={13} /></span>InvoiceOS</span>
+        <span className="flex items-center gap-2 font-bold tracking-tight text-[var(--text)]"><span className="grid h-6 w-6 place-items-center rounded-md bg-[var(--accent)] text-[var(--on-accent)]"><Receipt size={13} /></span>Invoice Laboratory</span>
       </header>
       {open && <div className="no-print fixed inset-0 z-40 bg-black/40 backdrop-blur-sm lg:hidden" onClick={() => setOpen(false)} />}
       <div className={`no-print ${open ? 'block' : 'hidden'} lg:block`}>

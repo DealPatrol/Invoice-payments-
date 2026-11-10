@@ -74,3 +74,34 @@ export function upgradeHref(plan: 'solo' | 'pro', user: { id: string; email?: st
   if (user.email) url.searchParams.set('prefilled_email', user.email);
   return url.toString();
 }
+
+/* ---------- Pro-only features (must match what /pricing lists only under Pro) ---------- */
+
+export type ProFeature = 'options' | 'changeOrders' | 'layouts';
+
+export const PRO_FEATURES: Record<ProFeature, { name: string; blurb: string }> = {
+  options: { name: 'Good / Better / Best options', blurb: 'Let your client pick between three versions of the job on one estimate.' },
+  changeOrders: { name: 'Change orders', blurb: 'Price scope changes after approval and get them signed off.' },
+  layouts: { name: 'All 8 invoice layouts', blurb: 'Free and Solo include Modern, Classic Ledger and Bold Trade Header.' },
+};
+
+/** Invoice layouts on every plan; the rest are Pro. */
+export const BASE_TEMPLATES = ['modern', 'classic', 'bold'] as const;
+
+export function isProTemplate(id: string): boolean {
+  return !(BASE_TEMPLATES as readonly string[]).includes(id);
+}
+
+/** Pro and the 14-day Pro trial get every feature. */
+export function hasProAccess(state: Pick<PlanState, 'plan'>): boolean {
+  return state.plan === 'pro';
+}
+
+export function proFeatureMessage(feature: ProFeature): string {
+  return `${PRO_FEATURES[feature].name} is a Pro feature. Upgrade to Pro ($29/mo) to use it; everything else on this estimate keeps working.`;
+}
+
+/** True when a save would create Good/Better/Best options. */
+export function usesOptions(items?: Array<{ tier?: string | null }>, selectedTier?: string | null): boolean {
+  return Boolean(selectedTier) || Boolean(items?.some((item) => Boolean(item.tier)));
+}

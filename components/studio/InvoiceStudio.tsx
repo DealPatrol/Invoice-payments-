@@ -7,6 +7,8 @@ import {
   Mail, Pencil, Clock, Calculator, Plus, Cloud, CloudOff, Printer, Repeat, Save, ScrollText, Trash2, Upload, Users, X, ArrowRightLeft, ExternalLink,
 } from 'lucide-react';
 import { InvoiceDocument } from './InvoiceDocument';
+import { ProUpsell, usePlan } from '@/components/field/ProGate';
+import { isProTemplate } from '@/lib/lab-plan';
 import { CatalogPanel, ClientsPanel, Dashboard, StatusBadge } from './StudioPanels';
 import { BrandSwitcher, ExpensesTimePanel, PortalCard, TaxReportPanel, TrackingCard } from './SuitePanels';
 import { DEFAULT_EXTRAS, billToInvoice, ensureBrands, hasStoredExtras, loadExtras, normalizeExtras, releaseBilledWork, saveExtras, syncActiveBrand, type StudioExtras } from '@/lib/studio-suite';
@@ -97,6 +99,8 @@ export function InvoiceStudio() {
   const [ready, setReady] = useState(false);
   const [tab, setTab] = useState<Tab>('dashboard');
   const [profile, setProfile] = useState<BusinessProfile>(DEFAULT_PROFILE);
+  const { plan: labPlan, pro: proLayouts } = usePlan();
+  const [layoutUpsell, setLayoutUpsell] = useState(false);
   const [invoices, setInvoices] = useState<StudioInvoice[]>([]);
   const [clients, setClients] = useState<StudioClient[]>([]);
   const [catalog, setCatalog] = useState<CatalogItem[]>([]);
@@ -218,7 +222,7 @@ export function InvoiceStudio() {
   );
 
   if (printOnly) {
-    return <div className="print-reset min-h-screen bg-white"><InvoiceDocument invoice={draft} today={today} /></div>;
+    return <div className="print-reset min-h-screen bg-white"><InvoiceDocument invoice={draft} today={today} allowProLayouts={proLayouts} /></div>;
   }
 
   const docWord = draft.kind === 'estimate' ? 'Estimate' : 'Invoice';
@@ -252,7 +256,7 @@ export function InvoiceStudio() {
               <a href={payUrl} target="_blank" rel="noreferrer" className="inline-flex items-center gap-2 rounded-md px-4 py-2 text-sm font-bold text-white" style={{ background: draft.business.accentColor }}><CreditCard size={16} />Pay now</a>)}
           </div>
         </div>
-        <div className="mx-auto max-w-[860px] overflow-x-auto"><InvoiceDocument invoice={draft} today={today} /></div>
+        <div className="mx-auto max-w-[860px] overflow-x-auto"><InvoiceDocument invoice={draft} today={today} allowProLayouts={proLayouts} /></div>
         {toast && <div role="status" className="no-print animate-in fixed bottom-6 left-1/2 -translate-x-1/2 rounded-full bg-[var(--ink)] px-4 py-2.5 text-sm font-medium text-white shadow-[var(--shadow-lg)]">{toast}</div>}
       </div>
     );
@@ -616,9 +620,10 @@ export function InvoiceStudio() {
                 <div className="sm:col-span-2"><span className={label}>Invoice template</span>
                   <div role="radiogroup" aria-label="Invoice template" className="grid grid-cols-2 gap-3 sm:grid-cols-4">
                     {INVOICE_TEMPLATES.map((t) => {
-                      const on = (profile.template ?? 'modern') === t.id;
+                      const locked = !proLayouts && isProTemplate(t.id);
+                      const on = !locked && (profile.template ?? 'modern') === t.id;
                       return (
-                        <button key={t.id} type="button" role="radio" aria-checked={on} onClick={() => persistProfile({ ...profile, template: t.id })}
+                        <button key={t.id} type="button" role="radio" aria-checked={on} aria-disabled={locked} onClick={() => (locked ? setLayoutUpsell(true) : persistProfile({ ...profile, template: t.id }))}
                           className={`rounded-[var(--radius-md)] border p-3 text-left transition ${on ? 'border-[var(--accent)] ring-2 ring-[var(--accent-soft)]' : 'border-[var(--border)] hover:border-[var(--border-strong)]'}`}>
                           <span aria-hidden className="mb-2 block h-12 overflow-hidden rounded-md border border-[var(--border)] bg-white" style={t.id === 'editorial' ? { background: '#f3efe6' } : undefined}>
                             {t.id === 'modern' && <span className="block h-1.5" style={{ background: profile.accentColor }} />}
@@ -629,12 +634,14 @@ export function InvoiceStudio() {
                             {t.id === 'minimal' && <span className="mx-2 mt-2 block h-2 w-1/4 rounded" style={{ background: profile.accentColor }} />}
                             <span className="mx-2 mt-2 block h-1 w-1/2 rounded bg-slate-200" /><span className="mx-2 mt-1 block h-1 w-1/3 rounded bg-slate-200" />
                           </span>
-                          <span className="block text-sm font-semibold text-[var(--text)]">{t.name}</span>
+                          <span className="block text-sm font-semibold text-[var(--text)]">{t.name}{locked && <span className="ml-1.5 rounded-full bg-[var(--accent-soft)] px-1.5 py-0.5 text-[10px] font-bold uppercase text-[var(--accent)]">Pro</span>}</span>
                           <span className="block text-xs text-[var(--text-muted)]">{t.blurb}</span>
                         </button>
                       );
                     })}
-                  </div></div>
+                  </div>
+                  {(layoutUpsell || (!proLayouts && isProTemplate(profile.template ?? 'modern'))) && <div className="mt-3"><ProUpsell feature="layouts" plan={labPlan} /></div>}
+                  </div>
                 <div className="sm:col-span-2"><label className={label}>Tax presets</label>
                   <div className="space-y-2">
                     {profile.taxPresets.map((t, i) => (
@@ -886,7 +893,7 @@ export function InvoiceStudio() {
           )}
         </div>
 
-        {showPreview && <div className="print-reset overflow-x-auto print:!overflow-visible"><InvoiceDocument invoice={draft} today={today} /></div>}
+        {showPreview && <div className="print-reset overflow-x-auto print:!overflow-visible"><InvoiceDocument invoice={draft} today={today} allowProLayouts={proLayouts} /></div>}
       </div>
 
       {reminder && (

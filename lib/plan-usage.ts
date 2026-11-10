@@ -1,6 +1,6 @@
 import { isDemoMode } from './config';
 import { prisma } from './db';
-import { monthStartUtc, PlanLimitError, photoLimitMessage, planState, type PlanState } from './lab-plan';
+import { hasProAccess, monthStartUtc, PlanLimitError, photoLimitMessage, planState, proFeatureMessage, type PlanState, type ProFeature } from './lab-plan';
 
 export interface PlanUsage extends PlanState {
   photoEstimatesThisMonth: number;
@@ -32,4 +32,11 @@ export async function assertPhotoEstimateAllowed(userId: string): Promise<void> 
   if (isDemoMode()) return;
   const usage = await getPlanUsage(userId);
   if (usage.remaining !== null && usage.remaining <= 0) throw new PlanLimitError(photoLimitMessage(usage));
+}
+
+/** Throws PlanLimitError (402) unless the shop is on Pro or the Pro trial. */
+export async function assertProFeature(userId: string, feature: ProFeature): Promise<void> {
+  if (isDemoMode()) return;
+  const usage = await getPlanUsage(userId);
+  if (!hasProAccess(usage)) throw new PlanLimitError(proFeatureMessage(feature));
 }

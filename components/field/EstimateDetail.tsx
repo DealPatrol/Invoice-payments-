@@ -7,6 +7,7 @@ import { btnGhost, btnPrimary, LinkButton, Page, PageHeader, Panel, SkeletonRows
 import { kindLabel, tierLabel, tierTotals, tiersIn } from '@/lib/estimate-domain';
 import type { EstimateRecord, FieldLine, FieldLineInput, LineKind, LineTier } from '@/lib/field-types';
 import { LINE_KINDS, TIERS } from '@/lib/field-types';
+import { ProUpsell, usePlan } from './ProGate';
 import { fieldClass, labelClass, money } from './ui';
 
 function linesFrom(estimate: EstimateRecord): FieldLineInput[] {
@@ -22,6 +23,7 @@ function linesFrom(estimate: EstimateRecord): FieldLineInput[] {
 
 export function EstimateDetail({ id }: { id: string }) {
   const [estimate, setEstimate] = useState<EstimateRecord | null>(null);
+  const { plan, pro } = usePlan();
   const [lines, setLines] = useState<FieldLineInput[]>([]);
   const [scope, setScope] = useState('');
   const [notes, setNotes] = useState('');
@@ -138,7 +140,7 @@ export function EstimateDetail({ id }: { id: string }) {
                       <input type="number" step="0.01" aria-label={line.unitPrice > 0 ? 'Unit price' : 'Needs your price'} placeholder="Your price" className={`${fieldClass} ${line.unitPrice > 0 ? '' : 'border-[var(--warning)] bg-[var(--warning-soft)]'}`} value={line.unitPrice} onChange={(event) => setLines((current) => current.map((item, itemIndex) => itemIndex === index ? { ...item, unitPrice: Number(event.target.value) } : item))} />
                       <select aria-label="Option" className={fieldClass} value={line.tier ?? ''} onChange={(event) => setLines((current) => current.map((item, itemIndex) => itemIndex === index ? { ...item, tier: event.target.value as LineTier } : item))}>
                         <option value="">All options</option>
-                        {TIERS.map((tier) => <option key={tier} value={tier}>{tierLabel(tier)} only</option>)}
+                        {TIERS.map((tier) => <option key={tier} value={tier} disabled={!pro && line.tier !== tier}>{tierLabel(tier)} only{pro ? '' : ' (Pro)'}</option>)}
                       </select>
                       <button type="button" className="text-xs font-semibold text-[var(--danger)]" onClick={() => setLines((current) => current.filter((_, itemIndex) => itemIndex !== index))}>Remove</button>
                     </>
@@ -155,6 +157,9 @@ export function EstimateDetail({ id }: { id: string }) {
                 </li>
               ))}
             </ul>
+            {editable && !pro && (
+              <div className="mt-3"><ProUpsell feature="options" plan={plan} compact /></div>
+            )}
             {tiersIn(editable ? lines : estimate.items).length > 0 && (
               <div className="grid gap-2 border-t border-[var(--border)] px-5 py-3 sm:grid-cols-3">
                 {Object.entries(tierTotals((editable ? lines : estimate.items).map((l) => ({ total: l.quantity * l.unitPrice, tier: l.tier })), editable ? taxPercent / 100 : estimate.taxRate)).map(([tier, t]) => (
@@ -215,7 +220,8 @@ export function EstimateDetail({ id }: { id: string }) {
                 </li>
               ))}
             </ul>
-            {estimate.status !== 'declined' && (
+            {estimate.status !== 'declined' && !pro && <ProUpsell feature="changeOrders" plan={plan} />}
+            {estimate.status !== 'declined' && pro && (
               <div className="space-y-3 border-t border-[var(--border)] pt-4">
                 <label className="block"><span className={labelClass}>New change</span><input className={fieldClass} value={changeTitle} onChange={(event) => setChangeTitle(event.target.value)} placeholder="Extra gate, wet soil, added room" /></label>
                 <textarea className={`${fieldClass} min-h-16`} value={changeReason} onChange={(event) => setChangeReason(event.target.value)} placeholder="Why the price changed" />

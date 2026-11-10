@@ -12,6 +12,7 @@ import {
   respondToReview,
   updateEstimate,
 } from '@/lib/field-service';
+import { saveShopSettings } from '@/lib/shop-settings';
 
 const userId = 'demo-user';
 
@@ -27,6 +28,7 @@ describe('estimate workflow in demo mode', () => {
       title: 'Side yard',
       siteAddress: '9 Oak Street',
     });
+    await saveShopSettings(userId, { rates: { laborRate: 85 }, priceBook: [] });
     const drafted = await createEstimateFromPhoto(userId, {
       notes: '40 foot privacy fence',
       images: [],
@@ -96,5 +98,21 @@ describe('estimate workflow in demo mode', () => {
       clientId: '2',
     });
     await expect(respondToReview(drafted.estimate.reviewToken, { action: 'approve' })).rejects.toThrow(/Cannot move/);
+  });
+});
+
+describe('photo estimates are priced from the price book only', () => {
+  beforeEach(() => {
+    vi.stubEnv('DEMO_MODE', 'true');
+    resetFieldDemo();
+  });
+
+  it('leaves unmatched lines at 0 and uses the labor rate', async () => {
+    await saveShopSettings(userId, { rates: { laborRate: 90 }, priceBook: [] });
+    const drafted = await createEstimateFromPhoto(userId, { notes: 'Replace kitchen faucet, leaking', images: [], clientId: '1' });
+    for (const line of drafted.estimate.items) {
+      if (line.kind === 'labor') expect(line.unitPrice).toBe(90);
+      else expect(line.unitPrice).toBe(0);
+    }
   });
 });

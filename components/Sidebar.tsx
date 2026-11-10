@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import {
-  LayoutDashboard, FileText, CreditCard, Plus, Users, Globe, BarChart3, Settings, Bell, DollarSign, Palette, Wand2, Receipt, Briefcase, ClipboardList,
+  LayoutDashboard, FileText, CreditCard, Plus, Users, Globe, BarChart3, Settings, Bell, DollarSign, Palette, Wand2, Receipt, Briefcase, ClipboardList, BookOpen,
 } from 'lucide-react';
 import { ThemeToggle } from './ThemeToggle';
 
@@ -12,6 +12,7 @@ export const NAV_GROUPS = [
     { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
     { href: '/jobs', label: 'Jobs', icon: Briefcase },
     { href: '/estimates', label: 'Estimates', icon: ClipboardList },
+    { href: '/price-book', label: 'Price book', icon: BookOpen },
     { href: '/invoices', label: 'Invoices', icon: FileText },
     { href: '/studio', label: 'Invoice Studio', icon: Wand2 },
     { href: '/payments', label: 'Payments', icon: CreditCard },

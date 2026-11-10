@@ -389,7 +389,8 @@ export function parsePhotoEstimatePayload(raw: string): PhotoDraft {
   return { title, scope, assumptions, phases, items };
 }
 
-function promptFor(input: { notes: string; currency: string; clientName?: string; photoCount: number }): string {
+function promptFor(input: { notes: string; currency: string; clientName?: string; photoCount: number; bookNames?: string[] }): string {
+  const book = (input.bookNames ?? []).slice(0, 200);
   return `You are the estimating desk inside Invoice Laboratory. A tradesperson uploaded ${input.photoCount} job-site photo(s) and described what the customer wants. Draft an editable estimate: scope, phases, and separate labor, materials, and other lines.
 
 Customer: ${input.clientName || 'the customer'}
@@ -407,7 +408,8 @@ Return ONLY JSON:
 }
 
 kind is "labor", "materials", or "other".
-unitPrice is a realistic ${input.currency} figure, not zero unless no work is visible.
+Always set unitPrice to 0. Prices come only from the contractor's own price book and rates, never from you.
+${book.length ? `When an item fits, reuse the exact name from the contractor's price book: ${book.join('; ')}` : ''}
 Quantities must follow the notes and the photos. State assumptions instead of inventing hidden work.
 No markdown and no code fences.`;
 }
@@ -435,6 +437,7 @@ async function callAnthropic(input: {
   clientName?: string;
   images: PhotoImage[];
   apiKey: string;
+  bookNames?: string[];
 }): Promise<PhotoDraft> {
   const content: Array<Record<string, unknown>> = input.images.map((image) => ({
     type: 'image',
@@ -447,6 +450,7 @@ async function callAnthropic(input: {
       currency: input.currency,
       clientName: input.clientName,
       photoCount: input.images.length,
+      bookNames: input.bookNames,
     }),
   });
 
@@ -477,6 +481,7 @@ export async function draftPhotoEstimate(input: {
   currency: string;
   clientName?: string;
   images: PhotoImage[];
+  bookNames?: string[];
 }): Promise<{ draft: PhotoDraft; source: 'anthropic' | 'demo' }> {
   const images = normalizePhotoImages(input.images);
   const apiKey = process.env.ANTHROPIC_API_KEY;

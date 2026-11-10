@@ -43,6 +43,8 @@ import type {
 import type { DataMode } from './invoice-service';
 import { createInvoice } from './invoice-service';
 import { buildAfterPreview, draftPhotoEstimate, normalizePhotoImages, type PhotoImage } from './photo-estimate';
+import { priceDraftFromBook } from './price-book';
+import { getShopSettings } from './shop-settings';
 import type { Invoice } from './types';
 
 export { resetFieldDemo };
@@ -762,15 +764,19 @@ export async function createEstimateFromPhoto(
   if (!notes && images.length === 0) throw new Error('Add a photo or describe the job');
   const client = await resolveClient(userId, input);
   const currency = (input.currency || client.currency).toUpperCase();
+  const shop = await getShopSettings(userId);
   const drafted = await draftPhotoEstimate({
     notes,
     currency,
     clientName: client.name,
     images,
+    bookNames: shop.priceBook.map((item) => item.name),
   });
-  const items = pricedLines(drafted.draft.items);
+  // Every price comes from the contractor's own book and rates; unmatched lines stay at 0 ("needs your price").
+  const repriced = priceDraftFromBook(drafted.draft.items, shop).map(({ priceSource: _source, ...line }) => line);
+  const items = pricedLines(repriced);
   const phases = phased(drafted.draft.phases);
-  const totals = summarize(items, input.taxRate ?? 0);
+  const totals = summarize(items, input.taxRate ?? shop.rates.taxRate / 100);
   const photos = photoRecords(images, 'Site photo');
   const source: EstimateSource = drafted.source === 'anthropic' ? 'photo' : 'demo';
   let jobId = input.jobId;

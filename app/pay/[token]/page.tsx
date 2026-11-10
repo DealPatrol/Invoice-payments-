@@ -78,7 +78,7 @@ export default function PayPortalPage(props: { params: Promise<{ token: string }
     <div className={`${shell} flex items-center justify-center p-4 sm:p-6`}>
       <div className="animate-in w-full max-w-md overflow-hidden rounded-[var(--radius-lg)] border border-[var(--border)] bg-[var(--surface)] shadow-[var(--shadow-lg)]">
         <div className="flex items-center justify-between border-b border-[var(--border)] px-6 py-4">
-          <span className="flex items-center gap-2 text-sm font-semibold text-[var(--text)]"><span className="grid h-7 w-7 place-items-center rounded-lg bg-[var(--accent)] text-[var(--on-accent)]"><Receipt size={14} /></span>InvoiceOS Pay</span>
+          <span className="flex items-center gap-2 text-sm font-semibold text-[var(--text)]"><span className="grid h-7 w-7 place-items-center rounded-lg bg-[var(--accent)] text-[var(--on-accent)]"><Receipt size={14} /></span>Invoice Laboratory Pay</span>
           <span className="text-xs font-medium text-[var(--text-muted)]">{invoice.invoiceNumber}</span>
         </div>
         <div className="p-6 sm:p-8">

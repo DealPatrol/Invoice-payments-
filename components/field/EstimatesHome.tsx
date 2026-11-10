@@ -56,7 +56,7 @@ export function EstimatesHome() {
           </Toolbar>
         </div>
         {loading ? <SkeletonRows /> : estimates.length === 0 ? (
-          <EmptyState icon={ClipboardList} title="No estimates" body="Take a photo at the job and InvoiceOS will draft scope, labor, and materials." action={<LinkButton href="/estimates/new">Start from a photo</LinkButton>} />
+          <EmptyState icon={ClipboardList} title="No estimates" body="Take a photo at the job and Invoice Laboratory will draft scope, labor, and materials." action={<LinkButton href="/estimates/new">Start from a photo</LinkButton>} />
         ) : (
           <DataList
             rows={estimates}

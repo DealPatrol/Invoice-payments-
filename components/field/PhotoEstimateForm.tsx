@@ -124,7 +124,7 @@ export function PhotoEstimateForm() {
 
   return (
     <Page narrow>
-      <PageHeader eyebrow="Field work" title="Photo estimate" subtitle="Add the site photos and what the customer asked for. InvoiceOS drafts scope, phases, labor, and materials." />
+      <PageHeader eyebrow="Field work" title="Photo estimate" subtitle="Add the site photos and what the customer asked for. Invoice Laboratory drafts scope, phases, labor, and materials." />
       <form onSubmit={onSubmit} className="space-y-4 rounded-[var(--radius-lg)] border border-[var(--border)] bg-[var(--surface)] p-4 shadow-[var(--shadow-sm)] sm:p-5">
         <label className="flex cursor-pointer flex-col items-center gap-2 rounded-[var(--radius-lg)] border border-dashed border-[var(--border-strong)] bg-[var(--surface-high)] px-4 py-8 text-center">
           <span className="grid h-12 w-12 place-items-center rounded-2xl bg-[var(--accent)] text-[var(--on-accent)]"><Camera size={22} /></span>

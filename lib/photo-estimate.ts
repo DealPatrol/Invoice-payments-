@@ -390,7 +390,7 @@ export function parsePhotoEstimatePayload(raw: string): PhotoDraft {
 }
 
 function promptFor(input: { notes: string; currency: string; clientName?: string; photoCount: number }): string {
-  return `You are the estimating desk inside InvoiceOS. A tradesperson uploaded ${input.photoCount} job-site photo(s) and described what the customer wants. Draft an editable estimate: scope, phases, and separate labor, materials, and other lines.
+  return `You are the estimating desk inside Invoice Laboratory. A tradesperson uploaded ${input.photoCount} job-site photo(s) and described what the customer wants. Draft an editable estimate: scope, phases, and separate labor, materials, and other lines.
 
 Customer: ${input.clientName || 'the customer'}
 Currency: ${input.currency}

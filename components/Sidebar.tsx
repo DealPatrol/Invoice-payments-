@@ -9,7 +9,7 @@ import { ThemeToggle } from './ThemeToggle';
 
 export const NAV_GROUPS = [
   { title: 'Workspace', items: [
-    { href: '/', label: 'Dashboard', icon: LayoutDashboard },
+    { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
     { href: '/jobs', label: 'Jobs', icon: Briefcase },
     { href: '/estimates', label: 'Estimates', icon: ClipboardList },
     { href: '/invoices', label: 'Invoices', icon: FileText },
@@ -43,9 +43,9 @@ export function Sidebar() {
   return (
     <aside className="fixed left-0 top-0 z-40 flex h-screen w-64 flex-col bg-[var(--sidebar)] text-[var(--sidebar-text)]">
       <div className="px-5 pb-4 pt-6">
-        <Link href="/" className="flex items-center gap-2.5">
-          <span className="grid h-8 w-8 place-items-center rounded-lg bg-gradient-to-br from-indigo-400 to-indigo-600 text-white shadow-lg shadow-indigo-900/40"><Receipt size={17} /></span>
-          <span className="text-[17px] font-bold tracking-tight text-white">InvoiceOS</span>
+        <Link href="/dashboard" className="flex items-center gap-2.5">
+          <span className="grid h-8 w-8 place-items-center rounded-lg bg-[#8c4a22] text-[#fff8ef] shadow-lg shadow-black/30"><Receipt size={17} /></span>
+          <span className="font-serif text-[17px] font-bold tracking-tight text-white">Invoice <span className="text-[#d08a5c]">Laboratory</span></span>
         </Link>
       </div>
       <div className="px-4 pb-2">
@@ -63,8 +63,8 @@ export function Sidebar() {
                 return (
                   <Link key={href} href={href} aria-current={active ? 'page' : undefined}
                     className={`group relative flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition ${active ? 'bg-[var(--sidebar-active)] text-white' : 'hover:bg-white/[0.04] hover:text-white'}`}>
-                    {active && <span className="absolute left-0 top-1/2 h-5 w-[3px] -translate-y-1/2 rounded-r bg-indigo-400" />}
-                    <Icon size={17} className={active ? 'text-indigo-300' : 'text-white/45 group-hover:text-white/80'} />
+                    {active && <span className="absolute left-0 top-1/2 h-5 w-[3px] -translate-y-1/2 rounded-r bg-[#d08a5c]" />}
+                    <Icon size={17} className={active ? 'text-[#e0a57c]' : 'text-white/45 group-hover:text-white/80'} />
                     {label}
                     {'badge' in rest && <span className="ml-auto rounded-full bg-white/10 px-1.5 py-0.5 text-[10px] font-semibold text-white/60">{rest.badge as string}</span>}
                   </Link>

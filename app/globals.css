@@ -231,4 +231,50 @@ a { color: inherit; text-decoration: none; }
 @media (max-width: 640px) { .tpl-bold .inv-header { margin: -28px -18px 0; padding: 28px 18px; } }
 @media print { .tpl-bold .inv-header { margin: 0 0 8px; border-radius: 0; padding: 24px; } }
 
+/* Minimal: no bar, hairlines, big total */
+.tpl-minimal .inv-bar { display: none; }
+.tpl-minimal .inv-title { font-weight: 300; letter-spacing: 0.2em; color: #111827; }
+.tpl-minimal .inv-monogram { background: transparent; color: var(--inv-accent); border: 1px solid #e5e7eb; }
+.tpl-minimal .inv-table th { background: transparent; color: #6b7280; border-bottom: 1px solid #111827; border-radius: 0 !important; }
+.tpl-minimal .inv-table tbody tr:nth-child(even) td { background: transparent; }
+.tpl-minimal .inv-balance { background: transparent; color: #111827; border-radius: 0; border-top: 1px solid #111827; padding: 14px 0 !important; }
+.tpl-minimal .inv-balance dt, .tpl-minimal .inv-balance dd { color: #111827 !important; }
+.tpl-minimal .inv-balance dd { font-size: 26px !important; color: var(--inv-accent) !important; }
+
+/* Compact receipt: narrow and centered */
+.tpl-receipt { max-width: 5.2in; font-size: 12px; }
+.tpl-receipt .inv-bar { height: 4px; }
+.tpl-receipt .inv-header, .tpl-receipt .inv-meta, .tpl-receipt .inv-bottom { flex-direction: column; align-items: stretch; gap: 12px; }
+.tpl-receipt .inv-title-block { text-align: left; }
+.tpl-receipt .inv-title { font-size: 22px; }
+.tpl-receipt .inv-table th { background: transparent; color: #111827; border-bottom: 1px dashed #9ca3af; border-radius: 0 !important; }
+.tpl-receipt .inv-table td { border-bottom: 1px dashed #e5e7eb; padding: 7px 6px; }
+.tpl-receipt .inv-table tbody tr:nth-child(even) td { background: transparent; }
+.tpl-receipt .inv-totals { min-width: 0; width: 100%; }
+
+/* Itemized: boxed grid for long materials lists */
+.tpl-itemized .inv-table { border: 1px solid #d1d5db; }
+.tpl-itemized .inv-table th { background: #f3f4f6; color: #111827; border-bottom: 2px solid var(--inv-accent); border-right: 1px solid #d1d5db; border-radius: 0 !important; }
+.tpl-itemized .inv-table td { border-right: 1px solid #e5e7eb; border-bottom: 1px solid #e5e7eb; padding: 8px 10px; }
+.tpl-itemized .inv-table tbody tr:nth-child(even) td { background: #fafafa; }
+.tpl-itemized .inv-balance { border-radius: 0; }
+
+/* Editorial: warm paper, serif type (Invoice Laboratory house style) */
+.tpl-editorial { background: #f3efe6 !important; color: #1a1814; }
+.tpl-editorial .inv-bar { background: var(--inv-accent); height: 3px; }
+.tpl-editorial .inv-bizname, .tpl-editorial .inv-title, .tpl-editorial .inv-billto-name { font-family: var(--font-serif), Georgia, serif; color: #1a1814; }
+.tpl-editorial .inv-title { font-style: italic; font-weight: 500; }
+.tpl-editorial .inv-meta { border-top-color: #d9d1c2; }
+.tpl-editorial .inv-table th { background: transparent; color: var(--inv-accent); border-bottom: 1px solid #1a1814; border-radius: 0 !important; }
+.tpl-editorial .inv-table td { border-bottom-color: #e2dacb; }
+.tpl-editorial .inv-table tbody tr:nth-child(even) td { background: transparent; }
+.tpl-editorial .inv-balance { background: #1a1814; border-radius: 0; }
+
+/* Mono: black and white */
+.tpl-mono .inv-bar { background: #111827; }
+.tpl-mono .inv-monogram { background: #111827; }
+.tpl-mono .inv-table th { background: #111827; }
+.tpl-mono .inv-balance { background: #111827; }
+.tpl-mono .inv-paid { border-color: #111827; color: #111827; }
+
 .font-serif { font-family: var(--font-serif-stack); }

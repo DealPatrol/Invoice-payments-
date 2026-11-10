@@ -84,7 +84,7 @@ export default function HomePage() {
             <div className="feature"><h3>Get paid your way</h3><p>Put your own Stripe, Square or PayPal payment link on every invoice so the Pay button sends money straight to you.</p></div>
             <div className="feature"><h3>Jobs &amp; photos</h3><p>Keep each job&apos;s site, photos, estimates and invoices together in one place.</p></div>
             <div className="feature"><h3>Overdue tracking</h3><p>See what&apos;s unpaid and what&apos;s waiting on approval at a glance, and add late fees if you charge them.</p></div>
-            <div className="feature"><h3>8 pro layouts</h3><p>Classic, modern, bold, photo-forward, compact receipt and more, all in your own accent color.</p></div>
+            <div className="feature"><h3>8 invoice layouts</h3><p>Classic Ledger, Modern Minimal, Bold Trade Header, Compact Receipt, Itemized, Editorial, Mono and Modern, all in your own accent color.</p></div>
           </div>
         </section>
 
@@ -100,7 +100,7 @@ export default function HomePage() {
               </figure>
             ))}
           </div>
-          <p className="fine">Previews use sample data.</p>
+          <p className="fine">Design previews with sample data. Photos, Good/Better/Best options and change orders appear on the page your client approves; invoices print in any of the 8 layouts.</p>
         </section>
 
         <section id="pricing">

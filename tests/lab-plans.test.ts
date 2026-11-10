@@ -16,3 +16,17 @@ describe('Invoice Laboratory plans', () => {
     expect(foundingPilotLink()).toBe(`${PLAN_LINKS.pro}?prefilled_promo_code=ALFOUNDING`);
   });
 });
+
+import { INVOICE_TEMPLATES, templateId } from '@/lib/studio';
+
+describe('invoice layouts', () => {
+  it('offers 8 layouts with unique ids', () => {
+    expect(INVOICE_TEMPLATES).toHaveLength(8);
+    expect(new Set(INVOICE_TEMPLATES.map((t) => t.id)).size).toBe(8);
+  });
+  it('falls back to modern for unknown saved values', () => {
+    expect(templateId('receipt')).toBe('receipt');
+    expect(templateId('nope')).toBe('modern');
+    expect(templateId(undefined)).toBe('modern');
+  });
+});

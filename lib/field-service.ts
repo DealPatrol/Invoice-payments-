@@ -724,7 +724,7 @@ export async function createManualEstimate(userId: string, input: ManualEstimate
   return mapEstimate(row);
 }
 
-function itemCreates(items: FieldLine[]) {
+function itemCreates(items: FieldLine[]): Prisma.EstimateItemCreateWithoutEstimateInput[] {
   return items.map((item, index) => ({
     kind: item.kind,
     description: item.description,
@@ -734,6 +734,20 @@ function itemCreates(items: FieldLine[]) {
     total: item.total,
     shoppingUrl: item.shoppingUrl,
     tier: item.tier || '',
+    sortOrder: index,
+  }));
+}
+
+/** Change-order lines have no Good/Better/Best option column. */
+export function changeOrderItemCreates(items: FieldLine[]): Prisma.ChangeOrderItemCreateWithoutChangeOrderInput[] {
+  return items.map((item, index) => ({
+    kind: item.kind,
+    description: item.description,
+    quantity: item.quantity,
+    unit: item.unit,
+    unitPrice: item.unitPrice,
+    total: item.total,
+    shoppingUrl: item.shoppingUrl,
     sortOrder: index,
   }));
 }
@@ -1046,7 +1060,7 @@ export async function createChangeOrder(
       subtotal: totals.subtotal,
       tax: totals.tax,
       total: totals.total,
-      items: { create: itemCreates(items) },
+      items: { create: changeOrderItemCreates(items) },
     },
   });
   const updated = await loadEstimate(userId, estimateId);

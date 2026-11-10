@@ -46,3 +46,20 @@ describe('price book pricing', () => {
     expect(items[1]).toMatchObject({ kind: 'other', unitPrice: 89 });
   });
 });
+
+describe('labor lines never take a parts price', () => {
+  it('prices labor at the labor rate even when words overlap a part', () => {
+    const out = priceDraftFromBook(
+      [
+        { kind: 'labor', description: 'Swap the water heater and test', quantity: 4, unit: 'hr', unitPrice: 0 },
+        { kind: 'materials', description: '40-gallon water heater', quantity: 1, unit: 'ea', unitPrice: 0 },
+      ],
+      { rates: { laborRate: 85, tripFee: 0, markupPct: 20, minimumJob: 0, taxRate: 0 }, priceBook: [
+        { id: 'a', name: 'Water heater install kit', unit: 'ea', unitPrice: 40, kind: 'materials' },
+        { id: 'b', name: '40 gal water heater', unit: 'ea', unitPrice: 650, kind: 'materials' },
+      ] },
+    );
+    expect(out[0]).toMatchObject({ unitPrice: 85, priceSource: 'rate' });
+    expect(out[1]).toMatchObject({ unitPrice: 780, priceSource: 'book' });
+  });
+});

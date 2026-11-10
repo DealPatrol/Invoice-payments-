@@ -3,15 +3,15 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { usePathname, useSearchParams } from 'next/navigation';
-import { FileText, LayoutDashboard, Menu, Plus, Users, Wand2, X, Receipt } from 'lucide-react';
+import { Camera, ClipboardList, FileText, LayoutDashboard, Menu, X, Receipt, Briefcase } from 'lucide-react';
 import { Sidebar, isActive } from './Sidebar';
 
 const TABS = [
   { href: '/', label: 'Home', icon: LayoutDashboard },
-  { href: '/studio', label: 'Studio', icon: Wand2 },
-  { href: '/invoices/create', label: 'New', icon: Plus, primary: true },
+  { href: '/jobs', label: 'Jobs', icon: Briefcase },
+  { href: '/estimates/new', label: 'Photo', icon: Camera, primary: true },
+  { href: '/estimates', label: 'Estimates', icon: ClipboardList },
   { href: '/invoices', label: 'Invoices', icon: FileText },
-  { href: '/clients', label: 'Clients', icon: Users },
 ];
 
 export function AppShell({ children }: { children: React.ReactNode }) {
@@ -23,7 +23,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   const setOpen = (value: boolean) => setOpenPath(value ? pathname : null);
 
   const isPrintView = pathname === '/studio' && (searchParams.get('print') === '1' || searchParams.get('view') === '1');
-  const isPublicPage = pathname === '/login' || pathname.startsWith('/pay/') || pathname.startsWith('/i/') || pathname.startsWith('/portal/') || isPrintView;
+  const isPublicPage = pathname === '/login' || pathname.startsWith('/pay/') || pathname.startsWith('/i/') || pathname.startsWith('/portal/') || pathname.startsWith('/estimate/') || isPrintView;
 
   if (isPublicPage) return children;
 

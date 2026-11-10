@@ -55,9 +55,11 @@ const STATUS_TONE: Record<string, Tone> = {
   paid: 'success', accepted: 'success', active: 'success', succeeded: 'success', approved: 'success',
   sent: 'accent', pending: 'warning', viewed: 'violet', partial: 'warning', draft: 'neutral',
   overdue: 'danger', declined: 'danger', failed: 'danger', void: 'neutral', converted: 'violet', expired: 'neutral',
+  open: 'accent', scheduled: 'violet', in_progress: 'warning', completed: 'success', cancelled: 'neutral', invoiced: 'violet',
 };
 export function StatusPill({ status }: { status: string }) {
-  return <Pill tone={STATUS_TONE[status?.toLowerCase()] ?? 'neutral'}>{status}</Pill>;
+  const key = status?.toLowerCase() ?? '';
+  return <Pill tone={STATUS_TONE[key] ?? 'neutral'}>{key.replace(/_/g, ' ')}</Pill>;
 }
 
 export function Stat({ label, value, tone = 'accent', sub, icon: I }: { label: string; value: ReactNode; tone?: Tone; sub?: ReactNode; icon?: Icon }) {

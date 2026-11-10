@@ -5,6 +5,7 @@ import { DemoBanner } from '@/components/DemoBanner';
 import { PayScoreBadge } from '@/components/PayScoreBadge';
 import { COLORS, CURRENCY_SYMBOLS } from '@/lib/constants';
 import { useDashboardStats, useInvoices } from '@/lib/hooks';
+import { FieldWorkStrip } from '@/components/field/FieldWorkStrip';
 import { TrendingUp, AlertCircle, CheckCircle, Clock, Zap } from 'lucide-react';
 
 function StatCard({
@@ -65,7 +66,7 @@ export default function Dashboard() {
                 Dashboard
               </h1>
               <p className="text-sm" style={{ color: COLORS.textMuted }}>
-                Global invoicing with Smart Pay Score™ and one-click Stripe checkout
+                Jobs, estimates, and Smart Pay Score™ collections
               </p>
             </div>
             <Link
@@ -78,6 +79,7 @@ export default function Dashboard() {
           </div>
 
           <DemoBanner mode={mode} />
+          <FieldWorkStrip />
 
           {statsLoading ? (
             <div className="mb-8 grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-5" aria-busy="true">{[0, 1, 2, 3, 4].map((i) => <div key={i} className="skeleton h-[108px]" />)}</div>

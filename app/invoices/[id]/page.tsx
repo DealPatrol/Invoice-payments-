@@ -66,6 +66,12 @@ export default function InvoiceDetailPage(props: { params: Promise<{ id: string 
         </Panel>
         <div className="space-y-4">
           <Stat label="Amount" value={fmt(invoice.total)} tone={invoice.status === 'paid' ? 'success' : invoice.status === 'overdue' ? 'danger' : 'accent'} sub={invoice.currency} />
+          {(invoice.jobId || invoice.estimateId) && (
+            <Panel title="Came from">
+              {invoice.jobId && <Link href={`/jobs/${invoice.jobId}`} className="block text-sm font-semibold text-[var(--accent)]">{invoice.jobTitle || 'Job'}</Link>}
+              {invoice.estimateId && <Link href={`/estimates/${invoice.estimateId}`} className="mt-2 block text-sm font-semibold text-[var(--accent)]">{invoice.estimateNumber || 'Estimate'}</Link>}
+            </Panel>
+          )}
           <Panel title="Get paid">
             <p className="mb-3 text-sm text-[var(--text-muted)]">Share the secure pay page with your client.</p>
             <Link href={`/pay/${invoice.payToken}`} className={btnGhost + ' w-full justify-center'}><ExternalLink size={16} />Open pay link</Link>

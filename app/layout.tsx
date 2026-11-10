@@ -8,8 +8,8 @@ import "./globals.css";
 const inter = Inter({ subsets: ["latin"], display: "swap", variable: "--font-inter" });
 
 export const metadata: Metadata = {
-  title: "InvoiceOS - Global Invoice Management",
-  description: "Create invoices, collect payments, automate reminders, and track receivables",
+  title: "InvoiceOS",
+  description: "Jobs, photo estimates, invoices, and one-click payments for contractors",
 };
 
 export const viewport: Viewport = {

@@ -43,12 +43,22 @@ export interface StudioClient extends StudioCustomer {
   createdAt: string;
 }
 
-export type InvoiceTemplate = 'modern' | 'classic' | 'bold';
+export type InvoiceTemplate = 'modern' | 'classic' | 'bold' | 'minimal' | 'receipt' | 'itemized' | 'editorial' | 'mono';
 export const INVOICE_TEMPLATES: { id: InvoiceTemplate; name: string; blurb: string }[] = [
   { id: 'modern', name: 'Modern', blurb: 'Accent bar, colored table header' },
-  { id: 'classic', name: 'Classic', blurb: 'Serif headings, quiet lines' },
-  { id: 'bold', name: 'Bold', blurb: 'Full-color header band' },
+  { id: 'classic', name: 'Classic Ledger', blurb: 'Serif headings, ruled lines' },
+  { id: 'bold', name: 'Bold Trade Header', blurb: 'Full-color header band' },
+  { id: 'minimal', name: 'Modern Minimal', blurb: 'Lots of white space, big total' },
+  { id: 'receipt', name: 'Compact Receipt', blurb: 'Narrow, one-glance receipt' },
+  { id: 'itemized', name: 'Itemized', blurb: 'Boxed grid for long materials lists' },
+  { id: 'editorial', name: 'Editorial', blurb: 'Warm paper tone, serif type' },
+  { id: 'mono', name: 'Mono', blurb: 'Black and white, prints anywhere' },
 ];
+
+/** Returns a known template id (older saved profiles may hold anything). */
+export function templateId(value: unknown): InvoiceTemplate {
+  return INVOICE_TEMPLATES.some((t) => t.id === value) ? (value as InvoiceTemplate) : 'modern';
+}
 
 export interface BusinessProfile {
   name: string;

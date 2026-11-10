@@ -614,16 +614,19 @@ export function InvoiceStudio() {
                 <div><label className={label}>Brand color</label>
                   <input type="color" className={input + ' h-10 p-1'} value={profile.accentColor} onChange={(e) => persistProfile({ ...profile, accentColor: e.target.value })} /></div>
                 <div className="sm:col-span-2"><span className={label}>Invoice template</span>
-                  <div role="radiogroup" aria-label="Invoice template" className="grid grid-cols-3 gap-3">
+                  <div role="radiogroup" aria-label="Invoice template" className="grid grid-cols-2 gap-3 sm:grid-cols-4">
                     {INVOICE_TEMPLATES.map((t) => {
                       const on = (profile.template ?? 'modern') === t.id;
                       return (
                         <button key={t.id} type="button" role="radio" aria-checked={on} onClick={() => persistProfile({ ...profile, template: t.id })}
                           className={`rounded-[var(--radius-md)] border p-3 text-left transition ${on ? 'border-[var(--accent)] ring-2 ring-[var(--accent-soft)]' : 'border-[var(--border)] hover:border-[var(--border-strong)]'}`}>
-                          <span aria-hidden className="mb-2 block h-12 overflow-hidden rounded-md border border-[var(--border)] bg-white">
+                          <span aria-hidden className="mb-2 block h-12 overflow-hidden rounded-md border border-[var(--border)] bg-white" style={t.id === 'editorial' ? { background: '#f3efe6' } : undefined}>
                             {t.id === 'modern' && <span className="block h-1.5" style={{ background: profile.accentColor }} />}
                             {t.id === 'bold' && <span className="block h-5" style={{ background: profile.accentColor }} />}
-                            {t.id === 'classic' && <span className="mx-2 mt-2 block h-px bg-slate-800" />}
+                            {(t.id === 'classic' || t.id === 'mono') && <span className="mx-2 mt-2 block h-px bg-slate-800" />}
+                            {t.id === 'itemized' && <span className="mx-2 mt-2 block h-3 border border-slate-300" />}
+                            {t.id === 'receipt' && <span className="mx-auto mt-2 block h-1 w-1/3 rounded" style={{ background: profile.accentColor }} />}
+                            {t.id === 'minimal' && <span className="mx-2 mt-2 block h-2 w-1/4 rounded" style={{ background: profile.accentColor }} />}
                             <span className="mx-2 mt-2 block h-1 w-1/2 rounded bg-slate-200" /><span className="mx-2 mt-1 block h-1 w-1/3 rounded bg-slate-200" />
                           </span>
                           <span className="block text-sm font-semibold text-[var(--text)]">{t.name}</span>

@@ -8,9 +8,11 @@ import type {
   FieldPhaseInput,
   JobStatus,
   LineKind,
+  LineTier,
   PublicEstimate,
+  Tier,
 } from './field-types';
-import { CHANGE_ORDER_STATUSES, ESTIMATE_STATUSES, JOB_STATUSES, LINE_KINDS } from './field-types';
+import { CHANGE_ORDER_STATUSES, ESTIMATE_STATUSES, JOB_STATUSES, LINE_KINDS, TIERS } from './field-types';
 
 export function roundMoney(value: number): number {
   return Math.round((value + Number.EPSILON) * 100) / 100;
@@ -75,14 +77,53 @@ export function normalizeLine(input: FieldLineInput, id: string): FieldLine {
     unitPrice: roundMoney(unitPrice),
     total: roundMoney(quantity * unitPrice),
     shoppingUrl,
+    tier: asTier(input.tier),
   };
 }
 
-export function summarize(lines: Array<Pick<FieldLine, 'total'>>, taxRate: number) {
-  const subtotal = roundMoney(lines.reduce((sum, line) => sum + line.total, 0));
+export function asTier(value: unknown): LineTier {
+  return typeof value === 'string' && (TIERS as readonly string[]).includes(value) ? (value as Tier) : '';
+}
+
+type TieredLine = Pick<FieldLine, 'total'> & { tier?: LineTier };
+
+/** Tiers used by the lines, in Good → Better → Best order. */
+export function tiersIn(lines: Array<{ tier?: LineTier }>): Tier[] {
+  return TIERS.filter((tier) => lines.some((line) => line.tier === tier));
+}
+
+/** The option that totals and invoices follow: the chosen one, else Better, else the first offered. */
+export function effectiveTier(lines: Array<{ tier?: LineTier }>, selected: LineTier = ''): LineTier {
+  const offered = tiersIn(lines);
+  if (!offered.length) return '';
+  if (selected && offered.includes(selected as Tier)) return selected;
+  return offered.includes('better') ? 'better' : offered[0];
+}
+
+/** Lines that apply to an option: shared lines plus that option's lines. */
+export function linesForTier<T extends { tier?: LineTier }>(lines: T[], selected: LineTier = ''): T[] {
+  const tier = effectiveTier(lines, selected);
+  return tier ? lines.filter((line) => !line.tier || line.tier === tier) : lines;
+}
+
+export function summarize(lines: TieredLine[], taxRate: number, selectedTier: LineTier = '') {
+  const subtotal = roundMoney(linesForTier(lines, selectedTier).reduce((sum, line) => sum + line.total, 0));
   const rate = Number.isFinite(taxRate) && taxRate > 0 ? taxRate : 0;
   const tax = roundMoney(subtotal * rate);
   return { subtotal, tax, total: roundMoney(subtotal + tax), taxRate: rate };
+}
+
+export function tierTotals(lines: TieredLine[], taxRate: number): Partial<Record<Tier, { subtotal: number; tax: number; total: number }>> {
+  const out: Partial<Record<Tier, { subtotal: number; tax: number; total: number }>> = {};
+  for (const tier of tiersIn(lines)) {
+    const { subtotal, tax, total } = summarize(lines, taxRate, tier);
+    out[tier] = { subtotal, tax, total };
+  }
+  return out;
+}
+
+export function tierLabel(tier: LineTier): string {
+  return tier === 'good' ? 'Good' : tier === 'better' ? 'Better' : tier === 'best' ? 'Best' : 'All options';
 }
 
 export function allowedEstimateTransitions(from: EstimateStatus): EstimateStatus[] {
@@ -148,7 +189,8 @@ export function transitionChangeOrder(from: ChangeOrderStatus, to: ChangeOrderSt
   return to;
 }
 
-export function toInvoiceItems(lines: FieldLine[]): LineItem[] {
+export function toInvoiceItems(allLines: FieldLine[], selectedTier: LineTier = ''): LineItem[] {
+  const lines = linesForTier(allLines, selectedTier);
   if (lines.length === 0) throw new Error('Add at least one line before creating an invoice');
   return lines.map((line) => ({
     description: `${kindLabel(line.kind)} — ${line.description}`,
@@ -199,6 +241,8 @@ export function toPublicEstimate(estimate: EstimateRecord, siteAddress: string):
     estimateNumber: estimate.estimateNumber,
     status: estimate.status,
     currency: estimate.currency,
+    selectedTier: effectiveTier(estimate.items, estimate.selectedTier),
+    tierTotals: tierTotals(estimate.items, estimate.taxRate),
     taxRate: estimate.taxRate,
     subtotal: estimate.subtotal,
     tax: estimate.tax,

@@ -8,6 +8,7 @@ const lineSchema = z.object({
   unit: z.string().min(1).default('ea'),
   unitPrice: z.number(),
   shoppingUrl: z.string().nullable().optional(),
+  tier: z.enum(['', 'good', 'better', 'best']).optional(),
 });
 
 const phaseSchema = z.object({
@@ -76,6 +77,7 @@ export const updateEstimateSchema = z.object({
   notes: z.string().optional(),
   taxRate: z.number().min(0).max(1).optional(),
   validUntil: z.string().nullable().optional(),
+  selectedTier: z.enum(['', 'good', 'better', 'best']).optional(),
   status: z.enum(ESTIMATE_STATUSES).optional(),
   declineReason: z.string().max(500).optional(),
   items: z.array(lineSchema).min(1).optional(),
@@ -103,4 +105,5 @@ export const reviewSchema = z.object({
   action: z.enum(['approve', 'decline']),
   reason: z.string().max(500).optional(),
   changeOrderId: z.string().min(1).optional(),
+  tier: z.enum(['', 'good', 'better', 'best']).optional(),
 });

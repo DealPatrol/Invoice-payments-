@@ -10,6 +10,11 @@ export type ChangeOrderStatus = (typeof CHANGE_ORDER_STATUSES)[number];
 export const LINE_KINDS = ['labor', 'materials', 'other'] as const;
 export type LineKind = (typeof LINE_KINDS)[number];
 
+/** Good / Better / Best option a line belongs to ('' = included in every option). */
+export const TIERS = ['good', 'better', 'best'] as const;
+export type Tier = (typeof TIERS)[number];
+export type LineTier = '' | Tier;
+
 export type ChangeResolution = '' | 'amended' | 'invoiced';
 export type EstimateSource = 'manual' | 'photo' | 'demo';
 export type PreviewSource = 'replicate' | 'schematic';
@@ -21,12 +26,14 @@ export interface FieldLineInput {
   unit: string;
   unitPrice: number;
   shoppingUrl?: string | null;
+  tier?: LineTier;
 }
 
 export interface FieldLine extends FieldLineInput {
   id: string;
   total: number;
   shoppingUrl: string | null;
+  tier: LineTier;
 }
 
 export interface FieldPhaseInput {
@@ -67,6 +74,8 @@ export interface EstimateRecord {
   estimateNumber: string;
   status: EstimateStatus;
   currency: string;
+  /** Chosen Good/Better/Best option ('' when the estimate has no options). */
+  selectedTier: LineTier;
   taxRate: number;
   subtotal: number;
   tax: number;
@@ -158,6 +167,8 @@ export interface PublicEstimate {
   estimateNumber: string;
   status: EstimateStatus;
   currency: string;
+  selectedTier: LineTier;
+  tierTotals: Partial<Record<Tier, { subtotal: number; tax: number; total: number }>>;
   taxRate: number;
   subtotal: number;
   tax: number;

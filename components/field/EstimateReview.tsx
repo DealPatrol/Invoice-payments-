@@ -2,8 +2,9 @@
 
 import { useEffect, useState } from 'react';
 import { CheckCircle2, Receipt, XCircle } from 'lucide-react';
-import { kindLabel } from '@/lib/estimate-domain';
-import type { PublicEstimate } from '@/lib/field-types';
+import { kindLabel, tierLabel } from '@/lib/estimate-domain';
+import type { LineTier, PublicEstimate, Tier } from '@/lib/field-types';
+import { TIERS } from '@/lib/field-types';
 import { money } from './ui';
 
 export function EstimateReview({ token }: { token: string }) {
@@ -11,6 +12,7 @@ export function EstimateReview({ token }: { token: string }) {
   const [error, setError] = useState('');
   const [busy, setBusy] = useState(false);
   const [reason, setReason] = useState('');
+  const [picked, setPicked] = useState<LineTier | null>(null);
 
   useEffect(() => {
     fetch(`/api/estimate-review/${token}`)
@@ -29,7 +31,7 @@ export function EstimateReview({ token }: { token: string }) {
       const response = await fetch(`/api/estimate-review/${token}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action, reason, changeOrderId }),
+        body: JSON.stringify({ action, reason, changeOrderId, ...(changeOrderId ? {} : { tier: chosenTier }) }),
       });
       const data = await response.json();
       if (!response.ok) throw new Error(data.error || 'Could not save your response');
@@ -50,6 +52,11 @@ export function EstimateReview({ token }: { token: string }) {
     return <div className={`${shell} flex items-center justify-center`}><p className="text-sm text-[var(--danger)]">{error}</p></div>;
   }
   const fmt = (value: number) => money(estimate.currency, value);
+  const offered = TIERS.filter((tier) => estimate.tierTotals?.[tier]);
+  const canPick = estimate.status === 'sent' && offered.length > 0;
+  const chosenTier: LineTier = (canPick && picked) ? picked : (estimate.selectedTier || '');
+  const visibleItems = offered.length ? estimate.items.filter((item) => !item.tier || item.tier === chosenTier) : estimate.items;
+  const shown = chosenTier && estimate.tierTotals?.[chosenTier as Tier] ? estimate.tierTotals[chosenTier as Tier]! : { subtotal: estimate.subtotal, tax: estimate.tax, total: estimate.total };
 
   return (
     <div className={shell}>
@@ -82,11 +89,26 @@ export function EstimateReview({ token }: { token: string }) {
               <li key={phase.id} className="text-sm"><span className="font-semibold text-[var(--text)]">{index + 1}. {phase.name}.</span> <span className="text-[var(--text-muted)]">{phase.description}</span></li>
             ))}
           </ol>
+          {offered.length > 0 && (
+            <div className="space-y-2" role="radiogroup" aria-label="Choose an option">
+              <p className="text-xs font-semibold uppercase tracking-[0.12em] text-[var(--text-subtle)]">{canPick ? 'Choose your option' : 'Your option'}</p>
+              <div className={`grid gap-2 ${offered.length === 3 ? 'grid-cols-3' : offered.length === 2 ? 'grid-cols-2' : 'grid-cols-1'}`}>
+                {offered.map((tier) => (
+                  <button key={tier} type="button" role="radio" aria-checked={chosenTier === tier} disabled={!canPick}
+                    onClick={() => setPicked(tier)}
+                    className={`rounded-[10px] border px-3 py-3 text-left ${chosenTier === tier ? 'border-[var(--accent)] bg-[var(--accent-soft)]' : 'border-[var(--border)]'}`}>
+                    <span className="block text-xs font-bold uppercase tracking-[0.1em] text-[var(--accent)]">{tierLabel(tier)}</span>
+                    <span className="tabular block text-base font-semibold text-[var(--text)]">{fmt(estimate.tierTotals[tier]!.total)}</span>
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
           <ul className="divide-y divide-[var(--border)] rounded-[10px] border border-[var(--border)]">
-            {estimate.items.map((item) => (
+            {visibleItems.map((item) => (
               <li key={item.id} className="flex items-start justify-between gap-3 px-3 py-2.5 text-sm">
                 <span>
-                  <span className="block font-medium text-[var(--text)]">{item.description}</span>
+                  <span className="block font-medium text-[var(--text)]">{item.description}{item.tier ? <span className="ml-2 text-[11px] font-bold uppercase text-[var(--accent)]">{tierLabel(item.tier)}</span> : null}</span>
                   <span className="text-xs text-[var(--text-muted)]">{kindLabel(item.kind)} · {item.quantity} {item.unit}</span>
                 </span>
                 <span className="tabular font-semibold">{fmt(item.total)}</span>
@@ -95,11 +117,11 @@ export function EstimateReview({ token }: { token: string }) {
           </ul>
           <div className="flex items-end justify-between">
             <div className="text-xs text-[var(--text-subtle)]">
-              <p>Subtotal {fmt(estimate.subtotal)}</p>
-              {estimate.tax > 0 && <p>Tax {fmt(estimate.tax)}</p>}
+              <p>Subtotal {fmt(shown.subtotal)}</p>
+              {shown.tax > 0 && <p>Tax {fmt(shown.tax)}</p>}
               {estimate.validUntil && <p className="mt-1">Valid through {new Date(estimate.validUntil).toLocaleDateString()}</p>}
             </div>
-            <p className="tabular text-3xl font-bold tracking-tight text-[var(--text)]">{fmt(estimate.total)}</p>
+            <p className="tabular text-3xl font-bold tracking-tight text-[var(--text)]">{fmt(shown.total)}</p>
           </div>
           {estimate.assumptions.length > 0 && (
             <ul className="list-disc space-y-1 pl-5 text-xs text-[var(--text-muted)]">
@@ -117,7 +139,7 @@ export function EstimateReview({ token }: { token: string }) {
               <textarea className="w-full rounded-[10px] border border-[var(--border)] bg-[var(--surface)] px-3 py-2 text-sm" placeholder="Optional note for your contractor" value={reason} onChange={(event) => setReason(event.target.value)} />
               <div className="grid grid-cols-2 gap-2">
                 <button type="button" disabled={busy} onClick={() => respond('decline')} className="rounded-[10px] border border-[var(--border)] py-3 text-sm font-semibold text-[var(--text)]">Decline</button>
-                <button type="button" disabled={busy} onClick={() => respond('approve')} className="rounded-[10px] bg-[var(--accent)] py-3 text-sm font-semibold text-[var(--on-accent)]">Approve</button>
+                <button type="button" disabled={busy} onClick={() => respond('approve')} className="rounded-[10px] bg-[var(--accent)] py-3 text-sm font-semibold text-[var(--on-accent)]">{chosenTier ? `Approve ${tierLabel(chosenTier)}` : 'Approve'}</button>
               </div>
             </div>
           )}

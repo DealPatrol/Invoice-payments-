@@ -146,12 +146,16 @@ export function priceDraftFromBook(lines: FieldLineInput[], settings: ShopSettin
   const { rates, priceBook } = settings;
   const markup = 1 + rates.markupPct / 100;
   const out: PricedDraftLine[] = lines.map((line) => {
-    const match = matchBookItem(line.description, priceBook);
+    // Labor lines only match labor book items, and parts only match parts/other,
+    // so "swap the water heater" never picks up the water heater's price.
+    const labor = isLaborLine(line);
+    const candidates = priceBook.filter((item) => (item.kind === 'labor') === labor);
+    const match = matchBookItem(line.description, candidates);
     if (match) {
       const base = match.kind === 'materials' ? match.unitPrice * markup : match.unitPrice;
       return { ...line, unit: line.unit || match.unit, unitPrice: roundMoney(base), priceSource: 'book' };
     }
-    if (isLaborLine(line) && rates.laborRate > 0) {
+    if (labor && rates.laborRate > 0) {
       return { ...line, unitPrice: rates.laborRate, priceSource: 'rate' };
     }
     return { ...line, unitPrice: 0, priceSource: 'needs_price' };

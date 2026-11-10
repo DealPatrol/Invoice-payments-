@@ -3,15 +3,17 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import {
-  LayoutDashboard, FileText, CreditCard, Plus, Users, Globe, BarChart3, Settings, Bell, DollarSign, Palette, Wand2, Receipt,
+  LayoutDashboard, FileText, CreditCard, Plus, Users, Globe, BarChart3, Settings, Bell, DollarSign, Palette, Wand2, Receipt, Briefcase, ClipboardList,
 } from 'lucide-react';
 import { ThemeToggle } from './ThemeToggle';
 
 export const NAV_GROUPS = [
   { title: 'Workspace', items: [
     { href: '/', label: 'Dashboard', icon: LayoutDashboard },
-    { href: '/studio', label: 'Invoice Studio', icon: Wand2 },
+    { href: '/jobs', label: 'Jobs', icon: Briefcase },
+    { href: '/estimates', label: 'Estimates', icon: ClipboardList },
     { href: '/invoices', label: 'Invoices', icon: FileText },
+    { href: '/studio', label: 'Invoice Studio', icon: Wand2 },
     { href: '/payments', label: 'Payments', icon: CreditCard },
     { href: '/clients', label: 'Clients', icon: Users },
   ] },
@@ -28,7 +30,12 @@ export const NAV_GROUPS = [
 ];
 
 export function isActive(pathname: string, href: string) {
-  return pathname === href || (href !== '/' && pathname.startsWith(href) && !(href === '/invoices' && pathname === '/invoices/create'));
+  if (pathname === href) return true;
+  if (href === '/') return false;
+  if (href === '/invoices' && pathname.startsWith('/invoices/create')) return false;
+  if (href === '/estimates' && pathname.startsWith('/estimates/new')) return false;
+  if (href === '/jobs' && pathname.startsWith('/jobs/new')) return false;
+  return pathname.startsWith(`${href}/`);
 }
 
 export function Sidebar() {

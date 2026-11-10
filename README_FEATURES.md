@@ -1,5 +1,18 @@
 # InvoiceOS - Professional Invoice Management Platform
 
+## Jobs, estimates, and change orders
+
+Implemented in the main app (not Invoice Studio):
+
+- Jobs tied to a client, with site address, schedule, and status
+- Estimates with labor, materials, and other lines, phases, and a customer approval link (`/estimate/[token]`)
+- Photo-to-estimate drafts. Live when `ANTHROPIC_API_KEY` is set and `DEMO_MODE` is off; otherwise a structured demo draft
+- Optional preview image when `REPLICATE_API_TOKEN` is set; a schematic otherwise
+- Convert an approved estimate into an InvoiceOS invoice
+- Change orders that amend an approved estimate or create a follow-on invoice
+
+## Product overview
+
 A modern, feature-rich invoice management application built with Next.js 14, designed to compete with enterprise solutions like QuickBooks, FreshBooks, and Zoho.
 
 ## Key Features

@@ -165,6 +165,7 @@ export const demoStore = {
       recurring: input.recurring,
       lateFeePercent: input.lateFeePercent ?? 0,
       payScore: computePayScore(input.dueDate, 'draft'),
+      jobId: input.jobId,
     };
     store().set(id, invoice);
     return invoice;
@@ -185,6 +186,14 @@ export const demoStore = {
 
   delete(id: string) {
     return store().delete(id);
+  },
+
+  attachOrigin(id: string, origin: { jobId?: string; jobTitle?: string; estimateId?: string; estimateNumber?: string }) {
+    const invoice = store().get(id);
+    if (!invoice) return null;
+    const updated = { ...invoice, ...origin };
+    store().set(id, updated);
+    return updated;
   },
 
   stats(): DashboardStats {

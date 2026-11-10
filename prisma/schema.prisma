@@ -29,6 +29,10 @@ model User {
   invoices             Invoice[]
   clients              Client[]
   payments             Payment[]
+  jobs                 Job[]
+  estimates            Estimate[]
+  changeOrders         ChangeOrder[]
+  sitePhotos           SitePhoto[]
 }
 
 model Client {
@@ -46,7 +50,9 @@ model Client {
   totalPaid   Float     @default(0)
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
-  invoices    Invoice[]
+  invoices     Invoice[]
+  jobs         Job[]
+  estimates    Estimate[]
 
   @@unique([userId, email])
   @@index([userId])
@@ -78,12 +84,17 @@ model Invoice {
   lastReminderAt    DateTime?
   createdAt         DateTime      @default(now())
   updatedAt         DateTime      @updatedAt
+  jobId             String?
+  job               Job?           @relation(fields: [jobId], references: [id], onDelete: SetNull)
   items             InvoiceItem[]
   payments          Payment[]
   reminderLogs      ReminderLog[]
+  convertedFrom     Estimate?      @relation("EstimateConversion")
+  changeOrder       ChangeOrder?   @relation("ChangeOrderInvoice")
 
   @@index([userId])
   @@index([clientId])
+  @@index([jobId])
   @@index([status])
   @@index([dueDate])
   @@unique([userId, invoiceNumber])
@@ -173,4 +184,166 @@ model StudioPortal {
   createdAt DateTime @default(now())
 
   @@unique([userId, email])
+}
+
+/// A contractor job: the site, the client, and the estimates and invoices that hang off it.
+model Job {
+  id          String       @id @default(cuid())
+  userId      String
+  user        User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  clientId    String
+  client      Client       @relation(fields: [clientId], references: [id], onDelete: Restrict)
+  title       String
+  summary     String       @default("")
+  siteAddress String       @default("")
+  status      String       @default("open")
+  scheduledAt DateTime?
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+  estimates   Estimate[]
+  invoices    Invoice[]
+  photos      SitePhoto[]
+  changeOrders ChangeOrder[]
+
+  @@index([userId])
+  @@index([clientId])
+  @@index([status])
+}
+
+/// Customer-facing estimate. Approved estimates convert into a real Invoice.
+model Estimate {
+  id                 String          @id @default(cuid())
+  userId             String
+  user               User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  clientId           String
+  client             Client          @relation(fields: [clientId], references: [id], onDelete: Restrict)
+  jobId              String?
+  job                Job?            @relation(fields: [jobId], references: [id], onDelete: SetNull)
+  estimateNumber     String
+  reviewToken        String          @unique @default(cuid())
+  status             String          @default("draft")
+  currency           String          @default("USD")
+  taxRate            Float           @default(0)
+  subtotal           Float
+  tax                Float           @default(0)
+  total              Float
+  scope              String          @default("")
+  notes              String          @default("")
+  assumptions        Json            @default("[]")
+  source             String          @default("manual")
+  validUntil         DateTime?
+  sentAt             DateTime?
+  approvedAt         DateTime?
+  declinedAt         DateTime?
+  declineReason      String?
+  previewDataUrl     String?         @db.Text
+  previewSource      String?
+  convertedInvoiceId String?         @unique
+  convertedInvoice   Invoice?        @relation("EstimateConversion", fields: [convertedInvoiceId], references: [id], onDelete: SetNull)
+  createdAt          DateTime        @default(now())
+  updatedAt          DateTime        @updatedAt
+  items              EstimateItem[]
+  phases             EstimatePhase[]
+  photos             SitePhoto[]
+  changeOrders       ChangeOrder[]
+
+  @@unique([userId, estimateNumber])
+  @@index([userId])
+  @@index([clientId])
+  @@index([jobId])
+  @@index([status])
+}
+
+model EstimateItem {
+  id          String   @id @default(cuid())
+  estimateId  String
+  estimate    Estimate @relation(fields: [estimateId], references: [id], onDelete: Cascade)
+  kind        String
+  description String
+  quantity    Float
+  unit        String   @default("ea")
+  unitPrice   Float
+  total       Float
+  shoppingUrl String?
+  sortOrder   Int      @default(0)
+
+  @@index([estimateId])
+}
+
+model EstimatePhase {
+  id           String   @id @default(cuid())
+  estimateId   String
+  estimate     Estimate @relation(fields: [estimateId], references: [id], onDelete: Cascade)
+  name         String
+  description  String   @default("")
+  sortOrder    Int      @default(0)
+  durationDays Int?
+
+  @@index([estimateId])
+}
+
+/// Site photos and optional preview images. Bytes live here so a phone upload works without object storage.
+model SitePhoto {
+  id         String    @id @default(cuid())
+  userId     String
+  user       User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  jobId      String?
+  job        Job?      @relation(fields: [jobId], references: [id], onDelete: SetNull)
+  estimateId String?
+  estimate   Estimate? @relation(fields: [estimateId], references: [id], onDelete: Cascade)
+  mimeType   String
+  dataUrl    String    @db.Text
+  caption    String    @default("")
+  role       String    @default("site")
+  createdAt  DateTime  @default(now())
+
+  @@index([userId])
+  @@index([jobId])
+  @@index([estimateId])
+}
+
+/// Amends an approved estimate or becomes its own follow-on invoice.
+model ChangeOrder {
+  id           String            @id @default(cuid())
+  userId       String
+  user         User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  estimateId   String
+  estimate     Estimate          @relation(fields: [estimateId], references: [id], onDelete: Cascade)
+  jobId        String?
+  job          Job?              @relation(fields: [jobId], references: [id], onDelete: SetNull)
+  number       String
+  status       String            @default("draft")
+  resolution   String            @default("")
+  title        String
+  reason       String            @default("")
+  currency     String            @default("USD")
+  subtotal     Float
+  tax          Float             @default(0)
+  total        Float
+  invoiceId    String?           @unique
+  invoice      Invoice?          @relation("ChangeOrderInvoice", fields: [invoiceId], references: [id], onDelete: SetNull)
+  createdAt    DateTime          @default(now())
+  updatedAt    DateTime          @updatedAt
+  items        ChangeOrderItem[]
+
+  @@unique([estimateId, number])
+  @@index([userId])
+  @@index([estimateId])
+  @@index([status])
+}
+
+model ChangeOrderItem {
+  id            String      @id @default(cuid())
+  changeOrderId String
+  changeOrder   ChangeOrder @relation(fields: [changeOrderId], references: [id], onDelete: Cascade)
+  kind          String
+  description   String
+  quantity      Float
+  unit          String      @default("ea")
+  unitPrice     Float
+  total         Float
+  shoppingUrl   String?
+  sortOrder     Int         @default(0)
+
+  @@index([changeOrderId])
 }

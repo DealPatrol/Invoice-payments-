@@ -29,6 +29,10 @@ export interface Invoice {
   recurring?: boolean;
   lateFeePercent?: number;
   payScore?: number;
+  jobId?: string;
+  jobTitle?: string;
+  estimateId?: string;
+  estimateNumber?: string;
 }
 
 export interface DashboardStats {
@@ -65,4 +69,8 @@ export interface CreateInvoiceInput {
   items: LineItem[];
   recurring?: boolean;
   lateFeePercent?: number;
+  clientId?: string;
+  jobId?: string;
+  linkEstimateId?: string;
+  linkChangeOrderId?: string;
 }

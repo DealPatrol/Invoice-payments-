@@ -2,6 +2,7 @@ import { nanoid } from 'nanoid';
 import { PRICING, isDemoMode, isPlan, type Plan } from './config';
 import { prisma } from './db';
 import { demoStore } from './demo-store';
+import { assertCanConvert, isChangeOrderStatus, isEstimateStatus, transitionChangeOrder } from './estimate-domain';
 import type { CreateInvoiceInput, DashboardStats, Invoice, InvoiceStatus } from './types';
 
 type PrismaInvoice = {
@@ -22,6 +23,9 @@ type PrismaInvoice = {
   lateFeePercent: number;
   payScore: number;
   stripeSessionId: string | null;
+  jobId?: string | null;
+  job?: { id: string; title: string } | null;
+  convertedFrom?: { id: string; estimateNumber: string } | null;
   client: { name: string; email: string; country: string };
   items: Array<{ description: string; quantity: number; unitPrice: number }>;
 };
@@ -56,10 +60,19 @@ function toInvoice(row: PrismaInvoice): Invoice {
     recurring: row.recurring,
     lateFeePercent: row.lateFeePercent,
     payScore: row.payScore,
+    jobId: row.jobId ?? undefined,
+    jobTitle: row.job?.title,
+    estimateId: row.convertedFrom?.id,
+    estimateNumber: row.convertedFrom?.estimateNumber,
   };
 }
 
-const invoiceInclude = { client: true, items: true } as const;
+const invoiceInclude = {
+  client: true,
+  items: true,
+  job: { select: { id: true, title: true } },
+  convertedFrom: { select: { id: true, estimateNumber: true } },
+} as const;
 
 export async function listInvoices(
   userId: string,
@@ -151,9 +164,11 @@ export async function createInvoice(
     ) {
       throw new Error('Recurring invoices and late-fee automation require Growth or Scale');
     }
-    const existingClient = await tx.client.findUnique({
-      where: { userId_email: { userId, email } },
-    });
+    const existingClient = input.clientId
+      ? await tx.client.findFirst({ where: { id: input.clientId, userId } })
+      : await tx.client.findUnique({
+          where: { userId_email: { userId, email } },
+        });
     if (!existingClient) {
       const clientLimit = PRICING[plan].clients;
       if (clientLimit !== null) {
@@ -164,26 +179,35 @@ export async function createInvoice(
       }
     }
 
-    const client = await tx.client.upsert({
-      where: { userId_email: { userId, email } },
-      update: {
-        name: input.clientName,
-        country: input.country,
-        currency: input.currency,
-      },
-      create: {
-        userId,
-        name: input.clientName,
-        email,
-        country: input.country,
-        currency: input.currency,
-      },
-    });
+    const client = input.clientId
+      ? await tx.client.findFirst({ where: { id: input.clientId, userId } })
+      : await tx.client.upsert({
+          where: { userId_email: { userId, email } },
+          update: {
+            name: input.clientName,
+            country: input.country,
+            currency: input.currency,
+          },
+          create: {
+            userId,
+            name: input.clientName,
+            email,
+            country: input.country,
+            currency: input.currency,
+          },
+        });
+    if (!client) throw new Error('Client not found');
+    if (input.jobId) {
+      const job = await tx.job.findFirst({ where: { id: input.jobId, userId } });
+      if (!job) throw new Error('Job not found');
+      if (job.clientId !== client.id) throw new Error('Job belongs to a different client');
+    }
     const count = await tx.invoice.count({ where: { userId } });
-    return tx.invoice.create({
+    const invoice = await tx.invoice.create({
       data: {
         userId,
         clientId: client.id,
+        jobId: input.jobId,
         invoiceNumber: `INV-${new Date().getUTCFullYear()}-${String(count + 1).padStart(4, '0')}`,
         payToken: nanoid(20),
         currency: input.currency,
@@ -208,6 +232,33 @@ export async function createInvoice(
       },
       include: invoiceInclude,
     });
+    if (input.linkEstimateId) {
+      const estimate = await tx.estimate.findFirst({ where: { id: input.linkEstimateId, userId } });
+      if (!estimate) throw new Error('Estimate not found');
+      const status = isEstimateStatus(estimate.status) ? estimate.status : 'draft';
+      assertCanConvert(status, Boolean(estimate.convertedInvoiceId));
+      await tx.estimate.update({
+        where: { id: estimate.id },
+        data: { status: 'converted', convertedInvoiceId: invoice.id },
+      });
+    }
+    if (input.linkChangeOrderId) {
+      const changeOrder = await tx.changeOrder.findFirst({ where: { id: input.linkChangeOrderId, userId } });
+      if (!changeOrder) throw new Error('Change order not found');
+      if (changeOrder.resolution === 'amended') {
+        throw new Error('This change order was added to the estimate. Convert the estimate instead of invoicing it twice.');
+      }
+      const status = isChangeOrderStatus(changeOrder.status) ? changeOrder.status : 'draft';
+      if (changeOrder.resolution === 'invoiced' || changeOrder.invoiceId || status === 'declined' || status === 'invoiced') {
+        throw new Error(status === 'declined' ? 'This change order was declined' : 'This change order cannot be invoiced');
+      }
+      transitionChangeOrder(status, 'invoiced');
+      await tx.changeOrder.update({
+        where: { id: changeOrder.id },
+        data: { status: 'invoiced', resolution: 'invoiced', invoiceId: invoice.id },
+      });
+    }
+    return invoice;
   });
 
   return { invoice: toInvoice(invoice), mode: 'postgres' };

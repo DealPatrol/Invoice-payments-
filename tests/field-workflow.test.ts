@@ -116,3 +116,31 @@ describe('photo estimates are priced from the price book only', () => {
     }
   });
 });
+
+describe('client picks a Good/Better/Best option', () => {
+  beforeEach(() => {
+    vi.stubEnv('DEMO_MODE', 'true');
+    resetFieldDemo();
+  });
+
+  it('approves the picked option and invoices only its lines', async () => {
+    await saveShopSettings(userId, { rates: { laborRate: 100 }, priceBook: [] });
+    const drafted = await createEstimateFromPhoto(userId, { notes: 'Replace water heater', images: [], clientId: '1' });
+    const id = drafted.estimate.id;
+    const updated = await updateEstimate(userId, id, {
+      items: [
+        { kind: 'labor', description: 'Install', quantity: 3, unit: 'hr', unitPrice: 100 },
+        { kind: 'materials', description: '40 gal standard', quantity: 1, unit: 'ea', unitPrice: 900, tier: 'good' },
+        { kind: 'materials', description: '50 gal high-efficiency', quantity: 1, unit: 'ea', unitPrice: 1400, tier: 'better' },
+        { kind: 'materials', description: 'Tankless', quantity: 1, unit: 'ea', unitPrice: 2600, tier: 'best' },
+      ],
+      status: 'sent',
+    });
+    expect(updated?.total).toBe(1700);
+    const reviewed = await respondToReview(updated!.reviewToken, { action: 'approve', tier: 'best' });
+    expect(reviewed.selectedTier).toBe('best');
+    expect(reviewed.total).toBe(2900);
+    const { invoice } = await convertEstimateToInvoice(userId, id);
+    expect(invoice.items.map((i) => i.unitRate).sort((a, b) => a - b)).toEqual([100, 2600]);
+  });
+});

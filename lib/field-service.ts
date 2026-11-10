@@ -19,6 +19,8 @@ import {
   toPublicEstimate,
   transitionChangeOrder,
   transitionEstimate,
+  asTier,
+  effectiveTier,
 } from './estimate-domain';
 import { demoContractorName, fieldDemo, resetFieldDemo, type DemoEstimate, type DemoJob } from './field-demo-store';
 import type {
@@ -102,6 +104,7 @@ export interface PhotoEstimateInput {
 }
 
 export interface UpdateEstimateInput {
+  selectedTier?: string;
   scope?: string;
   notes?: string;
   taxRate?: number;
@@ -169,8 +172,10 @@ function mapLine(row: {
   unitPrice: number;
   total: number;
   shoppingUrl: string | null;
+  tier?: string | null;
 }): FieldLine {
   return {
+    tier: asTier(row.tier),
     id: row.id,
     kind: asLineKind(row.kind),
     description: row.description,
@@ -208,6 +213,7 @@ function mapEstimate(row: EstimateRow): EstimateRecord {
     estimateNumber: row.estimateNumber,
     status,
     currency: row.currency,
+    selectedTier: asTier(row.selectedTier),
     taxRate: row.taxRate,
     subtotal: row.subtotal,
     tax: row.tax,
@@ -665,6 +671,7 @@ export async function createManualEstimate(userId: string, input: ManualEstimate
       estimateNumber: nextEstimateNumber(numbers),
       status: 'draft',
       currency,
+      selectedTier: '',
       taxRate: totals.taxRate,
       subtotal: totals.subtotal,
       tax: totals.tax,
@@ -730,6 +737,7 @@ function itemCreates(items: FieldLine[]) {
     unitPrice: item.unitPrice,
     total: item.total,
     shoppingUrl: item.shoppingUrl,
+    tier: item.tier || '',
     sortOrder: index,
   }));
 }
@@ -793,6 +801,7 @@ export async function createEstimateFromPhoto(
       estimateNumber: nextEstimateNumber(numbers),
       status: 'draft',
       currency,
+      selectedTier: '',
       taxRate: totals.taxRate,
       subtotal: totals.subtotal,
       tax: totals.tax,
@@ -863,7 +872,7 @@ export async function createEstimateFromPhoto(
 export async function updateEstimate(userId: string, id: string, input: UpdateEstimateInput): Promise<EstimateRecord | null> {
   const current = await loadEstimate(userId, id);
   if (!current) return null;
-  const editing = input.items || input.phases || input.scope !== undefined || input.notes !== undefined || input.taxRate !== undefined || input.validUntil !== undefined;
+  const editing = input.items || input.phases || input.scope !== undefined || input.notes !== undefined || input.taxRate !== undefined || input.validUntil !== undefined || input.selectedTier !== undefined;
   if (editing && current.status !== 'draft') {
     throw new Error('Only a draft estimate can be edited. Move it back to draft first.');
   }
@@ -871,7 +880,8 @@ export async function updateEstimate(userId: string, id: string, input: UpdateEs
   if (input.status) status = transitionEstimate(current.status, input.status);
   const items = input.items ? pricedLines(input.items) : current.items;
   const phases = input.phases ? phased(input.phases) : current.phases;
-  const totals = summarize(items, input.taxRate ?? current.taxRate);
+  const selectedTier = input.selectedTier !== undefined ? asTier(input.selectedTier) : current.selectedTier;
+  const totals = summarize(items, input.taxRate ?? current.taxRate, selectedTier);
   const now = new Date();
 
   if (isDemoMode()) {
@@ -882,6 +892,7 @@ export async function updateEstimate(userId: string, id: string, input: UpdateEs
       status,
       scope: input.scope !== undefined ? input.scope.trim() : stored.scope,
       notes: input.notes !== undefined ? input.notes.trim() : stored.notes,
+      selectedTier,
       taxRate: totals.taxRate,
       subtotal: totals.subtotal,
       tax: totals.tax,
@@ -908,6 +919,7 @@ export async function updateEstimate(userId: string, id: string, input: UpdateEs
         status,
         scope: input.scope !== undefined ? input.scope.trim() : undefined,
         notes: input.notes !== undefined ? input.notes.trim() : undefined,
+        selectedTier,
         taxRate: totals.taxRate,
         subtotal: totals.subtotal,
         tax: totals.tax,
@@ -935,7 +947,7 @@ function invoiceInput(estimate: EstimateRecord, notes: string, items: FieldLine[
     dueDate: defaultDueDate(),
     notes,
     taxRate: estimate.taxRate,
-    items: toInvoiceItems(items),
+    items: toInvoiceItems(items, estimate.selectedTier),
     jobId: estimate.jobId ?? undefined,
   };
 }
@@ -1114,7 +1126,7 @@ async function amendChangeOrder(userId: string, id: string): Promise<EstimateRec
     if (found.estimate.status !== 'approved') throw new Error('Approve the estimate before amending it');
     assertChangeOpen(found.change);
     const items = [...found.estimate.items, ...found.change.items.map((item) => normalizeLine(item, nanoid(10)))];
-    const totals = summarize(items, found.estimate.taxRate);
+    const totals = summarize(items, found.estimate.taxRate, found.estimate.selectedTier);
     const next: DemoEstimate = {
       ...found.estimate,
       items,
@@ -1150,8 +1162,9 @@ async function amendChangeOrder(userId: string, id: string): Promise<EstimateRec
   }, nanoid(10)));
   const existing = await prisma.estimateItem.findMany({ where: { estimateId: change.estimateId } });
   const totals = summarize(
-    [...existing.map((item) => ({ total: item.total })), ...added.map((item) => ({ total: item.total }))],
+    [...existing.map((item) => ({ total: item.total, tier: asTier(item.tier) })), ...added.map((item) => ({ total: item.total }))],
     change.estimate.taxRate,
+    asTier(change.estimate.selectedTier),
   );
   await prisma.$transaction([
     prisma.estimateItem.createMany({
@@ -1233,6 +1246,7 @@ async function invoiceChangeOrder(userId: string, id: string): Promise<{ estimat
     estimateNumber: change.estimate.estimateNumber,
     status: isEstimateStatus(change.estimate.status) ? change.estimate.status : 'draft',
     currency: change.estimate.currency,
+    selectedTier: asTier(change.estimate.selectedTier),
     taxRate: change.estimate.taxRate,
     subtotal: change.estimate.subtotal,
     tax: change.estimate.tax,
@@ -1289,7 +1303,7 @@ export async function getPublicEstimate(token: string): Promise<PublicEstimate |
 
 export async function respondToReview(
   token: string,
-  input: { action: 'approve' | 'decline'; reason?: string; changeOrderId?: string },
+  input: { action: 'approve' | 'decline'; reason?: string; changeOrderId?: string; tier?: string },
 ): Promise<PublicEstimate> {
   const loaded = await loadByToken(token);
   if (!loaded) throw new Error('Estimate not found');
@@ -1314,15 +1328,24 @@ export async function respondToReview(
   } else {
     const target: EstimateStatus = input.action === 'approve' ? 'approved' : 'declined';
     if (loaded.estimate.status !== target) transitionEstimate(loaded.estimate.status, target);
+    // The client's Good/Better/Best pick becomes the option the totals and invoice follow.
+    const pickedTier = input.action === 'approve' && input.tier !== undefined
+      ? effectiveTier(loaded.estimate.items, asTier(input.tier))
+      : loaded.estimate.selectedTier;
+    const picked = summarize(loaded.estimate.items, loaded.estimate.taxRate, pickedTier);
     if (isDemoMode()) {
       const stored = fieldDemo.findEstimateByToken(token);
       if (!stored) throw new Error('Estimate not found');
-      fieldDemo.replaceEstimate({ ...stored, status: target, updatedAt: new Date().toISOString() });
+      fieldDemo.replaceEstimate({ ...stored, status: target, selectedTier: pickedTier, subtotal: picked.subtotal, tax: picked.tax, total: picked.total, updatedAt: new Date().toISOString() });
     } else {
       await prisma.estimate.update({
         where: { id: loaded.estimate.id },
         data: {
           status: target,
+          selectedTier: pickedTier,
+          subtotal: picked.subtotal,
+          tax: picked.tax,
+          total: picked.total,
           approvedAt: target === 'approved' ? new Date() : undefined,
           declinedAt: target === 'declined' ? new Date() : undefined,
           declineReason: input.reason?.trim() || undefined,

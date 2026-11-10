@@ -4,9 +4,9 @@ import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { ArrowLeft, Copy, FileText, ImagePlus, Send } from 'lucide-react';
 import { btnGhost, btnPrimary, LinkButton, Page, PageHeader, Panel, SkeletonRows, StatusPill } from '@/components/ui/kit';
-import { kindLabel } from '@/lib/estimate-domain';
-import type { EstimateRecord, FieldLine, FieldLineInput, LineKind } from '@/lib/field-types';
-import { LINE_KINDS } from '@/lib/field-types';
+import { kindLabel, tierLabel, tierTotals, tiersIn } from '@/lib/estimate-domain';
+import type { EstimateRecord, FieldLine, FieldLineInput, LineKind, LineTier } from '@/lib/field-types';
+import { LINE_KINDS, TIERS } from '@/lib/field-types';
 import { fieldClass, labelClass, money } from './ui';
 
 function linesFrom(estimate: EstimateRecord): FieldLineInput[] {
@@ -16,6 +16,7 @@ function linesFrom(estimate: EstimateRecord): FieldLineInput[] {
     quantity: item.quantity,
     unit: item.unit,
     unitPrice: item.unitPrice,
+    tier: item.tier,
   }));
 }
 
@@ -125,7 +126,7 @@ export function EstimateDetail({ id }: { id: string }) {
             )}
             <ul className="divide-y divide-[var(--border)]">
               {(editable ? lines : estimate.items).map((line, index) => (
-                <li key={`${line.description}-${index}`} className="grid gap-2 px-5 py-3 sm:grid-cols-[110px_1fr_70px_80px_90px_auto] sm:items-center">
+                <li key={`${line.description}-${index}`} className="grid gap-2 px-5 py-3 sm:grid-cols-[110px_1fr_70px_70px_90px_110px_auto] sm:items-center">
                   {editable ? (
                     <>
                       <select className={fieldClass} value={line.kind} onChange={(event) => setLines((current) => current.map((item, itemIndex) => itemIndex === index ? { ...item, kind: event.target.value as LineKind } : item))}>
@@ -135,12 +136,16 @@ export function EstimateDetail({ id }: { id: string }) {
                       <input type="number" min="0" step="0.01" className={fieldClass} value={line.quantity} onChange={(event) => setLines((current) => current.map((item, itemIndex) => itemIndex === index ? { ...item, quantity: Number(event.target.value) } : item))} />
                       <input className={fieldClass} value={line.unit} onChange={(event) => setLines((current) => current.map((item, itemIndex) => itemIndex === index ? { ...item, unit: event.target.value } : item))} />
                       <input type="number" step="0.01" aria-label={line.unitPrice > 0 ? 'Unit price' : 'Needs your price'} placeholder="Your price" className={`${fieldClass} ${line.unitPrice > 0 ? '' : 'border-[var(--warning)] bg-[var(--warning-soft)]'}`} value={line.unitPrice} onChange={(event) => setLines((current) => current.map((item, itemIndex) => itemIndex === index ? { ...item, unitPrice: Number(event.target.value) } : item))} />
+                      <select aria-label="Option" className={fieldClass} value={line.tier ?? ''} onChange={(event) => setLines((current) => current.map((item, itemIndex) => itemIndex === index ? { ...item, tier: event.target.value as LineTier } : item))}>
+                        <option value="">All options</option>
+                        {TIERS.map((tier) => <option key={tier} value={tier}>{tierLabel(tier)} only</option>)}
+                      </select>
                       <button type="button" className="text-xs font-semibold text-[var(--danger)]" onClick={() => setLines((current) => current.filter((_, itemIndex) => itemIndex !== index))}>Remove</button>
                     </>
                   ) : (
-                    <div className="flex items-center justify-between gap-3 sm:col-span-6">
+                    <div className="flex items-center justify-between gap-3 sm:col-span-7">
                       <span>
-                        <span className="block text-sm font-medium text-[var(--text)]">{line.description}</span>
+                        <span className="block text-sm font-medium text-[var(--text)]">{line.description}{line.tier ? <span className="ml-2 rounded-full bg-[var(--accent-soft)] px-2 py-0.5 text-[11px] font-bold uppercase tracking-wide text-[var(--accent)]">{tierLabel(line.tier)}</span> : null}</span>
                         <span className="text-xs text-[var(--text-muted)]">{kindLabel((line as FieldLine).kind)} · {line.quantity} {line.unit} × {fmt(line.unitPrice)}</span>
                         {'shoppingUrl' in line && line.shoppingUrl && <a className="mt-1 block text-xs text-[var(--accent)]" href={line.shoppingUrl} target="_blank" rel="noreferrer">Shop materials</a>}
                       </span>
@@ -150,6 +155,18 @@ export function EstimateDetail({ id }: { id: string }) {
                 </li>
               ))}
             </ul>
+            {tiersIn(editable ? lines : estimate.items).length > 0 && (
+              <div className="grid gap-2 border-t border-[var(--border)] px-5 py-3 sm:grid-cols-3">
+                {Object.entries(tierTotals((editable ? lines : estimate.items).map((l) => ({ total: l.quantity * l.unitPrice, tier: l.tier })), editable ? taxPercent / 100 : estimate.taxRate)).map(([tier, t]) => (
+                  <div key={tier} className={`rounded-[10px] border p-3 ${estimate.selectedTier === tier ? 'border-[var(--accent)] bg-[var(--accent-soft)]' : 'border-[var(--border)]'}`}>
+                    <p className="text-xs font-bold uppercase tracking-[0.1em] text-[var(--accent)]">{tierLabel(tier as LineTier)}</p>
+                    <p className="tabular text-lg font-semibold text-[var(--text)]">{fmt(t.total)}</p>
+                    <p className="text-xs text-[var(--text-muted)]">Shared lines + {tierLabel(tier as LineTier)} lines</p>
+                  </div>
+                ))}
+                <p className="text-xs text-[var(--text-muted)] sm:col-span-3">Your client picks an option on the approval link. The invoice uses the option they approve.</p>
+              </div>
+            )}
             {editable && (
               <div className="flex flex-wrap items-center justify-between gap-3 border-t border-[var(--border)] px-5 py-3">
                 <button type="button" className={btnGhost} onClick={() => setLines((current) => [...current, { kind: 'materials', description: '', quantity: 1, unit: 'ea', unitPrice: 0 }])}>Add line</button>

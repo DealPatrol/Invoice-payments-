@@ -223,6 +223,7 @@ model Estimate {
   reviewToken        String          @unique @default(cuid())
   status             String          @default("draft")
   currency           String          @default("USD")
+  selectedTier       String          @default("")
   taxRate            Float           @default(0)
   subtotal           Float
   tax                Float           @default(0)
@@ -265,6 +266,7 @@ model EstimateItem {
   unitPrice   Float
   total       Float
   shoppingUrl String?
+  tier        String   @default("")
   sortOrder   Int      @default(0)
 
   @@index([estimateId])

@@ -51,3 +51,39 @@ describe('estimate to invoice lines', () => {
     expect(() => toInvoiceItems([])).toThrow(/at least one line/);
   });
 });
+
+import { effectiveTier, linesForTier, summarize as summarizeTiers, tierTotals, toInvoiceItems as toItems } from '@/lib/estimate-domain';
+
+describe('good / better / best', () => {
+  const lines = [
+    { id: 's', kind: 'labor' as const, description: 'Labor', quantity: 2, unit: 'hr', unitPrice: 100, total: 200, shoppingUrl: null, tier: '' as const },
+    { id: 'g', kind: 'materials' as const, description: 'Basic unit', quantity: 1, unit: 'ea', unitPrice: 500, total: 500, shoppingUrl: null, tier: 'good' as const },
+    { id: 'b', kind: 'materials' as const, description: 'Mid unit', quantity: 1, unit: 'ea', unitPrice: 800, total: 800, shoppingUrl: null, tier: 'better' as const },
+    { id: 'x', kind: 'materials' as const, description: 'Top unit', quantity: 1, unit: 'ea', unitPrice: 1200, total: 1200, shoppingUrl: null, tier: 'best' as const },
+  ];
+
+  it('defaults to Better and totals shared + chosen lines', () => {
+    expect(effectiveTier(lines)).toBe('better');
+    expect(summarizeTiers(lines, 0).total).toBe(1000);
+    expect(summarizeTiers(lines, 0.1, 'best').total).toBe(1540);
+  });
+
+  it('reports every option total', () => {
+    expect(tierTotals(lines, 0)).toEqual({
+      good: { subtotal: 700, tax: 0, total: 700 },
+      better: { subtotal: 1000, tax: 0, total: 1000 },
+      best: { subtotal: 1400, tax: 0, total: 1400 },
+    });
+  });
+
+  it('invoices only the chosen option', () => {
+    expect(linesForTier(lines, 'good').map((l) => l.id)).toEqual(['s', 'g']);
+    expect(toItems(lines, 'best')).toHaveLength(2);
+  });
+
+  it('leaves estimates without options unchanged', () => {
+    const plain = lines.map((l) => ({ ...l, tier: '' as const }));
+    expect(effectiveTier(plain)).toBe('');
+    expect(summarizeTiers(plain, 0).total).toBe(2700);
+  });
+});

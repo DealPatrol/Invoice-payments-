@@ -32,4 +32,32 @@ describe('plan bought through a Payment Link', () => {
     expect(m.update).not.toHaveBeenCalled();
     expect(m.upsert).toHaveBeenCalledWith(expect.objectContaining({ where: { email: 'nobody@example.com' } }));
   });
+
+  it('maps the Workspace Pro link and keeps the old Linko link working', async () => {
+    m.findUnique.mockResolvedValue({ id: 'user_3' });
+    for (const link of ['plink_1UaHF1RJZZUpaweBOuLXzacr', 'plink_1UaAMMI7O0BzBS79ddyjQpou']) {
+      m.update.mockReset();
+      await processStripeEvent(event({ mode: 'subscription', payment_link: link, client_reference_id: 'user_3', customer: 'cus_3', subscription: 'sub_3', metadata: {} }));
+      expect(m.update.mock.calls[0][0].data.plan).toBe('pro');
+    }
+  });
+
+  it('maps the Workspace Solo link', async () => {
+    m.findUnique.mockResolvedValue({ id: 'user_4' });
+    await processStripeEvent(event({ mode: 'subscription', payment_link: 'plink_1UaHEyRJZZUpaweB94VQOejw', client_reference_id: 'user_4', customer: 'cus_4', subscription: 'sub_4', metadata: {} }));
+    expect(m.update.mock.calls[0][0].data.plan).toBe('solo');
+  });
+});
+
+describe('Workspace billing ids', () => {
+  it('pricing links point at the Workspace payment links and prices map to plans', async () => {
+    const { PLAN_LINKS } = await import('@/lib/config');
+    const { PRICE_PLANS, PAYMENT_LINK_PLANS } = await import('@/lib/lab-plan');
+    expect(PLAN_LINKS.solo).toBe('https://buy.stripe.com/cNidRb9jE2W97y97ec0Ba03');
+    expect(PLAN_LINKS.pro).toBe('https://buy.stripe.com/3cIbJ3cvQeERcSt8ig0Ba04');
+    expect(PRICE_PLANS.price_1UaHEVRJZZUpaweBCImHfRDU).toBe('solo');
+    expect(PRICE_PLANS.price_1UaHEbRJZZUpaweBHWUMl8Aq).toBe('pro');
+    expect(PRICE_PLANS.price_1UaAMBI7O0BzBS79qfUYCYBi).toBe('pro');
+    expect(Object.keys(PAYMENT_LINK_PLANS)).toHaveLength(4);
+  });
 });

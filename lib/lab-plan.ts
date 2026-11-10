@@ -10,11 +10,17 @@ import { LAB_PLANS, PLAN_LINKS, type LabPlanId } from './config';
 export const TRIAL_DAYS = 14;
 
 /** Stripe Payment Link ids and Price ids for the live Invoice Laboratory plans (public ids, not secrets). */
+// Current billing lives in the Workspace Stripe account (ids ending RJZZUpaweB).
+// The earlier Linko-account ids (ending I7O0BzBS79) stay mapped so any old checkout still syncs.
 export const PAYMENT_LINK_PLANS: Record<string, LabPlanId> = {
+  plink_1UaHEyRJZZUpaweB94VQOejw: 'solo',
+  plink_1UaHF1RJZZUpaweBOuLXzacr: 'pro',
   plink_1UaAMKI7O0BzBS79OFRsHfFA: 'solo',
   plink_1UaAMMI7O0BzBS79ddyjQpou: 'pro',
 };
 export const PRICE_PLANS: Record<string, LabPlanId> = {
+  price_1UaHEVRJZZUpaweBCImHfRDU: 'solo',
+  price_1UaHEbRJZZUpaweBHWUMl8Aq: 'pro',
   price_1UaAM7I7O0BzBS79o2xfxaf2: 'solo',
   price_1UaAMBI7O0BzBS79qfUYCYBi: 'pro',
 };

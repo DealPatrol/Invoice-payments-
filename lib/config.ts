@@ -34,8 +34,8 @@ export const PRODUCT_NAME = 'Invoice Laboratory';
 
 /** Live Stripe Payment Links (public URLs, not secrets). Override per environment if needed. */
 export const PLAN_LINKS = {
-  solo: process.env.NEXT_PUBLIC_IL_SOLO_LINK || 'https://buy.stripe.com/6oU5kDgYT0iH64d6mhgIo0f',
-  pro: process.env.NEXT_PUBLIC_IL_PRO_LINK || 'https://buy.stripe.com/aFacN56kfe9xbox6mhgIo0g',
+  solo: process.env.NEXT_PUBLIC_IL_SOLO_LINK || 'https://buy.stripe.com/cNidRb9jE2W97y97ec0Ba03',
+  pro: process.env.NEXT_PUBLIC_IL_PRO_LINK || 'https://buy.stripe.com/3cIbJ3cvQeERcSt8ig0Ba04',
 } as const;
 
 /** Founding pilot promo code (first 25 shops, Pro at $19/mo for 12 months). */

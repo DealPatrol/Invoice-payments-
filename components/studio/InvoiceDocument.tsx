@@ -1,8 +1,12 @@
+import { isProTemplate } from '@/lib/lab-plan';
 import { lateFee } from '@/lib/studio-ops';
 import { templateId, calcTotals, formatDate, formatMoney, lineTotal, termsLabel, type StudioInvoice } from '@/lib/studio';
 
 /** Clean, print-ready invoice (always light themed; sized for US Letter / A4). */
-export function InvoiceDocument({ invoice, today }: { invoice: StudioInvoice; today?: string }) {
+export function InvoiceDocument({ invoice, today, allowProLayouts = true }: { invoice: StudioInvoice; today?: string; allowProLayouts?: boolean }) {
+  const chosen = templateId(invoice.business.template);
+  // Free/Solo shops see a base layout in the designer; shared client links always keep the saved layout.
+  const layout = allowProLayouts || !isProTemplate(chosen) ? chosen : 'modern';
   const b = invoice.business;
   const c = invoice.customer;
   const t = calcTotals(invoice);
@@ -18,7 +22,7 @@ export function InvoiceDocument({ invoice, today }: { invoice: StudioInvoice; to
   const showUnit = invoice.items.some((i) => i.unit);
 
   return (
-    <article className={`invoice-doc tpl-${templateId(b.template)}`} style={{ ['--inv-accent' as string]: accent }}>
+    <article className={`invoice-doc tpl-${layout}`} style={{ ['--inv-accent' as string]: accent }}>
       <div className="inv-bar" />
       <header className="inv-header">
         <div className="inv-brand">

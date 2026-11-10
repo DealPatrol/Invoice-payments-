@@ -45,7 +45,8 @@ import type {
 import type { DataMode } from './invoice-service';
 import { createInvoice } from './invoice-service';
 import { buildAfterPreview, draftPhotoEstimate, normalizePhotoImages, type PhotoImage } from './photo-estimate';
-import { assertPhotoEstimateAllowed } from './plan-usage';
+import { usesOptions } from './lab-plan';
+import { assertPhotoEstimateAllowed, assertProFeature } from './plan-usage';
 import { priceDraftFromBook } from './price-book';
 import { getShopSettings } from './shop-settings';
 import type { Invoice } from './types';
@@ -641,6 +642,7 @@ async function createJobForClient(userId: string, client: ResolvedClient, title:
 }
 
 export async function createManualEstimate(userId: string, input: ManualEstimateInput): Promise<EstimateRecord> {
+  if (usesOptions(input.items)) await assertProFeature(userId, 'options');
   const client = await resolveClient(userId, input);
   const items = pricedLines(input.items?.length ? input.items : [{
     kind: 'labor',
@@ -867,6 +869,9 @@ export async function createEstimateFromPhoto(
 export async function updateEstimate(userId: string, id: string, input: UpdateEstimateInput): Promise<EstimateRecord | null> {
   const current = await loadEstimate(userId, id);
   if (!current) return null;
+  // Saving Good/Better/Best options is Pro. Status-only changes (send, back to draft) never need Pro,
+  // so estimates made during the trial keep working.
+  if (usesOptions(input.items, input.selectedTier)) await assertProFeature(userId, 'options');
   const editing = input.items || input.phases || input.scope !== undefined || input.notes !== undefined || input.taxRate !== undefined || input.validUntil !== undefined || input.selectedTier !== undefined;
   if (editing && current.status !== 'draft') {
     throw new Error('Only a draft estimate can be edited. Move it back to draft first.');
@@ -998,6 +1003,7 @@ export async function createChangeOrder(
   const estimate = await loadEstimate(userId, estimateId);
   if (!estimate) throw new Error('Estimate not found');
   if (estimate.status === 'declined') throw new Error('This estimate was declined');
+  await assertProFeature(userId, 'changeOrders');
   const items = pricedLines(input.items);
   const totals = summarize(items, estimate.taxRate);
   const number = nextChangeNumber(estimate.changeOrders.map((change) => change.number));

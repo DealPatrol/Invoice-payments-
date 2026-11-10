@@ -1,6 +1,7 @@
 import Stripe from 'stripe';
 import { isPlan, type Plan } from './config';
 import { prisma } from './db';
+import { PAYMENT_LINK_PLANS, PRICE_PLANS } from './lab-plan';
 import { recordStripePayment } from './studio-server';
 
 /** Records a paid Invoice Studio checkout (card immediately, ACH on async success). */
@@ -17,14 +18,49 @@ async function handleStudioPayment(session: Stripe.Checkout.Session, livemode: b
   });
 }
 
-function planFromSubscription(subscription: Stripe.Subscription): Plan | null {
+function planFromSubscription(subscription: Stripe.Subscription): Plan | 'solo' | 'pro' | null {
   const metadataPlan = subscription.metadata.plan;
   if (metadataPlan && isPlan(metadataPlan)) return metadataPlan;
   const priceId = subscription.items.data[0]?.price.id;
+  if (priceId && PRICE_PLANS[priceId]) return PRICE_PLANS[priceId] as 'solo' | 'pro';
   if (priceId === process.env.STRIPE_STARTER_PRICE_ID) return 'starter';
   if (priceId === process.env.STRIPE_GROWTH_PRICE_ID) return 'growth';
   if (priceId === process.env.STRIPE_SCALE_PRICE_ID) return 'scale';
   return null;
+}
+
+/**
+ * Invoice Laboratory plan bought through a Stripe Payment Link.
+ * In-app upgrade links carry client_reference_id = user id; otherwise match the checkout email.
+ */
+export async function handlePlanLinkCheckout(session: Stripe.Checkout.Session, plan: 'solo' | 'pro') {
+  const email = (session.customer_details?.email || session.customer_email || '').toLowerCase();
+  const byId = session.client_reference_id
+    ? await prisma.user.findUnique({ where: { id: session.client_reference_id }, select: { id: true } })
+    : null;
+  const user = byId ?? (email ? await prisma.user.findUnique({ where: { email }, select: { id: true } }) : null);
+  const customer = typeof session.customer === 'string' ? session.customer : null;
+  const subscription = typeof session.subscription === 'string' ? session.subscription : null;
+  if (!user) {
+    // Bought before signing up: hold the plan until an account with this email is created.
+    if (email) {
+      await prisma.pendingPlan.upsert({
+        where: { email },
+        create: { email, plan, stripeCustomerId: customer, stripeSubscriptionId: subscription },
+        update: { plan, stripeCustomerId: customer, stripeSubscriptionId: subscription },
+      });
+    }
+    return;
+  }
+  await prisma.user.update({
+    where: { id: user.id },
+    data: {
+      plan,
+      subscriptionStatus: 'active',
+      stripeCustomerId: typeof session.customer === 'string' ? session.customer : undefined,
+      stripeSubscriptionId: typeof session.subscription === 'string' ? session.subscription : undefined,
+    },
+  });
 }
 
 async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
@@ -47,6 +83,13 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
         data: { status: 'paid', paidDate: new Date() },
       }),
     ]);
+    return;
+  }
+
+  const linkId = typeof session.payment_link === 'string' ? session.payment_link : session.payment_link?.id;
+  const linkPlan = linkId ? PAYMENT_LINK_PLANS[linkId] : undefined;
+  if (session.mode === 'subscription' && linkPlan && linkPlan !== 'free') {
+    await handlePlanLinkCheckout(session, linkPlan);
     return;
   }
 

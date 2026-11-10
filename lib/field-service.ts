@@ -1,6 +1,6 @@
 import { nanoid } from 'nanoid';
 import type { Prisma } from '@prisma/client';
-import { PRICING, isDemoMode, isPlan } from './config';
+import { isDemoMode } from './config';
 import { prisma } from './db';
 import { demoStore } from './demo-store';
 import {
@@ -45,6 +45,7 @@ import type {
 import type { DataMode } from './invoice-service';
 import { createInvoice } from './invoice-service';
 import { buildAfterPreview, draftPhotoEstimate, normalizePhotoImages, type PhotoImage } from './photo-estimate';
+import { assertPhotoEstimateAllowed } from './plan-usage';
 import { priceDraftFromBook } from './price-book';
 import { getShopSettings } from './shop-settings';
 import type { Invoice } from './types';
@@ -379,13 +380,6 @@ async function resolveClient(userId: string, input: { clientId?: string; client?
   const email = input.client.email.toLowerCase();
   const existing = await prisma.client.findUnique({ where: { userId_email: { userId, email } } });
   if (existing) return existing;
-  const user = await prisma.user.findUniqueOrThrow({ where: { id: userId } });
-  const plan = isPlan(user.plan) ? user.plan : 'starter';
-  const limit = PRICING[plan].clients;
-  if (limit !== null) {
-    const count = await prisma.client.count({ where: { userId } });
-    if (count >= limit) throw new Error(`${PRICING[plan].name} allows ${limit} clients`);
-  }
   return prisma.client.create({
     data: {
       userId,
@@ -770,6 +764,7 @@ export async function createEstimateFromPhoto(
   const notes = input.notes.trim();
   const images = normalizePhotoImages(input.images);
   if (!notes && images.length === 0) throw new Error('Add a photo or describe the job');
+  await assertPhotoEstimateAllowed(userId);
   const client = await resolveClient(userId, input);
   const currency = (input.currency || client.currency).toUpperCase();
   const shop = await getShopSettings(userId);

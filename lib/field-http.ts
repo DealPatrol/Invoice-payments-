@@ -1,10 +1,14 @@
 import { NextResponse } from 'next/server';
 import { ZodError } from 'zod';
+import { PlanLimitError } from './lab-plan';
 import { UnauthorizedError } from './tenant';
 
 export function jsonError(error: unknown, fallback: string) {
   if (error instanceof UnauthorizedError) {
     return NextResponse.json({ error: error.message }, { status: 401 });
+  }
+  if (error instanceof PlanLimitError) {
+    return NextResponse.json({ error: error.message, upgrade: true }, { status: 402 });
   }
   if (error instanceof ZodError) {
     return NextResponse.json({ error: error.flatten() }, { status: 400 });

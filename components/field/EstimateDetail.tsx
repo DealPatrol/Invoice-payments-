@@ -118,6 +118,11 @@ export function EstimateDetail({ id }: { id: string }) {
             )}
           </Panel>
           <Panel title="Lines" flush>
+            {editable && lines.some((l) => !(l.unitPrice > 0)) && (
+              <p className="border-b border-[var(--border)] bg-[var(--warning-soft)] px-5 py-2.5 text-sm font-medium text-[var(--warning)]">
+                {lines.filter((l) => !(l.unitPrice > 0)).length} line(s) need your price. They weren&apos;t in your <Link className="underline" href="/price-book">price book</Link>, so nothing was guessed.
+              </p>
+            )}
             <ul className="divide-y divide-[var(--border)]">
               {(editable ? lines : estimate.items).map((line, index) => (
                 <li key={`${line.description}-${index}`} className="grid gap-2 px-5 py-3 sm:grid-cols-[110px_1fr_70px_80px_90px_auto] sm:items-center">
@@ -129,7 +134,7 @@ export function EstimateDetail({ id }: { id: string }) {
                       <input className={fieldClass} value={line.description} onChange={(event) => setLines((current) => current.map((item, itemIndex) => itemIndex === index ? { ...item, description: event.target.value } : item))} />
                       <input type="number" min="0" step="0.01" className={fieldClass} value={line.quantity} onChange={(event) => setLines((current) => current.map((item, itemIndex) => itemIndex === index ? { ...item, quantity: Number(event.target.value) } : item))} />
                       <input className={fieldClass} value={line.unit} onChange={(event) => setLines((current) => current.map((item, itemIndex) => itemIndex === index ? { ...item, unit: event.target.value } : item))} />
-                      <input type="number" step="0.01" className={fieldClass} value={line.unitPrice} onChange={(event) => setLines((current) => current.map((item, itemIndex) => itemIndex === index ? { ...item, unitPrice: Number(event.target.value) } : item))} />
+                      <input type="number" step="0.01" aria-label={line.unitPrice > 0 ? 'Unit price' : 'Needs your price'} placeholder="Your price" className={`${fieldClass} ${line.unitPrice > 0 ? '' : 'border-[var(--warning)] bg-[var(--warning-soft)]'}`} value={line.unitPrice} onChange={(event) => setLines((current) => current.map((item, itemIndex) => itemIndex === index ? { ...item, unitPrice: Number(event.target.value) } : item))} />
                       <button type="button" className="text-xs font-semibold text-[var(--danger)]" onClick={() => setLines((current) => current.filter((_, itemIndex) => itemIndex !== index))}>Remove</button>
                     </>
                   ) : (

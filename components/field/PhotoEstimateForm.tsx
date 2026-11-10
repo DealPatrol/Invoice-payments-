@@ -1,5 +1,6 @@
 'use client';
 
+import Link from 'next/link';
 import { useEffect, useRef, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Camera, X } from 'lucide-react';
@@ -61,6 +62,7 @@ export function PhotoEstimateForm() {
   const [siteAddress, setSiteAddress] = useState('');
   const [notes, setNotes] = useState('');
   const [taxPercent, setTaxPercent] = useState(0);
+  const [bookSize, setBookSize] = useState<number | null>(null);
   const [images, setImages] = useState<Array<{ mediaType: 'image/jpeg'; dataBase64: string; preview: string }>>([]);
   const imagesRef = useRef(images);
   const [error, setError] = useState('');
@@ -74,6 +76,11 @@ export function PhotoEstimateForm() {
     }).catch(() => setError('Clients could not be loaded'));
     fetch('/api/jobs').then((response) => response.json()).then((data) => {
       setJobs((data.jobs ?? []) as JobOption[]);
+    }).catch(() => undefined);
+    fetch('/api/price-book').then((response) => (response.ok ? response.json() : null)).then((data) => {
+      const rate = Number(data?.rates?.taxRate);
+      if (Number.isFinite(rate) && rate > 0) setTaxPercent(rate);
+      setBookSize(Array.isArray(data?.priceBook) ? data.priceBook.length : 0);
     }).catch(() => undefined);
   }, []);
 
@@ -124,7 +131,12 @@ export function PhotoEstimateForm() {
 
   return (
     <Page narrow>
-      <PageHeader eyebrow="Field work" title="Photo estimate" subtitle="Add the site photos and what the customer asked for. Invoice Laboratory drafts scope, phases, labor, and materials." />
+      <PageHeader eyebrow="Field work" title="Photo estimate" subtitle="Add the site photos and what the customer asked for. Invoice Laboratory drafts scope, phases, labor, and materials, priced from your price book." />
+      {bookSize === 0 && (
+        <p className="mb-4 rounded-[10px] border border-[var(--warning)] bg-[var(--warning-soft)] px-4 py-3 text-sm text-[var(--warning)]">
+          Your price book is empty, so lines will come back marked &quot;needs your price&quot;. <Link className="font-semibold underline" href="/price-book">Add your prices and five numbers</Link> first for a fully priced draft.
+        </p>
+      )}
       <form onSubmit={onSubmit} className="space-y-4 rounded-[var(--radius-lg)] border border-[var(--border)] bg-[var(--surface)] p-4 shadow-[var(--shadow-sm)] sm:p-5">
         <label className="flex cursor-pointer flex-col items-center gap-2 rounded-[var(--radius-lg)] border border-dashed border-[var(--border-strong)] bg-[var(--surface-high)] px-4 py-8 text-center">
           <span className="grid h-12 w-12 place-items-center rounded-2xl bg-[var(--accent)] text-[var(--on-accent)]"><Camera size={22} /></span>

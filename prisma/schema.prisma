@@ -347,3 +347,11 @@ model ChangeOrderItem {
 
   @@index([changeOrderId])
 }
+
+/// Invoice Laboratory: per-user shop rates ("five numbers") and price book.
+model ShopSettings {
+  userId    String   @id
+  rates     Json     @default("{}")
+  priceBook Json     @default("[]")
+  updatedAt DateTime @updatedAt
+}

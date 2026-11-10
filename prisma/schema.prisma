@@ -357,3 +357,13 @@ model ShopSettings {
   priceBook Json     @default("[]")
   updatedAt DateTime @updatedAt
 }
+
+/// A plan bought through a Stripe Payment Link before the buyer had an account.
+/// Applied (and deleted) when an account with the same email signs up.
+model PendingPlan {
+  email                String   @id
+  plan                 String
+  stripeCustomerId     String?
+  stripeSubscriptionId String?
+  createdAt            DateTime @default(now())
+}

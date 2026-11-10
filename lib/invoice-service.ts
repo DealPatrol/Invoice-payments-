@@ -1,5 +1,5 @@
 import { nanoid } from 'nanoid';
-import { PRICING, isDemoMode, isPlan, type Plan } from './config';
+import { isDemoMode } from './config';
 import { prisma } from './db';
 import { demoStore } from './demo-store';
 import { assertCanConvert, isChangeOrderStatus, isEstimateStatus, transitionChangeOrder } from './estimate-domain';
@@ -122,31 +122,12 @@ function clientEmail(input: CreateInvoiceInput): string {
   return `${input.clientName.toLowerCase().replace(/[^a-z0-9]+/g, '-')}@no-email.invoiceos`;
 }
 
-async function assertInvoiceLimit(userId: string) {
-  const user = await prisma.user.findUnique({
-    where: { id: userId },
-    select: { plan: true },
-  });
-  const plan: Plan = user && isPlan(user.plan) ? user.plan : 'starter';
-  const limit = PRICING[plan].invoices;
-  if (limit === null) return;
-
-  const now = new Date();
-  const monthStart = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1));
-  const count = await prisma.invoice.count({
-    where: { userId, createdAt: { gte: monthStart } },
-  });
-  if (count >= limit) {
-    throw new Error(`${PRICING[plan].name} allows ${limit} invoices per month`);
-  }
-}
 
 export async function createInvoice(
   userId: string,
   input: CreateInvoiceInput
 ): Promise<{ invoice: Invoice; mode: DataMode }> {
   if (isDemoMode()) return { invoice: demoStore.create(input), mode: 'demo' };
-  await assertInvoiceLimit(userId);
 
   const subtotal = input.items.reduce(
     (sum, item) => sum + item.quantity * item.unitRate,
@@ -156,29 +137,6 @@ export async function createInvoice(
   const email = clientEmail(input);
 
   const invoice = await prisma.$transaction(async (tx) => {
-    const user = await tx.user.findUniqueOrThrow({ where: { id: userId } });
-    const plan: Plan = isPlan(user.plan) ? user.plan : 'starter';
-    if (
-      plan === 'starter' &&
-      (input.recurring || (input.lateFeePercent ?? 0) > 0)
-    ) {
-      throw new Error('Recurring invoices and late-fee automation require Growth or Scale');
-    }
-    const existingClient = input.clientId
-      ? await tx.client.findFirst({ where: { id: input.clientId, userId } })
-      : await tx.client.findUnique({
-          where: { userId_email: { userId, email } },
-        });
-    if (!existingClient) {
-      const clientLimit = PRICING[plan].clients;
-      if (clientLimit !== null) {
-        const count = await tx.client.count({ where: { userId } });
-        if (count >= clientLimit) {
-          throw new Error(`${PRICING[plan].name} allows ${clientLimit} clients`);
-        }
-      }
-    }
-
     const client = input.clientId
       ? await tx.client.findFirst({ where: { id: input.clientId, userId } })
       : await tx.client.upsert({

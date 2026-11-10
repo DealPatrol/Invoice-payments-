@@ -6,6 +6,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { Camera, X } from 'lucide-react';
 import { Page, PageHeader } from '@/components/ui/kit';
 import { fieldClass, labelClass } from './ui';
+import { PlanUsage } from './PlanUsage';
 
 interface ClientOption {
   id: string | number;
@@ -132,6 +133,7 @@ export function PhotoEstimateForm() {
   return (
     <Page narrow>
       <PageHeader eyebrow="Field work" title="Photo estimate" subtitle="Add the site photos and what the customer asked for. Invoice Laboratory drafts scope, phases, labor, and materials, priced from your price book." />
+      <PlanUsage />
       {bookSize === 0 && (
         <p className="mb-4 rounded-[10px] border border-[var(--warning)] bg-[var(--warning-soft)] px-4 py-3 text-sm text-[var(--warning)]">
           Your price book is empty, so lines will come back marked &quot;needs your price&quot;. <Link className="font-semibold underline" href="/price-book">Add your prices and five numbers</Link> first for a fully priced draft.

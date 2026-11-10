@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
-import { PRICING, isDemoMode, isPlan } from '@/lib/config';
+import { isDemoMode } from '@/lib/config';
 import { SAMPLE_CLIENTS } from '@/lib/constants';
 import { prisma } from '@/lib/db';
 import { getTenantId, UnauthorizedError } from '@/lib/tenant';
@@ -45,16 +45,6 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ id: `demo-client-${Date.now()}`, ...input }, { status: 201 });
     }
 
-    const user = await prisma.user.findUniqueOrThrow({ where: { id: userId } });
-    const plan = isPlan(user.plan) ? user.plan : 'starter';
-    const limit = PRICING[plan].clients;
-    const count = await prisma.client.count({ where: { userId } });
-    if (limit !== null && count >= limit) {
-      return NextResponse.json(
-        { error: `${PRICING[plan].name} allows ${limit} clients` },
-        { status: 403 }
-      );
-    }
     const client = await prisma.client.create({
       data: { userId, ...input, email: input.email.toLowerCase() },
     });

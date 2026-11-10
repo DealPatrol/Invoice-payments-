@@ -66,16 +66,25 @@ export default function Dashboard() {
                 Dashboard
               </h1>
               <p className="text-sm" style={{ color: COLORS.textMuted }}>
-                Jobs, estimates, and Smart Pay Score™ collections
+                Snap a job, send the estimate, turn it into an invoice.
               </p>
             </div>
-            <Link
-              href="/invoices/create"
-              className="px-5 py-2.5 rounded-lg font-bold text-sm"
-              style={{ background: COLORS.accent, color: 'var(--on-accent)', boxShadow: 'var(--shadow-sm)' }}
-            >
-              + New Invoice
-            </Link>
+            <div className="flex flex-wrap gap-2">
+              <Link
+                href="/invoices/create"
+                className="px-4 py-2.5 rounded-lg font-semibold text-sm border"
+                style={{ borderColor: 'var(--border)', color: COLORS.text }}
+              >
+                + Invoice
+              </Link>
+              <Link
+                href="/estimates/new"
+                className="px-5 py-2.5 rounded-lg font-bold text-sm"
+                style={{ background: COLORS.accent, color: 'var(--on-accent)', boxShadow: 'var(--shadow-sm)' }}
+              >
+                + Photo estimate
+              </Link>
+            </div>
           </div>
 
           <DemoBanner mode={mode} />
@@ -116,7 +125,7 @@ export default function Dashboard() {
                   value={String(stats.avgPayScore)}
                   icon={Zap}
                   color={COLORS.accent}
-                  sub="AI payment likelihood"
+                  sub="Likelihood of on-time payment"
                 />
               </div>
 

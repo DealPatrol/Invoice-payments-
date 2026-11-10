@@ -38,7 +38,7 @@ export default function InvoiceDetailPage(props: { params: Promise<{ id: string 
   if (error) return <Page narrow><Panel><EmptyState icon={FileText} title="Invoice unavailable" body={error} action={<LinkButton href="/invoices">Back to invoices</LinkButton>} /></Panel></Page>;
   if (!invoice) return <Page narrow><Panel flush><SkeletonRows rows={5} /></Panel></Page>;
   const symbol = CURRENCY_SYMBOLS[invoice.currency] || `${invoice.currency} `;
-  const fmt = (n: number) => `${symbol}${n.toFixed(2)}`;
+  const fmt = (n: number) => `${symbol}${n.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 
   return (
     <Page narrow>

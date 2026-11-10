@@ -65,7 +65,7 @@ function photoAssumption(photoCount: number): string {
 }
 
 function demoAssumption(): string {
-  return 'Prepared without a live vision model. Prices are planning figures the contractor should confirm with a supplier before the customer approves.';
+  return 'Lines drafted from your notes by the built-in drafter. Prices come from your price book and labor rate; review every line before sending.';
 }
 
 function fenceDraft(notes: string, photoCount: number): PhotoDraft {

@@ -65,7 +65,7 @@ function photoAssumption(photoCount: number): string {
 }
 
 function demoAssumption(): string {
-  return 'Lines drafted from your notes by the built-in drafter. Prices come from your price book and labor rate; review every line before sending.';
+  return 'Drafted from your notes without a live vision model. Prices come from your price book and labor rate; review every line before sending.';
 }
 
 function fenceDraft(notes: string, photoCount: number): PhotoDraft {

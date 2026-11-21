@@ -6,7 +6,7 @@ import { foundingPilotLink } from '@/lib/config';
 
 export const metadata: Metadata = {
   title: 'Pricing | Invoice Laboratory',
-  description: 'Free, Solo $19/mo and Pro $29/mo. Try Pro free for 14 days with no card.',
+  description: 'Free, Solo $19/mo and Pro $29/mo. Try Pro free for 14 days. Card required, no charge until day 15. Cancel anytime.',
 };
 
 export default function PricingPage() {

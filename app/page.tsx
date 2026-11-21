@@ -34,7 +34,7 @@ export default function HomePage() {
               <Link className="btn" href="/login?signup=1">Start free: 3 photo estimates a month</Link>
               <Link className="btn ghost" href="/pricing">See plans</Link>
             </div>
-            <p className="fine">No card for the 14-day Pro trial. Cancel anytime.</p>
+            <p className="fine">Try Pro free for 14 days. Card required, no charge until day 15. Cancel anytime.</p>
           </div>
           <div className="card" aria-label="Example estimate">
             <div className="est-head"><b>Estimate EST-0142</b><span className="muted">Condenser fan motor</span></div>
@@ -118,7 +118,7 @@ export default function HomePage() {
           <details><summary>Which trades does it work for?</summary><p>Service-call and small-job work: HVAC, plumbing, electrical, handyman, landscaping, fencing, painting and small roofing repairs.</p></details>
           <details><summary>How do I get paid?</summary><p>Add your own payment link (Stripe, Square, PayPal and so on) in settings. It shows as a Pay button on your invoices, and the money goes to you, not to us. Built-in card payouts are on the roadmap.</p></details>
           <details><summary>Is there an iPhone app?</summary><p>Invoice Laboratory runs in your phone&apos;s browser today and can be added to your home screen. A native iOS app is next.</p></details>
-          <details><summary>What happens after the Pro trial?</summary><p>Add a card to keep Pro, or do nothing and drop back to the Free plan. You&apos;re never locked out of your own estimates and invoices.</p></details>
+          <details><summary>What happens after the Pro trial?</summary><p>Your card is charged on day 15 unless you cancel before then. You can cancel anytime. You&apos;re never locked out of your own estimates and invoices.</p></details>
           <details><summary>Can I cancel?</summary><p>Yes, anytime. Your plan stays active until the end of the period you paid for.</p></details>
         </section>
 

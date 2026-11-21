@@ -23,9 +23,6 @@ export const metadata: Metadata = {
   icons: {
     apple: [{ url: "/apple-touch-icon.png", sizes: "180x180", type: "image/png" }],
   },
-  other: {
-    "mobile-web-app-capable": "yes",
-  },
   openGraph: { title: "Invoice Laboratory", description: "Snap it. Say it. Send it, priced from your book.", type: "website" },
 };
 
@@ -43,7 +40,11 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" suppressHydrationWarning className={`${inter.variable} ${fraunces.variable} bg-[var(--background)] text-[var(--foreground)]`}>
-      <head><script dangerouslySetInnerHTML={{ __html: themeScript }} /></head>
+      <head>
+        {/* Next.js emits mobile-web-app-capable; iOS still honors the Apple-prefixed tag. */}
+        <meta name="apple-mobile-web-app-capable" content="yes" />
+        <script dangerouslySetInnerHTML={{ __html: themeScript }} />
+      </head>
       <body>
         <Suspense>
           <PwaSupport />

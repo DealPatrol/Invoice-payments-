@@ -101,3 +101,11 @@ describe('service worker', () => {
     expect(source).toMatch(/respondWith\(fetch\(/);
   });
 });
+
+describe('Apple web app meta', () => {
+  it('emits apple-mobile-web-app-capable in the root layout', () => {
+    const layout = readFileSync(resolve('app/layout.tsx'), 'utf8');
+    expect(layout).toMatch(/apple-mobile-web-app-capable/);
+    expect(layout).toMatch(/appleWebApp:\s*\{[\s\S]*capable:\s*true/);
+  });
+});

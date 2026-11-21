@@ -87,7 +87,7 @@ export const LAB_PLANS: LabPlan[] = [
     features: ['Unlimited photo estimates (fair use)', 'Good / Better / Best options', 'Change orders', 'All 8 invoice layouts, priority help'],
     cta: 'Try Pro free for 14 days',
     featured: true,
-    note: 'No card needed to start the trial.',
+    note: 'Card required to start. You won\'t be charged until day 15.',
   },
 ];
 

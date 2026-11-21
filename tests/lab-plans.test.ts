@@ -15,6 +15,13 @@ describe('Invoice Laboratory plans', () => {
   it('prefills the founding promo code on the Pro link', () => {
     expect(foundingPilotLink()).toBe(`${PLAN_LINKS.pro}?prefilled_promo_code=ALFOUNDING`);
   });
+
+  it('requires a card for the Pro trial and keeps the 14-day free trial', () => {
+    const pro = LAB_PLANS.find((p) => p.id === 'pro');
+    expect(pro?.cta).toBe('Try Pro free for 14 days');
+    expect(pro?.note).toMatch(/card required/i);
+    expect(pro?.note).not.toMatch(/no card needed/i);
+  });
 });
 
 import { INVOICE_TEMPLATES, templateId } from '@/lib/studio';

@@ -1,3 +1,5 @@
+import { isNativeIosUserAgent } from './native/platform';
+
 export const IOS_INSTALL_HINT_STORAGE_KEY = 'il.dismiss-ios-install-hint';
 
 const hintListeners = new Set<() => void>();
@@ -36,7 +38,7 @@ export function isCustomerFacingPath(pathname: string, search = '') {
 
 export function isAppChromePath(pathname: string, search = '') {
   if (isCustomerFacingPath(pathname, search)) return false;
-  if (pathname === '/' || pathname === '/pricing' || pathname === '/welcome' || pathname === '/login') {
+  if (pathname === '/' || pathname === '/pricing' || pathname === '/welcome' || pathname === '/login' || pathname === '/privacy' || pathname === '/terms') {
     return false;
   }
   return true;
@@ -53,6 +55,8 @@ export function shouldShowIosInstallHint(opts: {
   search?: string;
 }) {
   if (opts.dismissed) return false;
+  // Never inside the App Store build: it is already installed, and Apple rejects "Add to Home Screen" prompts.
+  if (isNativeIosUserAgent(opts.userAgent)) return false;
   if (isStandaloneDisplay(opts.standalone, opts.displayModeStandalone)) return false;
   if (opts.pathname && isCustomerFacingPath(opts.pathname, opts.search ?? '')) return false;
   return isIosSafari(opts.userAgent, opts.maxTouchPoints ?? 0, opts.platform ?? '');

@@ -24,10 +24,16 @@ import {
 import {
   advanceDate, amountDue, convertEstimate, displayStatus, generateDueRecurring, invoicesToCSV, recordPayment, reminderDraft, removePayment,
 } from '@/lib/studio-ops';
+import { isNativeIos } from '@/lib/native/platform';
 
 type Tab = 'dashboard' | 'edit' | 'invoices' | 'estimates' | 'clients' | 'items' | 'work' | 'tax' | 'profile';
 
 function download(name: string, content: string, type: string) {
+  // iOS app: WKWebView ignores <a download>; hand the file to the native share sheet instead.
+  if (isNativeIos()) {
+    void import('@/lib/native/bridge').then(({ shareTextFile }) => shareTextFile(name, content)).catch(() => undefined);
+    return;
+  }
   const a = document.createElement('a');
   a.href = URL.createObjectURL(new Blob([content], { type }));
   a.download = name;

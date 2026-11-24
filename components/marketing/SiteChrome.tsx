@@ -9,7 +9,7 @@ export function SiteHeader() {
         <nav className="links" aria-label="Site">
           <Link href="/#how">How it works</Link>
           <Link href="/#features">Features</Link>
-          <Link href="/pricing">Pricing</Link>
+          <Link className="web-only" href="/pricing">Pricing</Link>
           <Link href="/#faq">FAQ</Link>
           <Link className="signin" href="/login">Sign in</Link>
         </nav>
@@ -23,7 +23,7 @@ export function SiteFooter() {
     <footer>
       <div className="wrap">
         © {new Date().getFullYear()} Invoice Laboratory · Estimates are drafts you review before sending; nothing here is legal or tax advice. ·{' '}
-        <Link href="/pricing">Pricing</Link> · <Link href="/login">Sign in</Link>
+        <span className="web-only"><Link href="/pricing">Pricing</Link> · </span><Link href="/privacy">Privacy</Link> · <Link href="/terms">Terms</Link> · <Link href="/login">Sign in</Link>
       </div>
     </footer>
   );

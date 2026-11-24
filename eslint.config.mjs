@@ -8,5 +8,8 @@ export default defineConfig([
     'coverage/**',
     'node_modules/**',
     'next-env.d.ts',
+    // Native iOS project (generated Capacitor assets) and the bundled offline shell.
+    'ios/**',
+    'ios-shell/**',
   ]),
 ]);

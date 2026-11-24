@@ -2,7 +2,10 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
-import { CreditCard, Database, ExternalLink, KeyRound, Webhook, Building2 } from 'lucide-react';
+import { CreditCard, Database, ExternalLink, KeyRound, Webhook, Building2, Smartphone, UserX } from 'lucide-react';
+import { NativeSettings } from '@/components/native/NativeSettings';
+import { DeleteAccount } from '@/components/settings/DeleteAccount';
+import { useIsNativeIos } from '@/lib/native/useIsNativeIos';
 import { btnPrimary, btnGhost, Page, PageHeader } from '@/components/ui/kit';
 import type { ComponentType, ReactNode } from 'react';
 
@@ -22,6 +25,7 @@ const code = 'rounded bg-[var(--surface-high)] px-1.5 py-0.5 font-mono text-xs t
 
 export default function SettingsPage() {
   const [billingError, setBillingError] = useState('');
+  const native = useIsNativeIos();
   async function openBillingPortal() {
     setBillingError('');
     const response = await fetch('/api/billing/portal', { method: 'POST' });
@@ -38,10 +42,17 @@ export default function SettingsPage() {
           <p className="text-sm text-[var(--text-muted)]">Edit your profile in Invoice Studio. Changes apply to new invoices right away.</p>
           <Link href="/studio?tab=profile" className={`${btnGhost} mt-4`}>Open business profile</Link>
         </Section>
-        <Section icon={CreditCard} title="Subscription" desc="Plan, payment method, and receipts through Stripe.">
-          <button type="button" onClick={openBillingPortal} className={btnPrimary}>Manage billing</button>
-          {billingError && <p className="mt-3 rounded-lg bg-[var(--danger-soft)] px-3 py-2 text-sm text-[var(--danger)]">{billingError}</p>}
-        </Section>
+        {native ? (
+          <Section icon={Smartphone} title="iPhone app" desc="App lock, reminders and your App Store subscription.">
+            <NativeSettings />
+          </Section>
+        ) : (
+          <Section icon={CreditCard} title="Subscription" desc="Plan, payment method, and receipts through Stripe.">
+            <button type="button" onClick={openBillingPortal} className={btnPrimary}>Manage billing</button>
+            {billingError && <p className="mt-3 rounded-lg bg-[var(--danger-soft)] px-3 py-2 text-sm text-[var(--danger)]">{billingError}</p>}
+          </Section>
+        )}
+        {!native && (<>
         <Section icon={KeyRound} title="Environment" desc="Variables to set in Vercel. Full list in .env.local.example.">
           <p className="mb-3 text-sm text-[var(--text-muted)]">Set <code className={code}>DEMO_MODE=true</code> only for keyless demos.</p>
           <pre className="overflow-x-auto rounded-[10px] bg-[var(--ink)] p-4 font-mono text-xs leading-relaxed text-slate-200">{`DATABASE_URL=
@@ -62,6 +73,10 @@ CRON_SECRET=`}</pre>
         </Section>
         <Section icon={Webhook} title="Stripe webhooks" desc="Keeps payment status in sync automatically.">
           <p className="text-sm text-[var(--text-muted)]">Point your webhook to <code className={code}>/api/webhooks/stripe</code> and listen for <code className={code}>checkout.session.completed</code>, subscription lifecycle, payment failure, and invoice failure events.</p>
+        </Section>
+        </>)}
+        <Section icon={UserX} title="Delete account" desc="Permanently remove your account and everything in it.">
+          <DeleteAccount />
         </Section>
       </div>
     </Page>

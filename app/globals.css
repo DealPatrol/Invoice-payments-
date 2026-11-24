@@ -278,3 +278,8 @@ a { color: inherit; text-decoration: none; }
 .tpl-mono .inv-paid { border-color: #111827; color: #111827; }
 
 .font-serif { font-family: var(--font-serif-stack); }
+
+/* App Store build (html[data-native="ios"], set before paint by NATIVE_FLAG_SCRIPT):
+   hide web-only purchase / install UI. Browsers never get this attribute. */
+html[data-native="ios"] .web-only { display: none !important; }
+html:not([data-native="ios"]) .native-only { display: none !important; }

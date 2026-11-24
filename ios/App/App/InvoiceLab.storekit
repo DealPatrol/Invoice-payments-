@@ -1,0 +1,98 @@
+{
+  "identifier" : "4C1A7E20",
+  "nonRenewingSubscriptions" : [
+
+  ],
+  "products" : [
+
+  ],
+  "settings" : {
+    "_applicationInternalID" : "",
+    "_developerTeamID" : "",
+    "_failTransactionsEnabled" : false,
+    "_locale" : "en_US",
+    "_storefront" : "USA",
+    "_storeKitErrors" : [
+
+    ]
+  },
+  "subscriptionGroups" : [
+    {
+      "id" : "4C1A7E21",
+      "localizations" : [
+
+      ],
+      "name" : "Invoice Lab Pro",
+      "subscriptions" : [
+        {
+          "adHocOffers" : [
+
+          ],
+          "codeOffers" : [
+
+          ],
+          "displayPrice" : "29.99",
+          "familyShareable" : false,
+          "groupNumber" : 2,
+          "internalID" : "4C1A7E22",
+          "introductoryOffer" : {
+            "internalID" : "4C1A7E23",
+            "paymentMode" : "free",
+            "subscriptionPeriod" : "P2W"
+          },
+          "localizations" : [
+            {
+              "description" : "Unlimited photo estimates, Good/Better/Best options, change orders and all 8 invoice layouts.",
+              "displayName" : "Invoice Lab Pro (Monthly)",
+              "locale" : "en_US"
+            }
+          ],
+          "productID" : "com.colecollins.invoicelab.pro.monthly",
+          "recurringSubscriptionPeriod" : "P1M",
+          "referenceName" : "Invoice Lab Pro Monthly",
+          "subscriptionGroupID" : "4C1A7E21",
+          "type" : "RecurringSubscription",
+          "winbackOffers" : [
+
+          ]
+        },
+        {
+          "adHocOffers" : [
+
+          ],
+          "codeOffers" : [
+
+          ],
+          "displayPrice" : "299.99",
+          "familyShareable" : false,
+          "groupNumber" : 1,
+          "internalID" : "4C1A7E24",
+          "introductoryOffer" : {
+            "internalID" : "4C1A7E25",
+            "paymentMode" : "free",
+            "subscriptionPeriod" : "P2W"
+          },
+          "localizations" : [
+            {
+              "description" : "Everything in Pro for a year: unlimited photo estimates, options, change orders and all layouts.",
+              "displayName" : "Invoice Lab Pro (Yearly)",
+              "locale" : "en_US"
+            }
+          ],
+          "productID" : "com.colecollins.invoicelab.pro.yearly",
+          "recurringSubscriptionPeriod" : "P1Y",
+          "referenceName" : "Invoice Lab Pro Yearly",
+          "subscriptionGroupID" : "4C1A7E21",
+          "type" : "RecurringSubscription",
+          "winbackOffers" : [
+
+          ]
+        }
+      ]
+    }
+  ],
+  "version" : {
+    "major" : 4,
+    "minor" : 0
+  }
+}

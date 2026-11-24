@@ -6,6 +6,7 @@ import {
   LayoutDashboard, FileText, CreditCard, Plus, Users, Globe, BarChart3, Settings, Bell, DollarSign, Palette, Wand2, Receipt, Briefcase, ClipboardList, BookOpen,
 } from 'lucide-react';
 import { ThemeToggle } from './ThemeToggle';
+import { useIsNativeIos } from '@/lib/native/useIsNativeIos';
 
 export const NAV_GROUPS = [
   { title: 'Workspace', items: [
@@ -41,6 +42,11 @@ export function isActive(pathname: string, href: string) {
 
 export function Sidebar() {
   const pathname = usePathname();
+  const native = useIsNativeIos();
+  // App Store build: plans are bought through StoreKit, never the web pricing / Stripe pages.
+  const groups = native
+    ? NAV_GROUPS.map((g) => ({ ...g, items: g.items.map((i) => (i.href === '/pricing' ? { ...i, href: '/ios/upgrade', label: 'Invoice Lab Pro' } : i)) }))
+    : NAV_GROUPS;
   return (
     <aside className="fixed left-0 top-0 z-40 flex h-screen w-64 flex-col bg-[var(--sidebar)] text-[var(--sidebar-text)]">
       <div className="px-5 pb-4 pt-6">
@@ -55,7 +61,7 @@ export function Sidebar() {
         </Link>
       </div>
       <nav className="flex-1 space-y-5 overflow-y-auto px-3 py-3" aria-label="Main">
-        {NAV_GROUPS.map((g) => (
+        {groups.map((g) => (
           <div key={g.title}>
             <p className="px-3 pb-1.5 text-[10.5px] font-semibold uppercase tracking-[0.12em] text-white/35">{g.title}</p>
             <div className="space-y-0.5">

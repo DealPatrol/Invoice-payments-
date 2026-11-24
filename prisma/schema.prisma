@@ -33,6 +33,7 @@ model User {
   estimates            Estimate[]
   changeOrders         ChangeOrder[]
   sitePhotos           SitePhoto[]
+  appleSubscriptions   AppleSubscription[]
 }
 
 model Client {
@@ -366,4 +367,22 @@ model PendingPlan {
   stripeCustomerId     String?
   stripeSubscriptionId String?
   createdAt            DateTime @default(now())
+}
+
+/// App Store (StoreKit 2) subscription bought in the iOS app. One row per Apple subscription
+/// (originalTransactionId), verified server-side from Apple-signed JWS. Web Stripe billing is
+/// unaffected; this only unlocks Pro for the owning account.
+model AppleSubscription {
+  originalTransactionId String    @id
+  userId                String
+  user                  User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  productId             String
+  status                String    // active | expired | revoked
+  expiresAt             DateTime?
+  environment           String
+  lastTransactionId     String
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
+
+  @@index([userId])
 }

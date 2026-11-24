@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { Lock } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { PRO_FEATURES, type ProFeature } from '@/lib/lab-plan';
+import { useIsNativeIos } from '@/lib/native/useIsNativeIos';
 
 export interface ClientPlan {
   plan: 'free' | 'solo' | 'pro';
@@ -44,16 +45,23 @@ export function usePlan(): { plan: ClientPlan | null; loaded: boolean; pro: bool
 /** Friendly upgrade prompt shown in place of a Pro-only feature. */
 export function ProUpsell({ feature, plan, compact = false }: { feature: ProFeature; plan: ClientPlan | null; compact?: boolean }) {
   const info = PRO_FEATURES[feature];
+  const native = useIsNativeIos();
   const href = plan?.upgrade?.pro ?? '/pricing';
   const current = plan?.plan === 'solo' ? 'Solo' : 'Free';
   return (
     <div data-pro-upsell={feature} className={`rounded-[10px] border border-[var(--accent)] bg-[var(--accent-soft)] ${compact ? 'px-3 py-2' : 'px-4 py-3'} text-sm text-[var(--text)]`}>
       <p className="flex items-center gap-2 font-semibold"><Lock size={14} aria-hidden /> {info.name} is part of Pro</p>
       {!compact && <p className="mt-1 text-[var(--text-muted)]">{info.blurb} You&apos;re on {current}; upgrade any time and keep everything you&apos;ve made.</p>}
-      <p className="mt-2">
-        <a className="font-semibold text-[var(--accent)] underline" href={href}>Upgrade to Pro, $29/mo</a>
-        {' · '}<Link className="underline" href="/pricing">Compare plans</Link>
-      </p>
+      {native ? (
+        <p className="mt-2">
+          <Link className="font-semibold text-[var(--accent)] underline" href="/ios/upgrade">Upgrade to Pro</Link>
+        </p>
+      ) : (
+        <p className="mt-2">
+          <a className="font-semibold text-[var(--accent)] underline" href={href}>Upgrade to Pro, $29/mo</a>
+          {' · '}<Link className="underline" href="/pricing">Compare plans</Link>
+        </p>
+      )}
     </div>
   );
 }

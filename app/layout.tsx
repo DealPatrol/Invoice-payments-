@@ -4,6 +4,8 @@ import { Inter, Fraunces } from "next/font/google";
 import { AppShell } from "@/components/AppShell";
 import { PwaSupport } from "@/components/PwaSupport";
 import { themeScript } from "@/components/ThemeToggle";
+import { NativeBridge } from "@/components/native/NativeBridge";
+import { NATIVE_FLAG_SCRIPT } from "@/lib/native/platform";
 import "./globals.css";
 
 const inter = Inter({ subsets: ["latin"], display: "swap", variable: "--font-inter" });
@@ -44,10 +46,12 @@ export default function RootLayout({
         {/* Next.js emits mobile-web-app-capable; iOS still honors the Apple-prefixed tag. */}
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <script dangerouslySetInnerHTML={{ __html: themeScript }} />
+        <script dangerouslySetInnerHTML={{ __html: NATIVE_FLAG_SCRIPT }} />
       </head>
       <body>
         <Suspense>
           <PwaSupport />
+          <NativeBridge />
           <AppShell>{children}</AppShell>
         </Suspense>
       </body>

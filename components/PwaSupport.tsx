@@ -9,6 +9,7 @@ import {
   readIosInstallHintVisible,
   subscribeIosInstallHint,
 } from '@/lib/pwa';
+import { isNativeIos } from '@/lib/native/platform';
 
 export function PwaSupport() {
   const pathname = usePathname();
@@ -23,6 +24,8 @@ export function PwaSupport() {
 
   useEffect(() => {
     if (!('serviceWorker' in navigator)) return;
+    // The iOS app ships its own offline mode (ios-shell/offline.html); no web install / service worker there.
+    if (isNativeIos()) return;
     navigator.serviceWorker.register('/sw.js', { scope: '/' }).catch(() => {
       // A registration failure must never break the app, auth, or checkout.
     });

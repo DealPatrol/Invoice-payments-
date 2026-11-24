@@ -1,0 +1,42 @@
+name: Web + iOS project checks
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+jobs:
+  web:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      DEMO_MODE: "true"
+      NEXTAUTH_SECRET: "ci-only-secret-not-used-in-production"
+      NEXTAUTH_URL: "http://localhost:3000"
+      DATABASE_URL: "postgresql://postgres:postgres@localhost:5432/invoiceos"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - run: npm run lint
+      - run: npm run typecheck
+      - run: npm test
+      - run: npm run build
+      - name: Capacitor sync (iOS project config + offline shell)
+        run: npx cap sync ios
+      - name: Validate iOS plists, privacy manifest, StoreKit config and scheme
+        run: |
+          python3 - <<'PY'
+          import json, plistlib, xml.dom.minidom
+          for p in ["ios/App/App/Info.plist", "ios/App/App/PrivacyInfo.xcprivacy"]:
+              plistlib.load(open(p, "rb")); print("ok", p)
+          info = plistlib.load(open("ios/App/App/Info.plist", "rb"))
+          assert info["ITSAppUsesNonExemptEncryption"] is False
+          assert info["CFBundleURLTypes"][0]["CFBundleURLSchemes"] == ["invoicelab"]
+          json.load(open("ios/App/App/InvoiceLab.storekit")); print("ok storekit")
+          json.load(open("ios/App/App/capacitor.config.json")); print("ok capacitor.config.json")
+          xml.dom.minidom.parse("ios/App/App.xcodeproj/xcshareddata/xcschemes/App.xcscheme"); print("ok scheme")
+          PY

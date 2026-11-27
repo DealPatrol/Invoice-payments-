@@ -6,17 +6,16 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
     private var privacyCover: UIView?
 
     // Installed before iOS takes its app-switcher snapshot so invoice amounts and client names
-    // never show in the multitasking view. The optional Face ID lock is handled by the web layer
-    // (components/native/NativeBridge.tsx) when the app becomes active again.
+    // never show in the multitasking view.
     func sceneWillResignActive(_ scene: UIScene) {
         guard privacyCover == nil, let window = window else { return }
         let cover = UIView(frame: window.bounds)
         cover.autoresizingMask = [.flexibleWidth, .flexibleHeight]
-        cover.backgroundColor = UIColor(red: 140/255, green: 74/255, blue: 34/255, alpha: 1) // #8c4a22
+        cover.backgroundColor = UIColor(red: 31/255, green: 111/255, blue: 92/255, alpha: 1) // #1f6f5c
         let label = UILabel(frame: cover.bounds)
         label.autoresizingMask = [.flexibleWidth, .flexibleHeight]
-        label.text = "Invoice Lab"
-        label.textColor = UIColor(red: 243/255, green: 239/255, blue: 230/255, alpha: 1) // #f3efe6
+        label.text = "Invoice Jot"
+        label.textColor = UIColor(red: 246/255, green: 244/255, blue: 239/255, alpha: 1) // #f6f4ef
         label.font = .systemFont(ofSize: 28, weight: .semibold)
         label.textAlignment = .center
         cover.addSubview(label)
@@ -25,8 +24,7 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
     }
 
     func sceneDidBecomeActive(_ scene: UIScene) {
-        // Give the web app's appStateChange listener a moment to raise the lock screen first.
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) { [weak self] in
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) { [weak self] in
             self?.privacyCover?.removeFromSuperview()
             self?.privacyCover = nil
         }
@@ -36,7 +34,7 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
         guard let windowScene = scene as? UIWindowScene else { return }
 
         window = UIWindow(windowScene: windowScene)
-        window?.rootViewController = InvoiceLabViewController()
+        window?.rootViewController = BridgeViewController()
         window?.makeKeyAndVisible()
 
         SceneDelegateProxy.shared.scene(scene, willConnectTo: session, options: connectionOptions)

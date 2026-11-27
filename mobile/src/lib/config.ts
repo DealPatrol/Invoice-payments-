@@ -1,0 +1,16 @@
+export const APP_NAME = 'Invoice Jot';
+export const BUNDLE_ID = 'com.frontporchgrowth.invoicejot';
+export const PRO_MONTHLY_ID = 'com.frontporchgrowth.invoicejot.pro.monthly';
+export const PRO_YEARLY_ID = 'com.frontporchgrowth.invoicejot.pro.yearly';
+export const PRO_PRODUCT_IDS = [PRO_MONTHLY_ID, PRO_YEARLY_ID] as const;
+/** Shown only until StoreKit returns localized prices. */
+export const FALLBACK_PRICES: Record<string, string> = { [PRO_MONTHLY_ID]: '$9.99', [PRO_YEARLY_ID]: '$59.99' };
+export const SITE_URL = 'https://invoicejot.com';
+export const SUPPORT_EMAIL = 'support@invoicejot.com';
+export const PRIVACY_URL = 'https://invoicejot.com/privacy';
+export const TERMS_URL = 'https://invoicejot.com/terms';
+export const APPLE_EULA_URL = 'https://www.apple.com/legal/internet-services/itunes/dev/stdeula/';
+
+export function isProActive(activeProductIds: readonly string[]): boolean {
+  return activeProductIds.some((id) => (PRO_PRODUCT_IDS as readonly string[]).includes(id));
+}

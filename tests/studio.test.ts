@@ -5,7 +5,7 @@ import {
   monthlyRevenue, recordPayment, reminderDraft, removePayment,
 } from '@/lib/studio-ops';
 
-const profile = { ...DEFAULT_PROFILE, name: 'Collins Lawncare', ownerName: 'Cole Collins', phone: '(256) 595-3354' };
+const profile = { ...DEFAULT_PROFILE, name: 'Rivera Lawn Care', ownerName: 'Sam Rivera', phone: '(555) 010-0142' };
 const make = (amount: number, patch = {}) => ({
   ...newInvoice(profile, 'invoice', '2026-10-01'),
   customer: { name: 'Terry Pines', company: '', email: 'terry@example.com', phone: '', address: '' },

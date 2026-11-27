@@ -40,11 +40,8 @@ export interface StudioExtras {
 
 export const EXPENSE_CATEGORIES = ['Materials', 'Fuel', 'Equipment', 'Advertising', 'Software', 'Supplies', 'Shipping', 'Subcontractor', 'Other'];
 
-export const STARTER_BRANDS: { name: string; tagline: string; invoicePrefix: string; accentColor: string }[] = [
-  { name: 'Collins Lawncare', tagline: 'Mowing • Hay • Yard work', invoicePrefix: 'CL-', accentColor: '#15803d' },
-  { name: 'Front Porch Growth', tagline: 'Local marketing for small businesses', invoicePrefix: 'FPG-', accentColor: '#1d4ed8' },
-  { name: 'Custom Gifts Online', tagline: 'Personalized gifts', invoicePrefix: 'CGO-', accentColor: '#be185d' },
-];
+/** No preloaded businesses: users add their own brands. */
+export const STARTER_BRANDS: { name: string; tagline: string; invoicePrefix: string; accentColor: string }[] = [];
 
 export const DEFAULT_EXTRAS: StudioExtras = { brands: [], activeBrandId: '', expenses: [], time: [], reminderOffsets: [1, 7, 14, 30] };
 

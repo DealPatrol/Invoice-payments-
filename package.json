@@ -1,7 +1,7 @@
 {
-  "name": "invoiceos",
+  "name": "invoice-jot",
   "version": "1.0.0",
-  "description": "InvoiceOS \u2014 global invoicing, smart collections, and one-click payments",
+  "description": "Invoice Jot \u2014 estimate & invoice maker for contractors and small businesses (local-first iOS app + web)",
   "private": true,
   "engines": {
     "node": "24.x"
@@ -15,18 +15,23 @@
     "typecheck": "tsc --noEmit",
     "db:migrate": "prisma migrate deploy",
     "postinstall": "prisma generate",
-    "ios:sync": "cap sync ios",
-    "ios:open": "cap open ios"
+    "ios:sync": "npm run mobile:build && cap sync ios",
+    "ios:open": "cap open ios",
+    "mobile:dev": "vite --config mobile/vite.config.ts",
+    "mobile:build": "vite build --config mobile/vite.config.ts"
   },
   "dependencies": {
     "@capacitor/app": "^8.1.2",
+    "@capacitor/camera": "^8.2.7",
     "@capacitor/core": "^8.6.2",
+    "@capacitor/filesystem": "^8.1.6",
     "@capacitor/haptics": "^8.0.2",
     "@capacitor/ios": "^8.6.2",
     "@capacitor/keyboard": "^8.0.6",
     "@capacitor/local-notifications": "^8.3.1",
     "@capacitor/network": "^8.0.1",
     "@capacitor/preferences": "^8.0.1",
+    "@capacitor/share": "^8.0.3",
     "@capacitor/splash-screen": "^8.0.2",
     "@capacitor/status-bar": "^8.0.4",
     "@prisma/client": "^5.13.0",
@@ -34,6 +39,7 @@
     "clsx": "^2.1.1",
     "date-fns": "^3.6.0",
     "dotenv": "^17.4.2",
+    "jspdf": "^4.2.1",
     "lucide-react": "^0.460.0",
     "nanoid": "^5.0.9",
     "next": "^16.3.6",
@@ -51,6 +57,7 @@
     "@types/qrcode": "^1.5.5",
     "@types/react": "^19.3.0",
     "@types/react-dom": "^19.3.0",
+    "@vitejs/plugin-react": "^6.3.0",
     "autoprefixer": "^10.4.20",
     "eslint": "^9.39.5",
     "eslint-config-next": "^16.3.6",
@@ -58,6 +65,7 @@
     "prisma": "^5.13.0",
     "tailwindcss": "^3.4.16",
     "typescript": "^5.7.2",
+    "vite": "^8.4.0",
     "vitest": "^5.0.2"
   }
 }

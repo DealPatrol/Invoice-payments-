@@ -1,0 +1,68 @@
+{
+  "identifier": "4C1A7E20",
+  "nonRenewingSubscriptions": [],
+  "products": [],
+  "settings": {
+    "_applicationInternalID": "",
+    "_developerTeamID": "",
+    "_failTransactionsEnabled": false,
+    "_locale": "en_US",
+    "_storefront": "USA",
+    "_storeKitErrors": []
+  },
+  "subscriptionGroups": [
+    {
+      "id": "4C1A7E21",
+      "localizations": [],
+      "name": "Invoice Jot Pro",
+      "subscriptions": [
+        {
+          "adHocOffers": [],
+          "codeOffers": [],
+          "displayPrice": "9.99",
+          "familyShareable": false,
+          "groupNumber": 2,
+          "internalID": "4C1A7E22",
+          "localizations": [
+            {
+              "description": "Unlimited invoices and no footer on your PDFs.",
+              "displayName": "Invoice Jot Pro Monthly",
+              "locale": "en_US"
+            }
+          ],
+          "productID": "com.frontporchgrowth.invoicejot.pro.monthly",
+          "recurringSubscriptionPeriod": "P1M",
+          "referenceName": "Invoice Jot Pro Monthly",
+          "subscriptionGroupID": "4C1A7E21",
+          "type": "RecurringSubscription",
+          "winbackOffers": []
+        },
+        {
+          "adHocOffers": [],
+          "codeOffers": [],
+          "displayPrice": "59.99",
+          "familyShareable": false,
+          "groupNumber": 1,
+          "internalID": "4C1A7E24",
+          "localizations": [
+            {
+              "description": "A year of unlimited invoices and no footer on your PDFs.",
+              "displayName": "Invoice Jot Pro Yearly",
+              "locale": "en_US"
+            }
+          ],
+          "productID": "com.frontporchgrowth.invoicejot.pro.yearly",
+          "recurringSubscriptionPeriod": "P1Y",
+          "referenceName": "Invoice Jot Pro Yearly",
+          "subscriptionGroupID": "4C1A7E21",
+          "type": "RecurringSubscription",
+          "winbackOffers": []
+        }
+      ]
+    }
+  ],
+  "version": {
+    "major": 4,
+    "minor": 0
+  }
+}

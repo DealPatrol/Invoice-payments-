@@ -124,7 +124,7 @@ describe('decideAppleEntitlement', () => {
   });
   it('refuses other apps and unknown products', () => {
     expect(() => decideAppleEntitlement({ ...tx, bundleId: 'com.example.other' }, now)).toThrow(AppleJwsError);
-    expect(() => decideAppleEntitlement({ ...tx, productId: 'com.colecollins.invoicelab.lifetime' }, now)).toThrow(AppleJwsError);
+    expect(() => decideAppleEntitlement({ ...tx, productId: 'com.frontporchgrowth.invoicejot.lifetime' }, now)).toThrow(AppleJwsError);
   });
 });
 

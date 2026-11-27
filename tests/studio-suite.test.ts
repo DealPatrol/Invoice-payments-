@@ -13,9 +13,9 @@ const sent = (over: Partial<StudioInvoice> = {}): StudioInvoice => ({
 });
 
 describe('brands', () => {
-  it('seeds the current profile plus the three starter businesses once', () => {
-    const x = ensureBrands(normalizeExtras(null), { ...DEFAULT_PROFILE, name: 'Collins Lawncare' });
-    expect(x.brands.map((b) => b.profile.name)).toEqual(['Collins Lawncare', 'Front Porch Growth', 'Custom Gifts Online']);
+  it('seeds only the current profile (no preloaded businesses) once', () => {
+    const x = ensureBrands(normalizeExtras(null), { ...DEFAULT_PROFILE, name: 'Rivera Lawn Care' });
+    expect(x.brands.map((b) => b.profile.name)).toEqual(['Rivera Lawn Care']);
     expect(x.activeBrandId).toBe(x.brands[0].id);
     expect(ensureBrands(x, DEFAULT_PROFILE)).toBe(x);
   });
@@ -44,7 +44,7 @@ describe('time & expenses', () => {
     // amountPaid is the earlier deposit, separate from payments: a $50 deposit
     // plus a $110 payment is $160 collected, not $110.
     const inv = sent({ brandId: 'b1', payments: [{ id: 'p', date: '2026-04-15', amount: 110, method: 'Cash', reference: '' }], amountPaid: 50, status: 'paid' });
-    const x = { ...extras, brands: [{ id: 'b1', profile: { ...DEFAULT_PROFILE, name: 'Collins Lawncare' } }] };
+    const x = { ...extras, brands: [{ id: 'b1', profile: { ...DEFAULT_PROFILE, name: 'Rivera Lawn Care' } }] };
     const s = taxSummary([inv], x, 2026);
     expect(s.totals.collected).toBe(160);
     expect(s.totals.taxCollected).toBe(14.55);
@@ -53,11 +53,11 @@ describe('time & expenses', () => {
     expect(s.quarters[1].collected).toBe(110);
     expect(s.quarters[0].collected).toBe(50);
     expect(s.quarters[0].taxCollected).toBe(4.55);
-    expect(taxSummaryCSV(s)).toContain('Collins Lawncare');
+    expect(taxSummaryCSV(s)).toContain('Rivera Lawn Care');
   });
   it('counts a deposit-only invoice in its quarter, including sales tax', () => {
     const inv = sent({ brandId: 'b1', issueDate: '2026-02-10', payments: [], amountPaid: 40, status: 'sent' });
-    const x = { ...extras, brands: [{ id: 'b1', profile: { ...DEFAULT_PROFILE, name: 'Collins Lawncare' } }] };
+    const x = { ...extras, brands: [{ id: 'b1', profile: { ...DEFAULT_PROFILE, name: 'Rivera Lawn Care' } }] };
     const s = taxSummary([inv], x, 2026);
     expect(s.totals.collected).toBe(40);
     expect(s.totals.taxCollected).toBe(3.64);

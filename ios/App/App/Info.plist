@@ -7,7 +7,7 @@
 	<key>CFBundleDevelopmentRegion</key>
 	<string>en</string>
 	<key>CFBundleDisplayName</key>
-	<string>Invoice Lab</string>
+	<string>Invoice Jot</string>
 	<key>CFBundleExecutable</key>
 	<string>$(EXECUTABLE_NAME)</string>
 	<key>CFBundleIdentifier</key>
@@ -24,10 +24,10 @@
 	<array>
 		<dict>
 			<key>CFBundleURLName</key>
-			<string>com.colecollins.invoicelab</string>
+			<string>com.frontporchgrowth.invoicejot</string>
 			<key>CFBundleURLSchemes</key>
 			<array>
-				<string>invoicelab</string>
+				<string>invoicejot</string>
 			</array>
 		</dict>
 	</array>
@@ -40,13 +40,11 @@
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
 	<key>NSCameraUsageDescription</key>
-	<string>Invoice Lab uses the camera to photograph a job site so it can draft an estimate from your price book.</string>
-	<key>NSFaceIDUsageDescription</key>
-	<string>Invoice Lab uses Face ID to lock your invoices, clients and payments so only you can open them.</string>
+	<string>Invoice Jot uses the camera only when you tap Take Photo, to attach a receipt photo to your expenses. Photos stay on your iPhone.</string>
 	<key>NSPhotoLibraryAddUsageDescription</key>
-	<string>Invoice Lab can save exported invoice PDFs and job photos to your photo library when you choose to.</string>
+	<string>Invoice Jot can save a receipt photo to your library when you choose to.</string>
 	<key>NSPhotoLibraryUsageDescription</key>
-	<string>Invoice Lab lets you pick job-site photos from your library to draft an estimate.</string>
+	<string>Invoice Jot lets you choose a receipt photo or your business logo from your library. Photos stay on your iPhone.</string>
 	<key>UIApplicationSceneManifest</key>
 	<dict>
 		<key>UIApplicationSupportsMultipleScenes</key>
@@ -72,8 +70,12 @@
 	<string>Main</string>
 	<key>UIRequiredDeviceCapabilities</key>
 	<array>
-		<string>armv7</string>
+		<string>arm64</string>
 	</array>
+	<key>UIFileSharingEnabled</key>
+	<false/>
+	<key>LSSupportsOpeningDocumentsInPlace</key>
+	<false/>
 	<key>UISupportedInterfaceOrientations</key>
 	<array>
 		<string>UIInterfaceOrientationPortrait</string>

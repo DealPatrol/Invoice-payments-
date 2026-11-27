@@ -7,8 +7,8 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		B7C1E0A10000000000000011 /* InvoiceLabViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = B7C1E0A10000000000000001 /* InvoiceLabViewController.swift */; };
-		B7C1E0A10000000000000012 /* InvoiceLabNativePlugin.swift in Sources */ = {isa = PBXBuildFile; fileRef = B7C1E0A10000000000000002 /* InvoiceLabNativePlugin.swift */; };
+		B7C1E0A10000000000000011 /* BridgeViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = B7C1E0A10000000000000001 /* BridgeViewController.swift */; };
+		B7C1E0A10000000000000012 /* InvoiceJotPlugin.swift in Sources */ = {isa = PBXBuildFile; fileRef = B7C1E0A10000000000000002 /* InvoiceJotPlugin.swift */; };
 		B7C1E0A10000000000000013 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = B7C1E0A10000000000000003 /* PrivacyInfo.xcprivacy */; };
 		2FAD9763203C412B000D30F8 /* config.xml in Resources */ = {isa = PBXBuildFile; fileRef = 2FAD9762203C412B000D30F8 /* config.xml */; };
 		4D22ABE92AF431CB00220026 /* CapApp-SPM in Frameworks */ = {isa = PBXBuildFile; productRef = 4D22ABE82AF431CB00220026 /* CapApp-SPM */; };
@@ -22,10 +22,10 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
-		B7C1E0A10000000000000001 /* InvoiceLabViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InvoiceLabViewController.swift; sourceTree = "<group>"; };
-		B7C1E0A10000000000000002 /* InvoiceLabNativePlugin.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InvoiceLabNativePlugin.swift; sourceTree = "<group>"; };
+		B7C1E0A10000000000000001 /* BridgeViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BridgeViewController.swift; sourceTree = "<group>"; };
+		B7C1E0A10000000000000002 /* InvoiceJotPlugin.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InvoiceJotPlugin.swift; sourceTree = "<group>"; };
 		B7C1E0A10000000000000003 /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; lastKnownFileType = text.xml; path = PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
-		B7C1E0A10000000000000004 /* InvoiceLab.storekit */ = {isa = PBXFileReference; lastKnownFileType = text; path = InvoiceLab.storekit; sourceTree = "<group>"; };
+		B7C1E0A10000000000000004 /* InvoiceJot.storekit */ = {isa = PBXFileReference; lastKnownFileType = text; path = InvoiceJot.storekit; sourceTree = "<group>"; };
 		2FAD9762203C412B000D30F8 /* config.xml */ = {isa = PBXFileReference; lastKnownFileType = text.xml; path = config.xml; sourceTree = "<group>"; };
 		50379B222058CBB4000EE86E /* capacitor.config.json */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.json; path = capacitor.config.json; sourceTree = "<group>"; };
 		504EC3041FED79650016851F /* App.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = App.app; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -74,10 +74,10 @@
 				9582B6822FE993A50072D4E8 /* SceneDelegate.swift */,
 				50379B222058CBB4000EE86E /* capacitor.config.json */,
 				504EC3071FED79650016851F /* AppDelegate.swift */,
-				B7C1E0A10000000000000001 /* InvoiceLabViewController.swift */,
-				B7C1E0A10000000000000002 /* InvoiceLabNativePlugin.swift */,
+				B7C1E0A10000000000000001 /* BridgeViewController.swift */,
+				B7C1E0A10000000000000002 /* InvoiceJotPlugin.swift */,
 				B7C1E0A10000000000000003 /* PrivacyInfo.xcprivacy */,
-				B7C1E0A10000000000000004 /* InvoiceLab.storekit */,
+				B7C1E0A10000000000000004 /* InvoiceJot.storekit */,
 				504EC30B1FED79650016851F /* Main.storyboard */,
 				504EC30E1FED79650016851F /* Assets.xcassets */,
 				504EC3101FED79650016851F /* LaunchScreen.storyboard */,
@@ -171,8 +171,8 @@
 			buildActionMask = 2147483647;
 			files = (
 				504EC3081FED79650016851F /* AppDelegate.swift in Sources */,
-				B7C1E0A10000000000000011 /* InvoiceLabViewController.swift in Sources */,
-				B7C1E0A10000000000000012 /* InvoiceLabNativePlugin.swift in Sources */,
+				B7C1E0A10000000000000011 /* BridgeViewController.swift in Sources */,
+				B7C1E0A10000000000000012 /* InvoiceJotPlugin.swift in Sources */,
 				9582B6832FE993A70072D4E8 /* SceneDelegate.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -323,7 +323,7 @@
 				);
 				MARKETING_VERSION = 1.0;
 				OTHER_SWIFT_FLAGS = "$(inherited) \"-D\" \"COCOAPODS\" \"-DDEBUG\"";
-				PRODUCT_BUNDLE_IDENTIFIER = com.colecollins.invoicelab;
+				PRODUCT_BUNDLE_IDENTIFIER = com.frontporchgrowth.invoicejot;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
 				SWIFT_VERSION = 5.0;
@@ -344,7 +344,7 @@
 					"@executable_path/Frameworks",
 				);
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.colecollins.invoicelab;
+				PRODUCT_BUNDLE_IDENTIFIER = com.frontporchgrowth.invoicejot;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "";
 				SWIFT_VERSION = 5.0;

@@ -22,7 +22,7 @@ export const NAV_GROUPS = [
   { title: 'Grow', items: [
     { href: '/reminders', label: 'Smart reminders', icon: Bell },
     { href: '/reports', label: 'Reports', icon: BarChart3 },
-    { href: '/templates', label: 'Templates', icon: Palette },
+    { href: '/template-gallery', label: 'Templates', icon: Palette },
     { href: '/networks', label: 'Networks', icon: Globe, badge: 'Soon' },
   ] },
   { title: 'Account', items: [
@@ -45,7 +45,7 @@ export function Sidebar() {
   const native = useIsNativeIos();
   // App Store build: plans are bought through StoreKit, never the web pricing / Stripe pages.
   const groups = native
-    ? NAV_GROUPS.map((g) => ({ ...g, items: g.items.map((i) => (i.href === '/pricing' ? { ...i, href: '/ios/upgrade', label: 'Invoice Lab Pro' } : i)) }))
+    ? NAV_GROUPS.map((g) => ({ ...g, items: g.items.map((i) => (i.href === '/pricing' ? { ...i, href: '/ios/upgrade', label: 'Invoice Jot Pro' } : i)) }))
     : NAV_GROUPS;
   return (
     <aside className="fixed left-0 top-0 z-40 flex h-screen w-64 flex-col bg-[var(--sidebar)] text-[var(--sidebar-text)]">

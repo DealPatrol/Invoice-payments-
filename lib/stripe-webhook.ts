@@ -30,7 +30,7 @@ function planFromSubscription(subscription: Stripe.Subscription): Plan | 'solo' 
 }
 
 /**
- * Invoice Laboratory plan bought through a Stripe Payment Link.
+ * Invoice Jot plan bought through a Stripe Payment Link.
  * In-app upgrade links carry client_reference_id = user id; otherwise match the checkout email.
  */
 export async function handlePlanLinkCheckout(session: Stripe.Checkout.Session, plan: 'solo' | 'pro') {

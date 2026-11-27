@@ -5,7 +5,7 @@ import { PricingCards } from '@/components/marketing/PricingCards';
 import { foundingPilotLink } from '@/lib/config';
 
 export const metadata: Metadata = {
-  title: 'Pricing | Invoice Laboratory',
+  title: 'Pricing | Invoice Jot',
   description: 'Free, Solo $19/mo and Pro $29/mo. Try Pro free for 14 days. Card required, no charge until day 15. Cancel anytime.',
 };
 
@@ -25,7 +25,7 @@ export default function PricingPage() {
           </div>
           <p className="fine" style={{ marginTop: 18 }}>
             Prices in USD. Checkout is handled securely by Stripe. After checkout, <Link href="/login?signup=1">create your account</Link> with the same email so we can match your plan.
-            Invoice Laboratory takes no cut of the payments you collect.
+            Invoice Jot takes no cut of the payments you collect.
           </p>
         </section>
       </main>

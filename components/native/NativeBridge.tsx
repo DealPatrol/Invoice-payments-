@@ -204,10 +204,10 @@ export function NativeBridge() {
         </div>
       )}
       {locked && (
-        <div className="fixed inset-0 z-[100] flex flex-col items-center justify-center gap-5 bg-[#8c4a22] px-8 text-center text-[#f3efe6]" role="dialog" aria-modal="true" aria-label="Invoice Lab is locked">
+        <div className="fixed inset-0 z-[100] flex flex-col items-center justify-center gap-5 bg-[#8c4a22] px-8 text-center text-[#f3efe6]" role="dialog" aria-modal="true" aria-label="Invoice Jot is locked">
           <Lock size={36} aria-hidden />
           <div>
-            <p className="text-2xl font-semibold">Invoice Lab is locked</p>
+            <p className="text-2xl font-semibold">Invoice Jot is locked</p>
             <p className="mt-1 text-sm opacity-80">Your invoices, clients and payments are protected.</p>
           </div>
           <button type="button" onClick={() => void unlock()} className="rounded-full bg-[#f3efe6] px-6 py-3 text-sm font-semibold text-[#8c4a22]">Unlock</button>

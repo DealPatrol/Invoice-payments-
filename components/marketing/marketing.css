@@ -1,5 +1,5 @@
-/* Invoice Laboratory marketing pages: paper / ink / copper editorial theme. Scoped to .il-site. */
-.il-site{--paper:#f3efe6;--paper-2:#ebe5d8;--ink:#1a1814;--ink-2:#4a4540;--copper:#8c4a22;--copper-2:#a85c2e;--rule:#d8cfbe;
+/* Invoice Jot marketing pages: paper / ink / green editorial theme. Scoped to .il-site. (--copper is the brand accent.) */
+.il-site{--paper:#f3efe6;--paper-2:#ebe5d8;--ink:#1a1814;--ink-2:#4a4540;--copper:#1f6f5c;--copper-2:#17594a;--rule:#d8cfbe;
   background:var(--paper);color:var(--ink);font:17px/1.6 var(--font-sans);min-height:100vh}
 .il-site *{box-sizing:border-box}
 .il-site h1,.il-site h2,.il-site h3,.il-site .serif{font-family:var(--font-serif),"Iowan Old Style","Palatino Linotype",Palatino,Georgia,serif;font-weight:600;letter-spacing:-.01em;line-height:1.15}
@@ -11,7 +11,7 @@
 .il-site .logo span{color:var(--copper)}
 .il-site nav.links a{color:var(--ink-2);text-decoration:none;margin-left:22px;font-size:15px}
 .il-site nav.links a.signin{color:var(--ink);font-weight:600}
-.il-site .btn{display:inline-block;background:var(--copper);color:#fff8ef;padding:14px 22px;border-radius:6px;text-decoration:none;font-weight:600;border:1px solid var(--copper);text-align:center}
+.il-site .btn{display:inline-block;background:var(--copper);color:#f6fffb;padding:14px 22px;border-radius:6px;text-decoration:none;font-weight:600;border:1px solid var(--copper);text-align:center}
 .il-site .btn:hover{background:var(--copper-2)}
 .il-site .btn.ghost{background:transparent;color:var(--ink);border-color:var(--ink)}
 .il-site .btn.small{padding:8px 14px;font-size:14px}
@@ -26,7 +26,7 @@
 .il-site .est-head b{font-family:var(--font-serif),Georgia,serif;font-size:19px}
 .il-site .line{display:grid;grid-template-columns:1fr auto;gap:8px;padding:9px 0;border-bottom:1px dashed var(--rule);font-size:15px}
 .il-site .badge{display:inline-block;font-size:11px;font-weight:700;letter-spacing:.04em;padding:2px 7px;border-radius:99px;margin-left:6px;vertical-align:middle}
-.il-site .b-book{background:#efe3d6;color:var(--copper)}
+.il-site .b-book{background:#dcebe5;color:var(--copper)}
 .il-site .b-def{background:#e7e3dc;color:var(--ink-2)}
 .il-site .b-need{background:var(--ink);color:var(--paper)}
 .il-site .muted{color:var(--ink-2)}
@@ -60,3 +60,33 @@
 .il-site ol.steps{padding-left:22px}
 .il-site ol.steps li{margin:10px 0}
 @media (max-width:860px){.il-site .hero{grid-template-columns:1fr;padding-top:40px}.il-site .hero h1{font-size:40px}.il-site .grid3,.il-site .grid2{grid-template-columns:1fr}.il-site nav.links a:not(.signin){display:none}.il-site .layouts{grid-template-columns:repeat(2,1fr)}.il-site section h2{font-size:30px}}
+
+/* SEO pages */
+.il-site .page{padding:48px 0 24px}
+.il-site .page h1{font-size:44px;margin:10px 0 14px}
+.il-site .page .lead{font-size:19px;color:var(--ink-2);max-width:60ch}
+.il-site .crumbs{font-size:14px;color:var(--ink-2)}
+.il-site .crumbs a{color:var(--ink-2)}
+.il-site table.inv{width:100%;border-collapse:collapse;font-size:15px;margin:10px 0}
+.il-site table.inv th,.il-site table.inv td{padding:9px 6px;border-bottom:1px dashed var(--rule);text-align:left}
+.il-site table.inv td.num,.il-site table.inv th.num{text-align:right;font-variant-numeric:tabular-nums}
+.il-site table.inv tfoot td{border-bottom:0;font-weight:700;border-top:2px solid var(--ink)}
+.il-site .tiles{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:12px;padding:0;list-style:none}
+.il-site .tiles a{display:block;padding:14px 16px;border:1px solid var(--rule);border-radius:8px;background:#fbf8f2;text-decoration:none;color:var(--ink);font-weight:600}
+.il-site .tiles a small{display:block;font-weight:400;color:var(--ink-2)}
+.il-site .answer{background:#eef5f2;border-left:4px solid var(--copper);padding:14px 18px;border-radius:4px;margin:18px 0}
+.il-site dl.gloss dt{font-weight:700;margin-top:18px;font-size:18px}
+.il-site dl.gloss dd{margin:4px 0 0;color:var(--ink-2)}
+.il-site table.cmp{width:100%;border-collapse:collapse;font-size:15px}
+.il-site table.cmp th,.il-site table.cmp td{border:1px solid var(--rule);padding:10px;vertical-align:top;text-align:left}
+.il-site table.cmp th{background:var(--paper-2)}
+.il-site footer .footer-grid{display:grid;grid-template-columns:2fr 1fr 1fr;gap:24px;margin-bottom:14px}
+.il-site footer nav{display:flex;flex-direction:column;gap:6px}
+.il-site footer nav a{color:var(--ink-2);text-decoration:none}
+.il-site .gen{display:grid;grid-template-columns:1fr 1fr;gap:28px;align-items:start}
+.il-site .gen label{display:flex;flex-direction:column;gap:4px;font-size:14px;color:var(--ink-2);margin-bottom:10px}
+.il-site .gen input,.il-site .gen textarea,.il-site .gen select{font:inherit;font-size:16px;padding:10px;border:1px solid var(--rule);border-radius:6px;background:#fff;color:var(--ink)}
+.il-site .gen .row3{display:grid;grid-template-columns:2fr 1fr 1fr auto;gap:8px;align-items:end}
+.il-site .gen .row2{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.il-site .gen button.x{background:none;border:0;color:#b42318;font-size:20px;cursor:pointer;padding:10px}
+@media (max-width:820px){.il-site .gen,.il-site footer .footer-grid{grid-template-columns:1fr}.il-site .page h1{font-size:34px}}

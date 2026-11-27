@@ -36,7 +36,7 @@ export function PwaSupport() {
   return (
     <div
       role="region"
-      aria-label="Install Invoice Laboratory on your iPhone"
+      aria-label="Install Invoice Jot on your iPhone"
       className={`no-print fixed inset-x-3 z-50 flex items-start gap-3 rounded-2xl border border-[var(--border)] bg-[var(--surface)] px-3.5 py-3 text-[13px] leading-snug text-[var(--text)] shadow-[var(--shadow-md)] ${
         appChrome
           ? 'bottom-[calc(4.75rem+env(safe-area-inset-bottom))] lg:bottom-4'

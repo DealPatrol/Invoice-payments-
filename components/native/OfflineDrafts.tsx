@@ -54,7 +54,7 @@ export function OfflineDrafts() {
   if (!native) {
     return (
       <Page narrow>
-        <PageHeader title="Offline drafts" subtitle="Offline drafts live in the Invoice Lab iPhone app." />
+        <PageHeader title="Offline drafts" subtitle="Offline drafts live in the Invoice Jot iPhone app." />
         <Link className={btnGhost} href="/invoices/create">Create an invoice</Link>
       </Page>
     );

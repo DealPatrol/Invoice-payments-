@@ -99,8 +99,8 @@ export function LoginForm({ initialSignUp = false, callbackUrl = '/dashboard' }:
           </h1>
           <p className="text-sm" style={{ color: COLORS.textMuted }}>
             {isSignUp
-              ? 'Start free with Invoice Laboratory. No card needed.'
-              : 'Sign in to Invoice Laboratory'}
+              ? 'Start free with Invoice Jot. No card needed.'
+              : 'Sign in to Invoice Jot'}
           </p>
         </div>
 

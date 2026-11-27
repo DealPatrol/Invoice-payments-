@@ -28,9 +28,9 @@ export function stripePriceId(plan: Plan): string | undefined {
   return process.env[PRICING[plan].priceEnv];
 }
 
-/* ---------- Invoice Laboratory plans (marketing + checkout) ---------- */
+/* ---------- Invoice Jot plans (marketing + checkout) ---------- */
 
-export const PRODUCT_NAME = 'Invoice Laboratory';
+export const PRODUCT_NAME = 'Invoice Jot';
 
 /** Live Stripe Payment Links (public URLs, not secrets). Override per environment if needed. */
 export const PLAN_LINKS = {

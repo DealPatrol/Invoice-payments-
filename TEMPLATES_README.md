@@ -2,7 +2,7 @@
 
 ### Overview
 
-Your InvoiceOS app now includes a comprehensive **80+ professional invoice template system** that gives customers extensive design choices for their invoices.
+Your Invoice Jot app now includes a comprehensive **80+ professional invoice template system** that gives customers extensive design choices for their invoices.
 
 ### What's Included
 

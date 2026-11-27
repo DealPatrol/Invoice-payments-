@@ -20,7 +20,7 @@ interface CapacitorGlobal {
   getPlatform?: () => string;
 }
 
-/** True only inside the Invoice Lab iOS app. Safe to call during SSR (returns false). */
+/** True only inside the Invoice Jot iOS app. Safe to call during SSR (returns false). */
 export function isNativeIos(): boolean {
   if (typeof window === 'undefined') return false;
   const cap = (window as unknown as { Capacitor?: CapacitorGlobal }).Capacitor;

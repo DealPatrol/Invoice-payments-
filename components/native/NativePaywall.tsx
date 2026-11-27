@@ -24,7 +24,7 @@ function trialLabel(p: NativeProduct): string | null {
 }
 
 /**
- * Invoice Lab Pro paywall for the iOS app (StoreKit 2, Guideline 3.1.1 / 3.1.2).
+ * Invoice Jot Pro paywall for the iOS app (StoreKit 2, Guideline 3.1.1 / 3.1.2).
  * Shows Apple's localized prices, the 14-day introductory free trial when the Apple ID is eligible,
  * Restore Purchases, Manage Subscription, and the required auto-renewal terms + EULA/privacy links.
  */
@@ -70,7 +70,7 @@ export function NativePaywall() {
       setMessage({ tone: 'ok', text: restored ? 'Purchases restored. Pro is active on this account.' : 'Welcome to Pro! Everything is unlocked.' });
       setTimeout(() => router.push('/dashboard'), 1200);
     } else {
-      setMessage({ tone: 'error', text: restored ? 'No active Invoice Lab Pro subscription was found for this Apple ID.' : 'The purchase did not complete.' });
+      setMessage({ tone: 'error', text: restored ? 'No active Invoice Jot Pro subscription was found for this Apple ID.' : 'The purchase did not complete.' });
     }
   }, [router]);
 
@@ -109,7 +109,7 @@ export function NativePaywall() {
   if (!native) {
     return (
       <Page narrow>
-        <PageHeader title="Invoice Lab Pro" subtitle="This page is for the Invoice Lab iPhone app." />
+        <PageHeader title="Invoice Jot Pro" subtitle="This page is for the Invoice Jot iPhone app." />
         <p className="text-sm text-[var(--text-muted)]">On the web, compare plans on the <Link className="underline" href="/pricing">pricing page</Link>.</p>
       </Page>
     );
@@ -120,7 +120,7 @@ export function NativePaywall() {
 
   return (
     <Page narrow>
-      <PageHeader eyebrow="Invoice Lab Pro" title="Unlock everything" subtitle="Billed through your Apple ID. Cancel anytime in Settings." />
+      <PageHeader eyebrow="Invoice Jot Pro" title="Unlock everything" subtitle="Billed through your Apple ID. Cancel anytime in Settings." />
       <ul className="mb-5 grid gap-2 text-sm text-[var(--text)]">
         {(pro?.features ?? []).map((f) => (
           <li key={f} className="flex items-start gap-2"><Check size={16} className="mt-0.5 text-[var(--accent)]" aria-hidden />{f}</li>

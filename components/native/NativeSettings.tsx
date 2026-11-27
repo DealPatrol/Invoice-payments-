@@ -51,7 +51,7 @@ export function NativeSettings() {
     setNote('');
     if (next) {
       const perm = await LocalNotifications.requestPermissions();
-      if (perm.display !== 'granted') { setNote('Notifications are off for Invoice Lab. Turn them on in iOS Settings > Notifications.'); return; }
+      if (perm.display !== 'granted') { setNote('Notifications are off for Invoice Jot. Turn them on in iOS Settings > Notifications.'); return; }
       await Preferences.set({ key: PREF_KEYS.remindersEnabled, value: '1' });
       const res = await fetch('/api/invoices', { cache: 'no-store' }).then((r) => (r.ok ? r.json() : null)).catch(() => null);
       if (res) await bridge.scheduleReminders(toCachedInvoices(res.invoices));
@@ -74,7 +74,7 @@ export function NativeSettings() {
         <Fingerprint size={18} className="mt-0.5 text-[var(--accent)]" aria-hidden />
         <div className="flex-1">
           <p className="text-sm font-semibold text-[var(--text)]">Lock with {bioName}</p>
-          <p className="text-sm text-[var(--text-muted)]">Ask for {bioName} when Invoice Lab opens or comes back from the background.</p>
+          <p className="text-sm text-[var(--text-muted)]">Ask for {bioName} when Invoice Jot opens or comes back from the background.</p>
         </div>
         <Toggle on={lock} onChange={(v) => void toggleLock(v)} label="App lock" disabled={bio ? !bio.available : true} />
       </div>
@@ -90,7 +90,7 @@ export function NativeSettings() {
       <div className="flex items-start gap-3">
         <Sparkles size={18} className="mt-0.5 text-[var(--accent)]" aria-hidden />
         <div className="flex-1">
-          <p className="text-sm font-semibold text-[var(--text)]">Invoice Lab Pro</p>
+          <p className="text-sm font-semibold text-[var(--text)]">Invoice Jot Pro</p>
           <p className="text-sm text-[var(--text-muted)]">Subscribe, restore purchases, or manage your App Store subscription.</p>
           <div className="mt-3 flex flex-wrap gap-2">
             <Link href="/ios/upgrade" className={btnPrimary}>Get Pro / Restore</Link>

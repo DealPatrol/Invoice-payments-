@@ -2,7 +2,7 @@
 @tailwind components;
 @tailwind utilities;
 
-/* ---------- Invoice Laboratory design system (paper / ink / copper) ---------- */
+/* ---------- Invoice Jot design system (paper / ink / copper) ---------- */
 :root {
   color-scheme: light;
   /* palette */
@@ -259,7 +259,7 @@ a { color: inherit; text-decoration: none; }
 .tpl-itemized .inv-table tbody tr:nth-child(even) td { background: #fafafa; }
 .tpl-itemized .inv-balance { border-radius: 0; }
 
-/* Editorial: warm paper, serif type (Invoice Laboratory house style) */
+/* Editorial: warm paper, serif type (Invoice Jot house style) */
 .tpl-editorial { background: #f3efe6 !important; color: #1a1814; }
 .tpl-editorial .inv-bar { background: var(--inv-accent); height: 3px; }
 .tpl-editorial .inv-bizname, .tpl-editorial .inv-title, .tpl-editorial .inv-billto-name { font-family: var(--font-serif), Georgia, serif; color: #1a1814; }

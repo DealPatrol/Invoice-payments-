@@ -1,4 +1,4 @@
-# InvoiceOS - Professional Invoice Management Platform
+# Invoice Jot - Professional Invoice Management Platform
 
 ## Jobs, estimates, and change orders
 
@@ -8,7 +8,7 @@ Implemented in the main app (not Invoice Studio):
 - Estimates with labor, materials, and other lines, phases, and a customer approval link (`/estimate/[token]`)
 - Photo-to-estimate drafts. Live when `ANTHROPIC_API_KEY` is set and `DEMO_MODE` is off; otherwise a structured demo draft
 - Optional preview image when `REPLICATE_API_TOKEN` is set; a schematic otherwise
-- Convert an approved estimate into an InvoiceOS invoice
+- Convert an approved estimate into an Invoice Jot invoice
 - Change orders that amend an approved estimate or create a follow-on invoice
 
 ## Product overview
@@ -287,4 +287,4 @@ MIT - See LICENSE file for details
 
 ---
 
-**InvoiceOS** - The modern alternative to legacy invoicing software. Built for freelancers, SMBs, and enterprises that value speed, design, and compliance.
+**Invoice Jot** - The modern alternative to legacy invoicing software. Built for freelancers, SMBs, and enterprises that value speed, design, and compliance.

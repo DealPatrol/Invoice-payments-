@@ -70,13 +70,13 @@ describe('web app manifest', () => {
   const manifest = JSON.parse(readFileSync(resolve('public/manifest.webmanifest'), 'utf8'));
 
   it('is installable with brand colors and 192/512 maskable icons', () => {
-    expect(manifest.name).toBe('Invoice Laboratory');
-    expect(manifest.short_name).toBe('Invoice Lab');
+    expect(manifest.name).toBe('Invoice Jot');
+    expect(manifest.short_name).toBe('Invoice Jot');
     expect(manifest.start_url).toBe('/');
     expect(manifest.scope).toBe('/');
     expect(manifest.display).toBe('standalone');
-    expect(manifest.background_color).toBe('#f3efe6');
-    expect(manifest.theme_color).toBe('#8c4a22');
+    expect(manifest.background_color).toBe('#f6f4ef');
+    expect(manifest.theme_color).toBe('#1f6f5c');
     const icons = manifest.icons as Array<{ src: string; sizes: string; type: string; purpose: string }>;
     expect(icons).toEqual(
       expect.arrayContaining([

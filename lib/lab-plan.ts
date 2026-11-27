@@ -1,7 +1,7 @@
 import { LAB_PLANS, PLAN_LINKS, type LabPlanId } from './config';
 
 /**
- * Invoice Laboratory plan rules.
+ * Invoice Jot plan rules.
  * - Everyone starts with 14 days of Pro (no card).
  * - After the trial a shop drops to Free (never locked out): unlimited manual
  *   estimates and invoices, 3 photo estimates a month.
@@ -9,7 +9,7 @@ import { LAB_PLANS, PLAN_LINKS, type LabPlanId } from './config';
  */
 export const TRIAL_DAYS = 14;
 
-/** Stripe Payment Link ids and Price ids for the live Invoice Laboratory plans (public ids, not secrets). */
+/** Stripe Payment Link ids and Price ids for the live Invoice Jot plans (public ids, not secrets). */
 // Current billing lives in the Workspace Stripe account (ids ending RJZZUpaweB).
 // The earlier Linko-account ids (ending I7O0BzBS79) stay mapped so any old checkout still syncs.
 export const PAYMENT_LINK_PLANS: Record<string, LabPlanId> = {

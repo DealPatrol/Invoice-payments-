@@ -129,7 +129,7 @@ export function decideAppleEntitlement(tx: AppleTransaction, now: Date = new Dat
 
 /**
  * Stable UUID passed to StoreKit as `appAccountToken`, so a transaction can be tied back to the
- * Invoice Laboratory account that bought it (and refused for any other account).
+ * Invoice Jot account that bought it (and refused for any other account).
  */
 export function appAccountTokenFor(userId: string): string {
   const h = createHash('sha256').update(`invoicelab:${userId}`).digest();

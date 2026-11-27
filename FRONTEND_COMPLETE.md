@@ -1,8 +1,8 @@
-# InvoiceOS - Complete Frontend Implementation
+# Invoice Jot - Complete Frontend Implementation
 
 ## Overview
 
-I've successfully built a **production-ready SaaS frontend** for InvoiceOS, a global invoice management platform. The application features a professional dark theme with full functionality across 8 major pages, supporting 40+ countries with multiple e-invoicing standards.
+I've successfully built a **production-ready SaaS frontend** for Invoice Jot, a global invoice management platform. The application features a professional dark theme with full functionality across 8 major pages, supporting 40+ countries with multiple e-invoicing standards.
 
 ## ✅ What's Been Built
 

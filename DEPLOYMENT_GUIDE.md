@@ -1,8 +1,8 @@
-## InvoiceOS - Complete Full-Stack Implementation
+## Invoice Jot - Complete Full-Stack Implementation
 
 ### What You Have Now
 
-Your InvoiceOS application is **production-ready** with the following fully integrated:
+Your Invoice Jot application is **production-ready** with the following fully integrated:
 
 #### 1. Database (Prisma + SQLite)
 - User authentication with password hashing
@@ -307,4 +307,4 @@ Your setup is working when:
 - Build completes without errors
 - App deploys to Vercel without issues
 
-You're all set to launch InvoiceOS to production!
+You're all set to launch Invoice Jot to production!

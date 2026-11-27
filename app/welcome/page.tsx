@@ -2,7 +2,7 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import { SiteShell } from '@/components/marketing/SiteChrome';
 
-export const metadata: Metadata = { title: 'Welcome | Invoice Laboratory', robots: { index: false } };
+export const metadata: Metadata = { title: 'Welcome | Invoice Jot', robots: { index: false } };
 
 export default async function WelcomePage({ searchParams }: { searchParams: Promise<{ plan?: string }> }) {
   const { plan } = await searchParams;
@@ -11,7 +11,7 @@ export default async function WelcomePage({ searchParams }: { searchParams: Prom
     <SiteShell>
       <main className="panel">
         <div className="eyebrow">You&apos;re in</div>
-        <h2 style={{ fontSize: 40, margin: '8px 0 12px' }}>Welcome to Invoice Laboratory {planName}.</h2>
+        <h2 style={{ fontSize: 40, margin: '8px 0 12px' }}>Welcome to Invoice Jot {planName}.</h2>
         <p className="muted">Stripe has your subscription and will email your receipt. Three quick steps and you&apos;re ready for your next job:</p>
         <ol className="steps">
           <li><b>Create your account</b> with the same email you used at checkout.</li>

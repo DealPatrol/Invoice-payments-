@@ -55,7 +55,7 @@ export function DeleteAccount() {
   if (!open) {
     return (
       <div>
-        <p className="text-sm text-[var(--text-muted)]">Permanently delete your Invoice Laboratory account, clients, estimates, invoices, jobs, photos and payment records. Any web subscription is cancelled.</p>
+        <p className="text-sm text-[var(--text-muted)]">Permanently delete your Invoice Jot account, clients, estimates, invoices, jobs, photos and payment records. Any web subscription is cancelled.</p>
         <button type="button" onClick={() => setOpen(true)} className={`${btnGhost} mt-4 text-[var(--danger)]`}><Trash2 size={14} />Delete account</button>
       </div>
     );

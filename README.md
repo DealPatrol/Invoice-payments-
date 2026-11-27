@@ -1,6 +1,6 @@
-# InvoiceOS
+# Invoice Jot
 
-InvoiceOS is invoicing for people who also run the job: site photos become estimates, approved estimates become invoices, and clients pay on the existing pay portal. Smart Pay Score™, Stripe Checkout, QR pay links, and multi-currency stay in place.
+Invoice Jot is invoicing for people who also run the job: site photos become estimates, approved estimates become invoices, and clients pay on the existing pay portal. Smart Pay Score™, Stripe Checkout, QR pay links, and multi-currency stay in place.
 
 ## Stack (low cost)
 
@@ -17,10 +17,10 @@ InvoiceOS is invoicing for people who also run the job: site photos become estim
 - Dashboard with collection rate & **Smart Pay Score™**
 - **Jobs** for a site, a client, and the estimates and invoices on that work
 - **Estimates** with labor, materials, and other lines, build phases, and statuses draft → sent → approved → declined or converted
-- **Photo-to-estimate**: upload site photos plus notes. With `ANTHROPIC_API_KEY` (and `DEMO_MODE` off) a vision model drafts the estimate. Otherwise InvoiceOS returns a structured demo draft so the screen still works
+- **Photo-to-estimate**: upload site photos plus notes. With `ANTHROPIC_API_KEY` (and `DEMO_MODE` off) a vision model drafts the estimate. Otherwise Invoice Jot returns a structured demo draft so the screen still works
 - Optional finished-job preview when `REPLICATE_API_TOKEN` is set; otherwise an original schematic
 - Customer approval link at `/estimate/[token]`
-- Approved estimates convert into a normal InvoiceOS invoice and use the existing pay portal
+- Approved estimates convert into a normal Invoice Jot invoice and use the existing pay portal
 - **Change orders** that amend an approved estimate or create a follow-on invoice
 - Invoices CRUD with line items, tax, recurring & late-fee rules
 - **Client pay portal** (`/pay/[token]`) with QR code

@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { LAB_PLANS, PLAN_LINKS, foundingPilotLink, planCheckoutHref } from '@/lib/config';
 
-describe('Invoice Laboratory plans', () => {
+describe('Invoice Jot plans', () => {
   it('lists free, solo and pro at the agreed prices', () => {
     expect(LAB_PLANS.map((p) => [p.id, p.price])).toEqual([['free', 0], ['solo', 19], ['pro', 29]]);
   });

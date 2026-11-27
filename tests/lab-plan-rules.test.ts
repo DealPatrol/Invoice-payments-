@@ -5,7 +5,7 @@ import { PlanLimitError, monthStartUtc, photoLimitMessage, planState, trialEndsA
 const now = new Date('2026-11-10T12:00:00Z');
 const daysAgo = (n: number) => new Date(now.getTime() - n * 86_400_000);
 
-describe('Invoice Laboratory plan rules', () => {
+describe('Invoice Jot plan rules', () => {
   it('gives new accounts 14 days of Pro with no card', () => {
     const s = planState({ plan: 'starter', subscriptionStatus: 'inactive', createdAt: daysAgo(3) }, now);
     expect(s).toMatchObject({ plan: 'pro', onTrial: true, aiEstimatesPerMonth: null });

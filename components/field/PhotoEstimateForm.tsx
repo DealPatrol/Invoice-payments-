@@ -132,7 +132,7 @@ export function PhotoEstimateForm() {
 
   return (
     <Page narrow>
-      <PageHeader eyebrow="Field work" title="Photo estimate" subtitle="Add the site photos and what the customer asked for. Invoice Laboratory drafts scope, phases, labor, and materials, priced from your price book." />
+      <PageHeader eyebrow="Field work" title="Photo estimate" subtitle="Add the site photos and what the customer asked for. Invoice Jot drafts scope, phases, labor, and materials, priced from your price book." />
       <PlanUsage />
       {bookSize === 0 && (
         <p className="mb-4 rounded-[10px] border border-[var(--warning)] bg-[var(--warning-soft)] px-4 py-3 text-sm text-[var(--warning)]">

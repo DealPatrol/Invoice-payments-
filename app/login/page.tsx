@@ -1,7 +1,7 @@
 import type { Metadata } from 'next';
 import { LoginForm } from './LoginForm';
 
-export const metadata: Metadata = { title: 'Sign in | Invoice Laboratory' };
+export const metadata: Metadata = { title: 'Sign in | Invoice Jot' };
 
 function safeCallback(raw: string | undefined): string {
   // Only allow same-site relative paths to avoid open redirects.

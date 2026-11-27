@@ -1,0 +1,61 @@
+# Invoice Jot
+
+> Invoice Jot (App Store title: "Invoice Jot: Estimate Maker") is an iPhone app for making invoices, estimates and receipts. No account or login, works fully offline, data stays on the device, PDF in one tap. Free plan: unlimited drafts, estimates, clients and receipts plus 3 sent invoices; past invoices are always free to view and export. Pro: $9.99/month or $59.99/year (App Store subscription, no free trial) for unlimited invoices and no PDF footer. Clients pay through the user's own payment link (Stripe, Square, PayPal, Venmo).
+
+Publisher: Front Porch Growth. Support: support@invoicejot.com. Website: https://invoicejot.com
+
+## Key facts
+- Platform: iPhone (iOS). Web: free invoice generator in any browser, no sign-up.
+- No account, no server storage; backups and CSV exports via the iOS share sheet / Files app.
+- Estimates convert to invoices in one tap (line items, tax, discount and deposit carry over).
+- Tracks sent, overdue, partly paid and paid invoices; records partial payments.
+- Receipt photos for expenses; CSV export for bookkeeping.
+- Privacy: no tracking, no ads, no analytics SDKs (App Privacy: Data Not Collected).
+
+## Pages
+- [Home](https://invoicejot.com/): What Invoice Jot is, features, pricing and FAQ
+- [Free invoice generator](https://invoicejot.com/free-invoice-generator): Make a PDF invoice or estimate in the browser, no sign-up, nothing uploaded
+- [Invoice templates by trade](https://invoicejot.com/templates): Index of trade-specific invoice templates
+- [Compare](https://invoicejot.com/compare): Invoice Jot vs. subscription invoice apps, payment-processor invoicing, accounting suites and spreadsheets
+- [Invoicing glossary](https://invoicejot.com/glossary): Plain-English definitions: Net 30, deposit, retainer, progress billing, change order and more
+- [Support](https://invoicejot.com/support): How-to answers: sending, backups, Restore Purchases, cancelling Pro
+- [Privacy policy](https://invoicejot.com/privacy): Local-first; data stays on the device
+- [Terms of use](https://invoicejot.com/terms): Free plan, Pro subscription terms
+
+## Invoice templates
+- [Plumbing invoice template](https://invoicejot.com/templates/plumbing): sample line items, billing norms and deposit tips for plumbers
+- [Electrical invoice template](https://invoicejot.com/templates/electrical): sample line items, billing norms and deposit tips for electricians
+- [HVAC invoice template](https://invoicejot.com/templates/hvac): sample line items, billing norms and deposit tips for HVAC technicians
+- [Handyman invoice template](https://invoicejot.com/templates/handyman): sample line items, billing norms and deposit tips for handymen
+- [Landscaping invoice template](https://invoicejot.com/templates/landscaping): sample line items, billing norms and deposit tips for landscapers
+- [Lawn Care invoice template](https://invoicejot.com/templates/lawn-care): sample line items, billing norms and deposit tips for lawn care pros
+- [Cleaning invoice template](https://invoicejot.com/templates/cleaning): sample line items, billing norms and deposit tips for cleaners
+- [House Cleaning invoice template](https://invoicejot.com/templates/house-cleaning): sample line items, billing norms and deposit tips for house cleaners
+- [Painting invoice template](https://invoicejot.com/templates/painting): sample line items, billing norms and deposit tips for painters
+- [Roofing invoice template](https://invoicejot.com/templates/roofing): sample line items, billing norms and deposit tips for roofers
+- [Construction invoice template](https://invoicejot.com/templates/construction): sample line items, billing norms and deposit tips for contractors
+- [General Contractor invoice template](https://invoicejot.com/templates/general-contractor): sample line items, billing norms and deposit tips for general contractors
+- [Carpentry invoice template](https://invoicejot.com/templates/carpentry): sample line items, billing norms and deposit tips for carpenters
+- [Flooring invoice template](https://invoicejot.com/templates/flooring): sample line items, billing norms and deposit tips for flooring installers
+- [Pressure Washing invoice template](https://invoicejot.com/templates/pressure-washing): sample line items, billing norms and deposit tips for pressure washing pros
+- [Moving invoice template](https://invoicejot.com/templates/moving): sample line items, billing norms and deposit tips for movers
+- [Auto Repair invoice template](https://invoicejot.com/templates/auto-repair): sample line items, billing norms and deposit tips for mechanics
+- [Mobile Mechanic invoice template](https://invoicejot.com/templates/mobile-mechanic): sample line items, billing norms and deposit tips for mobile mechanics
+- [Photography invoice template](https://invoicejot.com/templates/photography): sample line items, billing norms and deposit tips for photographers
+- [Graphic Design invoice template](https://invoicejot.com/templates/graphic-design): sample line items, billing norms and deposit tips for graphic designers
+- [Web Design invoice template](https://invoicejot.com/templates/web-design): sample line items, billing norms and deposit tips for web designers
+- [Freelance invoice template](https://invoicejot.com/templates/freelance): sample line items, billing norms and deposit tips for freelancers
+- [Consulting invoice template](https://invoicejot.com/templates/consulting): sample line items, billing norms and deposit tips for consultants
+- [Tutoring invoice template](https://invoicejot.com/templates/tutoring): sample line items, billing norms and deposit tips for tutors
+- [Pet Grooming invoice template](https://invoicejot.com/templates/pet-grooming): sample line items, billing norms and deposit tips for pet groomers
+- [Dog Walking invoice template](https://invoicejot.com/templates/dog-walking): sample line items, billing norms and deposit tips for dog walkers
+- [Catering invoice template](https://invoicejot.com/templates/catering): sample line items, billing norms and deposit tips for caterers
+- [Event Planning invoice template](https://invoicejot.com/templates/event-planning): sample line items, billing norms and deposit tips for event planners
+- [DJ invoice template](https://invoicejot.com/templates/dj): sample line items, billing norms and deposit tips for DJs
+- [Pool Service invoice template](https://invoicejot.com/templates/pool-service): sample line items, billing norms and deposit tips for pool technicians
+- [Pest Control invoice template](https://invoicejot.com/templates/pest-control): sample line items, billing norms and deposit tips for pest control techs
+- [Appliance Repair invoice template](https://invoicejot.com/templates/appliance-repair): sample line items, billing norms and deposit tips for appliance technicians
+- [Snow Removal invoice template](https://invoicejot.com/templates/snow-removal): sample line items, billing norms and deposit tips for snow removal contractors
+- [Junk Removal invoice template](https://invoicejot.com/templates/junk-removal): sample line items, billing norms and deposit tips for junk removal pros
+- [Tree Service invoice template](https://invoicejot.com/templates/tree-service): sample line items, billing norms and deposit tips for arborists
+- [Fencing invoice template](https://invoicejot.com/templates/fencing): sample line items, billing norms and deposit tips for fence contractors

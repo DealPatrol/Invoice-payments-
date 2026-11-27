@@ -1,5 +1,5 @@
 /**
- * Invoice Laboratory price book + "five numbers" shop rates.
+ * Invoice Jot price book + "five numbers" shop rates.
  * Every dollar on a drafted estimate comes from here, never from a model guess:
  * matched lines take the book price, labor takes the labor rate, and anything
  * unmatched is left at 0 so the editor flags it as "needs your price".

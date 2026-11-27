@@ -1,147 +1,54 @@
-'use client';
-
-import { useState } from 'react';
-import { TemplateGallery } from '@/components/TemplateGallery';
-import { COLORS } from '@/lib/constants';
-import { getTemplateById } from '@/lib/templates';
+import type { Metadata } from 'next';
 import Link from 'next/link';
-import { ArrowRight, LayoutTemplate } from 'lucide-react';
-import { btnPrimary, EmptyState, Page, PageHeader, Pill } from '@/components/ui/kit';
+import { SiteShell } from '@/components/marketing/SiteChrome';
+import { JsonLd } from '@/components/seo/JsonLd';
+import { AppCta } from '@/components/seo/AppCta';
+import { TRADES } from '@/lib/seo/trades';
+import { INVOICE_HOWTO_STEPS, SITE_URL, faqJsonLd, howToJsonLd, softwareAppJsonLd } from '@/lib/seo/site';
 
-export default function TemplatesPage() {
-  const [selectedTemplate, setSelectedTemplate] = useState<string | undefined>();
+export const metadata: Metadata = {
+  title: `Free Invoice Templates for ${TRADES.length} Trades (PDF) | Invoice Jot`,
+  description: `Free invoice and estimate templates for plumbers, electricians, HVAC, handymen, cleaners, landscapers, freelancers and ${TRADES.length - 7}+ more trades. No sign-up.`,
+  alternates: { canonical: `${SITE_URL}/templates` },
+};
 
-  const template = selectedTemplate ? getTemplateById(selectedTemplate) : null;
+const FAQS = [
+  { q: 'Are these invoice templates free?', a: 'Yes. Every template can be filled in with the free web invoice generator with no account, and downloaded as a PDF.' },
+  { q: 'Which template should I use?', a: 'Pick your trade for sample line items and tips. Any template works for any business; you can edit every line.' },
+  { q: 'Can I make an estimate instead of an invoice?', a: 'Yes. In the Invoice Jot app, create an estimate, then convert it to an invoice in one tap when the client approves.' },
+];
 
+export default function TemplatesIndex() {
   return (
-    <Page>
-      <PageHeader eyebrow="Grow" title="Invoice templates" subtitle="80+ professional templates tailored to your industry. Pick one to preview." />
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            {/* Gallery */}
-            <div className="lg:col-span-2">
-              <TemplateGallery 
-                onSelectTemplate={setSelectedTemplate}
-                selectedTemplateId={selectedTemplate}
-              />
-            </div>
-
-            {/* Preview Panel */}
-            <div>
-              {template ? (
-                <div className="sticky top-8 rounded-[var(--radius-lg)] border border-[var(--border)] bg-[var(--surface)] p-5 shadow-[var(--shadow-sm)]">
-                  <div className="mb-4 flex items-center justify-between"><h3 className="font-semibold text-[var(--text)]">{template.name}</h3><Pill tone="accent">Preview</Pill></div>
-
-                  {/* Live Preview */}
-                  <div
-                    className="mb-5 h-72 rounded-[var(--radius-md)] p-5 shadow-inner"
-                    style={{
-                      background: template.colorScheme.background,
-                      border: `2px solid ${template.colorScheme.primary}`,
-                    }}
-                  >
-                    {/* Header */}
-                    <div
-                      className="rounded p-4 mb-4 h-16"
-                      style={{
-                        background: template.colorScheme.primary,
-                        color: '#ffffff',
-                      }}
-                    >
-                      <div className="text-sm font-bold">INVOICE</div>
-                    </div>
-
-                    {/* Content */}
-                    <div className="space-y-3">
-                      <div
-                        className="h-3 rounded"
-                        style={{
-                          background: template.colorScheme.accent,
-                          width: '70%',
-                        }}
-                      />
-                      <div
-                        className="h-2 rounded"
-                        style={{
-                          background: template.colorScheme.secondary,
-                        }}
-                      />
-                      <div
-                        className="h-2 rounded"
-                        style={{
-                          background: template.colorScheme.secondary,
-                          width: '80%',
-                        }}
-                      />
-                    </div>
-                  </div>
-
-                  {/* Details */}
-                  <div className="space-y-4 mb-6 text-sm">
-                    <div>
-                      <p className="font-semibold mb-1" style={{ color: COLORS.text }}>
-                        Layout
-                      </p>
-                      <p style={{ color: COLORS.textMuted }}>
-                        {template.layout.charAt(0).toUpperCase() + template.layout.slice(1)}
-                      </p>
-                    </div>
-
-                    <div>
-                      <p className="font-semibold mb-1" style={{ color: COLORS.text }}>
-                        Industries
-                      </p>
-                      <div className="flex flex-wrap gap-1">
-                        {template.industry.map((ind) => (
-                          <span
-                            key={ind}
-                            className="px-2 py-1 rounded text-xs"
-                            style={{
-                              background: template.colorScheme.secondary,
-                              color: template.colorScheme.primary,
-                            }}
-                          >
-                            {ind}
-                          </span>
-                        ))}
-                      </div>
-                    </div>
-
-                    <div>
-                      <p className="font-semibold mb-1" style={{ color: COLORS.text }}>
-                        Colors
-                      </p>
-                      <div className="flex gap-2">
-                        {Object.entries(template.colorScheme).slice(0, 4).map(([key, color]) => (
-                          <div
-                            key={key}
-                            className="w-8 h-8 rounded border"
-                            style={{
-                              background: color,
-                              borderColor: COLORS.border,
-                            }}
-                            title={key}
-                          />
-                        ))}
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Action Button */}
-                  <Link
-                    href={`/invoices/create?template=${template.id}`}
-                    className={btnPrimary + " w-full justify-center"}
-                  >
-                    Use This Template
-                    <ArrowRight size={16} />
-                  </Link>
-                </div>
-              ) : (
-                <div className="sticky top-8 rounded-[var(--radius-lg)] border border-[var(--border)] bg-[var(--surface)]">
-                  <EmptyState icon={LayoutTemplate} title="No template selected" body="Select a template to preview and use it." />
-                </div>
-              )}
-            </div>
-          </div>
-    </Page>
+    <SiteShell>
+      <JsonLd data={softwareAppJsonLd()} />
+      <JsonLd data={faqJsonLd(FAQS)} />
+      <JsonLd data={howToJsonLd('How to make an invoice', INVOICE_HOWTO_STEPS)} />
+      <JsonLd data={{ '@context': 'https://schema.org', '@type': 'ItemList', name: 'Invoice templates by trade', itemListElement: TRADES.map((t, i) => ({ '@type': 'ListItem', position: i + 1, url: `${SITE_URL}/templates/${t.slug}`, name: `${t.name} invoice template` })) }} />
+      <main className="wrap page">
+        <div className="eyebrow">Free, no sign-up</div>
+        <h1>Invoice templates by trade</h1>
+        <p className="lead">Pick your trade for a ready-made invoice with typical line items, then fill it in free on the web or send it from your iPhone with Invoice Jot.</p>
+        <ul className="tiles" style={{ marginTop: 28 }}>
+          {TRADES.map((t) => (
+            <li key={t.slug}>
+              <Link href={`/templates/${t.slug}`}>
+                {t.name} invoice template<small>for {t.pros}</small>
+              </Link>
+            </li>
+          ))}
+        </ul>
+        <section>
+          <h2>Template FAQ</h2>
+          {FAQS.map((f) => (
+            <details key={f.q}>
+              <summary>{f.q}</summary>
+              <p>{f.a}</p>
+            </details>
+          ))}
+        </section>
+        <AppCta />
+      </main>
+    </SiteShell>
   );
 }

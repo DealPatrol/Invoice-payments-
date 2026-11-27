@@ -10,7 +10,7 @@ import {
 
 export class AppleOwnershipError extends Error {
   constructor() {
-    super('This App Store subscription belongs to a different Invoice Laboratory account.');
+    super('This App Store subscription belongs to a different Invoice Jot account.');
     this.name = 'AppleOwnershipError';
   }
 }

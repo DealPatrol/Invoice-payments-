@@ -25,3 +25,6 @@ export const APPLE_EULA_URL = 'https://www.apple.com/legal/internet-services/itu
 export function isProActive(activeProductIds: readonly string[]): boolean {
   return activeProductIds.some((id) => (PRO_PRODUCT_IDS as readonly string[]).includes(id));
 }
+
+/** Shown in support reports. Keep in step with MARKETING_VERSION in the Xcode project. */
+export const APP_VERSION = '1.0.0';

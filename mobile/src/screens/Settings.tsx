@@ -12,6 +12,7 @@ import { PRIVACY_URL, SITE_URL, SUPPORT_EMAIL, TERMS_URL } from '../lib/config';
 import { isNative } from '../lib/platform';
 import { lastBackupLabel } from '../lib/backup';
 import { runBackup } from './backupAction';
+import { diagnostics, platformLabel, supportMailto } from '../lib/support';
 
 const CURRENCIES = ['USD', 'CAD', 'GBP', 'EUR', 'AUD', 'NZD', 'MXN', 'ZAR', 'INR'];
 const ACCENTS = ['#1f6f5c', '#1d4ed8', '#b45309', '#be123c', '#334155', '#7c3aed'];
@@ -166,6 +167,10 @@ export function Settings() {
       <Btn kind="ghost" onClick={() => openExternal(`mailto:${SUPPORT_EMAIL}?subject=Invoice%20Jot%20support`)}>
         Email support
       </Btn>
+      <Btn kind="ghost" onClick={() => openExternal(supportMailto(diagnostics(db, pro, platformLabel(navigator.userAgent, isNative()))))}>
+        Report a problem (shows what will be sent)
+      </Btn>
+      <p className="hint">Opens an email you can read and edit first. It lists app version and counts only, never your invoice content.</p>
       <div className="two">
         <Btn kind="ghost" onClick={() => openExternal(PRIVACY_URL)}>
           Privacy

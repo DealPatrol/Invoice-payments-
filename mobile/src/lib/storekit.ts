@@ -1,5 +1,5 @@
 import { registerPlugin, type PluginListenerHandle } from '@capacitor/core';
-import { FALLBACK_PRICES, PRO_MONTHLY_ID, PRO_PLAN_ORDER, PRO_PRODUCT_IDS, PRO_WEEKLY_ID, PRO_YEARLY_ID, isProActive } from './config';
+import { FALLBACK_PRICES, PRO_MONTHLY_ID, PRO_PRODUCT_IDS, PRO_YEARLY_ID, isProActive } from './config';
 import { isNative } from './platform';
 
 export interface StoreProduct {
@@ -8,7 +8,7 @@ export interface StoreProduct {
   description: string;
   displayPrice: string;
   price: number;
-  /** ISO 8601 period, e.g. P1W, P1M or P1Y. */
+  /** ISO 8601 period, e.g. P1M or P1Y. */
   period: string;
 }
 
@@ -42,7 +42,6 @@ class WebStore {
   async getProducts(): Promise<{ products: StoreProduct[] }> {
     return {
       products: [
-        { id: PRO_WEEKLY_ID, displayName: 'Invoice Jot Pro Weekly', description: 'Unlimited invoices, no footer', displayPrice: FALLBACK_PRICES[PRO_WEEKLY_ID], price: 4.99, period: 'P1W' },
         { id: PRO_MONTHLY_ID, displayName: 'Invoice Jot Pro Monthly', description: 'Unlimited invoices, no footer', displayPrice: FALLBACK_PRICES[PRO_MONTHLY_ID], price: 9.99, period: 'P1M' },
         { id: PRO_YEARLY_ID, displayName: 'Invoice Jot Pro Yearly', description: 'Unlimited invoices, no footer', displayPrice: FALLBACK_PRICES[PRO_YEARLY_ID], price: 59.99, period: 'P1Y' },
       ],
@@ -99,7 +98,7 @@ function setCachedPro(v: boolean) {
 export async function loadProducts(): Promise<StoreProduct[]> {
   try {
     const r = await InvoiceJotStore.getProducts({ productIds: [...PRO_PRODUCT_IDS] });
-    const order: readonly string[] = PRO_PLAN_ORDER;
+    const order = [PRO_YEARLY_ID, PRO_MONTHLY_ID];
     return [...r.products].sort((a, b) => order.indexOf(a.id) - order.indexOf(b.id));
   } catch {
     return [];

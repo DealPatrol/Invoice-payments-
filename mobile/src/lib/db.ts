@@ -1,4 +1,5 @@
 import type { Business, Client, Database, Doc, DocKind, LineItem, Payment, Receipt, SavedItem } from './types';
+import { isPdfStyle } from './styles';
 import { addDays, num, round2, str, todayISO, uid } from './util';
 import { docTotals } from './calc';
 
@@ -94,7 +95,7 @@ export function normalizeDatabase(raw: unknown): Database {
     if (typeof dv === 'number') (business as unknown as Record<string, unknown>)[k] = num(b[k], dv);
     else if (typeof b[k] === 'string') (business as unknown as Record<string, unknown>)[k] = b[k];
   }
-  if (!['classic', 'modern', 'bold'].includes(business.pdfStyle)) business.pdfStyle = 'modern';
+  if (!isPdfStyle(business.pdfStyle)) business.pdfStyle = 'modern';
   const docs = arr(o.docs).map(normDoc).filter((d): d is Doc => !!d);
   const counters = obj(o.counters);
   return {

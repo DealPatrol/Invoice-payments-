@@ -81,7 +81,7 @@ export function DocScreen({ id }: { id: string }) {
     }
     setBusy(true);
     try {
-      const base64 = docPdfBase64({ doc, business: db.business, footer: pdfFooter(pro) });
+      const base64 = docPdfBase64({ doc, business: db.business, footer: pdfFooter(pro), pro });
       const shared = await shareFile(pdfFileName(doc), { base64 }, 'application/pdf', `Send ${doc.number}`);
       if (shared) {
         update((d) => markSent(d, doc.id));

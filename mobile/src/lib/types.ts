@@ -3,7 +3,7 @@
 export type DocKind = 'invoice' | 'estimate';
 export type DocStatus = 'draft' | 'sent' | 'accepted' | 'declined' | 'paid';
 export type DiscountType = 'percent' | 'amount';
-export type PdfStyle = 'classic' | 'modern' | 'bold';
+export type PdfStyle = 'classic' | 'modern' | 'bold' | 'formal' | 'minimal' | 'banded' | 'ledger' | 'compact';
 
 export interface Business {
   name: string;

@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react';
 import { useApp } from '../store';
 import { Area, Btn, Field, Screen } from '../ui';
-import type { Business, PdfStyle } from '../lib/types';
+import type { Business } from '../lib/types';
+import { PDF_STYLES } from '../lib/styles';
 import { emptyDatabase } from '../lib/db';
 import { num, todayISO } from '../lib/util';
 import { backupFileName, backupJson, clientsCsv, documentsCsv, parseBackup, paymentsCsv } from '../lib/exporters';
@@ -11,11 +12,6 @@ import { PRIVACY_URL, SITE_URL, SUPPORT_EMAIL, TERMS_URL } from '../lib/config';
 import { isNative } from '../lib/platform';
 
 const CURRENCIES = ['USD', 'CAD', 'GBP', 'EUR', 'AUD', 'NZD', 'MXN', 'ZAR', 'INR'];
-const STYLES: { id: PdfStyle; label: string }[] = [
-  { id: 'modern', label: 'Modern' },
-  { id: 'classic', label: 'Classic' },
-  { id: 'bold', label: 'Bold' },
-];
 const ACCENTS = ['#1f6f5c', '#1d4ed8', '#b45309', '#be123c', '#334155', '#7c3aed'];
 
 export function Settings() {
@@ -100,12 +96,27 @@ export function Settings() {
 
       <h2 className="section">PDF look</h2>
       <div className="chips" role="radiogroup" aria-label="PDF style">
-        {STYLES.map((s) => (
-          <button key={s.id} role="radio" aria-checked={b.pdfStyle === s.id} className={`chip ${b.pdfStyle === s.id ? 'on' : ''}`} onClick={() => set({ pdfStyle: s.id })}>
-            {s.label}
-          </button>
-        ))}
+        {PDF_STYLES.map((s) => {
+          const locked = s.pro && !pro;
+          return (
+            <button
+              key={s.id}
+              role="radio"
+              aria-checked={b.pdfStyle === s.id}
+              aria-label={locked ? `${s.label} (Invoice Jot Pro)` : `${s.label}. ${s.blurb}`}
+              className={`chip ${b.pdfStyle === s.id ? 'on' : ''} ${locked ? 'locked' : ''}`}
+              onClick={() => {
+                if (locked) openPaywall(`${s.label} is a Pro PDF style. Modern, Classic and Bold stay free.`);
+                else set({ pdfStyle: s.id });
+              }}
+            >
+              {s.label}
+              {locked ? <span aria-hidden="true"> 🔒</span> : null}
+            </button>
+          );
+        })}
       </div>
+      <p className="hint">Modern, Classic and Bold are free. Formal, Minimal, Banded, Ledger and Compact unlock with Pro.</p>
       <div className="swatches" role="radiogroup" aria-label="Brand color">
         {ACCENTS.map((c) => (
           <button key={c} role="radio" aria-checked={b.accent === c} aria-label={`Color ${c}`} className={`swatch ${b.accent === c ? 'on' : ''}`} style={{ background: c }} onClick={() => set({ accent: c })} />

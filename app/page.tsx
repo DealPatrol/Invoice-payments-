@@ -23,7 +23,7 @@ const FAQS = [
 const FEATURES: [string, string][] = [
   ['No account, ever', 'Open the app and start. Nothing to sign up for, no password to forget.'],
   ['Works offline', 'Create, edit and save invoices in a basement or a field. Everything is on your iPhone.'],
-  ['PDF in one tap', 'Send by text, email or AirDrop, or Save to Files. Three clean styles with your logo and color.'],
+  ['PDF in one tap', 'Send by text, email or AirDrop, or Save to Files. Your logo and color, plus three free PDF styles. Five more styles come with Pro.'],
   ['Estimates → invoices', 'Quote the job, add a deposit, then convert to an invoice when the client says yes.'],
   ['Get paid faster', 'Your payment link prints on every invoice. Mark paid and see what is overdue at a glance.'],
   ['Receipts for tax time', 'Snap expense receipts and export everything to CSV for your bookkeeper.'],

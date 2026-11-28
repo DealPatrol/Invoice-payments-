@@ -27,7 +27,7 @@ MAKE AN INVOICE IN A MINUTE
 • Add your client, list the work, and tap Send — a clean PDF goes out by text, email or AirDrop
 • Saved items and clients autofill, so the next invoice is even faster
 • Tax, discounts, deposits and partial payments do the math for you
-• Three PDF styles with your logo and brand color
+• Your logo and brand color on every PDF. Three styles are free (Modern, Classic, Bold); five more (Formal, Minimal, Banded, Ledger, Compact) come with Pro
 
 ESTIMATES THAT TURN INTO INVOICES
 • Quote the job, add a deposit, and convert to an invoice in one tap when the client says yes
@@ -52,7 +52,7 @@ Plumbers, electricians, HVAC, handymen, contractors, landscapers, cleaners, pain
 
 FREE AND PRO
 Free: unlimited drafts, estimates, clients and receipts, and your first 3 invoices to send.
-Invoice Jot Pro: unlimited invoices and no "Made with Invoice Jot" footer — $9.99/month or $59.99/year.
+Invoice Jot Pro: unlimited invoices, no "Made with Invoice Jot" footer, and five extra PDF styles — $9.99/month or $59.99/year.
 
 Payment is charged to your Apple Account at confirmation of purchase. Subscriptions renew automatically unless cancelled at least 24 hours before the end of the current period. Manage or cancel in Settings › Apple Account › Subscriptions.
 

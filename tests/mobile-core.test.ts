@@ -5,6 +5,7 @@ import { FREE_INVOICE_SENDS, canSendDoc, freeSendsLeft, pdfFooter, shouldAskForR
 import { backupJson, documentsCsv, parseBackup, toCsv } from '../mobile/src/lib/exporters';
 import { LocalStore, MIRROR_MAIN, MIRROR_PREV, createMemoryBackend, createMemoryMirror } from '../mobile/src/lib/storage';
 import { buildDocPdf, pdfSafe } from '../mobile/src/lib/pdf';
+import { ALL_PDF_STYLES, FREE_PDF_STYLES, PRO_PDF_STYLES, isProPdfStyle, resolvePdfStyle } from '../mobile/src/lib/styles';
 import type { Database, Doc } from '../mobile/src/lib/types';
 
 function withInvoice(db: Database, lines = [{ quantity: 2, unitPrice: 50 }]): { db: Database; doc: Doc } {
@@ -140,11 +141,63 @@ describe('pdf', () => {
   it('maps unsupported characters and builds a PDF with the free footer', () => {
     expect(pdfSafe('“Hi” — ok…')).toBe('"Hi" - ok...');
     const { db, doc } = withInvoice(emptyDatabase());
-    const pdf = buildDocPdf({ doc, business: { ...db.business, name: 'Acme Plumbing' }, footer: pdfFooter(false) });
+    const pdf = buildDocPdf({ doc, business: { ...db.business, name: 'Acme Plumbing' }, footer: pdfFooter(false), pro: false });
     const out = pdf.output();
     expect(out.startsWith('%PDF')).toBe(true);
     expect(out).toContain('/URI (https://invoicejot.com)');
-    const proOut = buildDocPdf({ doc, business: db.business, footer: pdfFooter(true) }).output();
+    const proOut = buildDocPdf({ doc, business: db.business, footer: pdfFooter(true), pro: true }).output();
     expect(proOut).not.toContain('/URI (https://invoicejot.com)');
+  });
+});
+
+describe('PDF styles (free vs Pro)', () => {
+  it('keeps the original three styles free and adds five Pro-only looks', () => {
+    expect([...FREE_PDF_STYLES].sort()).toEqual(['bold', 'classic', 'modern']);
+    expect([...PRO_PDF_STYLES].sort()).toEqual(['banded', 'compact', 'formal', 'ledger', 'minimal']);
+    expect(ALL_PDF_STYLES).toHaveLength(8);
+    for (const id of FREE_PDF_STYLES) expect(isProPdfStyle(id)).toBe(false);
+    for (const id of PRO_PDF_STYLES) expect(isProPdfStyle(id)).toBe(true);
+  });
+
+  it('falls back to Modern when a free user has a Pro style saved — without touching the send gate', () => {
+    expect(resolvePdfStyle('formal', false)).toBe('modern');
+    expect(resolvePdfStyle('formal', true)).toBe('formal');
+    expect(resolvePdfStyle('modern', false)).toBe('modern');
+    expect(resolvePdfStyle('bold', true)).toBe('bold');
+    expect(resolvePdfStyle('nope', true)).toBe('modern');
+    let db = emptyDatabase();
+    const firstIds: string[] = [];
+    for (let i = 0; i < 3; i++) {
+      const r = withInvoice(db);
+      db = markSent(r.db, r.doc.id);
+      firstIds.push(r.doc.id);
+    }
+    const fourth = withInvoice(db);
+    // send gate is independent of which PDF style is saved
+    fourth.db.business.pdfStyle = 'formal';
+    expect(canSendDoc(fourth.db, fourth.doc, false)).toBe(false);
+    expect(canSendDoc(fourth.db, { id: firstIds[0], kind: 'invoice' }, false)).toBe(true);
+  });
+
+  it('preserves a saved Pro style in normalize, and every style still builds a PDF', () => {
+    const raw = normalizeDatabase({ business: { pdfStyle: 'ledger' }, docs: [] });
+    expect(raw.business.pdfStyle).toBe('ledger');
+    expect(normalizeDatabase({ business: { pdfStyle: 'unknown' } }).business.pdfStyle).toBe('modern');
+    const { db, doc } = withInvoice(emptyDatabase());
+    for (const id of ALL_PDF_STYLES) {
+      const out = buildDocPdf({ doc, business: { ...db.business, name: 'Acme', pdfStyle: id }, footer: pdfFooter(false), pro: true }).output();
+      expect(out.startsWith('%PDF')).toBe(true);
+    }
+    const locked = buildDocPdf({ doc, business: { ...db.business, pdfStyle: 'formal' }, footer: pdfFooter(false), pro: false }).output();
+    const formal = buildDocPdf({ doc, business: { ...db.business, pdfStyle: 'formal' }, footer: pdfFooter(false), pro: true }).output();
+    expect(locked.startsWith('%PDF')).toBe(true);
+    expect(formal).toContain('style:formal');
+    expect(locked).toContain('style:modern');
+    expect(locked).not.toContain('style:formal');
+    // Free footer still prints on a Pro style; Pro still removes it.
+    const withFooter = buildDocPdf({ doc, business: { ...db.business, pdfStyle: 'banded' }, footer: pdfFooter(false), pro: true }).output();
+    expect(withFooter).toContain('/URI (https://invoicejot.com)');
+    const noFooter = buildDocPdf({ doc, business: { ...db.business, pdfStyle: 'banded' }, footer: pdfFooter(true), pro: true }).output();
+    expect(noFooter).not.toContain('/URI (https://invoicejot.com)');
   });
 });

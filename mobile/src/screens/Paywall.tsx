@@ -73,7 +73,7 @@ export function Paywall() {
         <ul className="benefits">
           <li>Unlimited invoices sent and exported</li>
           <li>No “Made with Invoice Jot” footer on your PDFs</li>
-          <li>All PDF styles with your logo and brand color</li>
+          <li>Five extra PDF styles: Formal, Minimal, Banded, Ledger and Compact (Modern, Classic and Bold stay free, including your logo and color)</li>
           <li>Still free forever: drafts, estimates, receipts, clients, and every past invoice</li>
         </ul>
         <div className="plans" role="radiogroup" aria-label="Choose a plan">

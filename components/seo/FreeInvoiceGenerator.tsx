@@ -93,7 +93,7 @@ export function FreeInvoiceGenerator({ sample }: { sample: TradeLine[] | null })
   const business: Business = { ...DEFAULT_BUSINESS, ...s.business };
 
   const download = () => {
-    const pdf = buildDocPdf({ doc, business, footer: FOOTER });
+    const pdf = buildDocPdf({ doc, business, footer: FOOTER, pro: false });
     pdf.save(pdfFileName(doc));
   };
 

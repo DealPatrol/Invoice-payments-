@@ -7,7 +7,8 @@ import { displayStatus, docTotals, lineTotal } from '../lib/calc';
 import { formatDate, formatMoney, num, uid } from '../lib/util';
 import { canSendDoc, pdfFooter, postSendNotice, preSendNotice, shouldAskForReview } from '../lib/gate';
 import { docPdfBase64, pdfFileName } from '../lib/pdf';
-import { requestAppReview, shareFile, success, tap } from '../lib/native';
+import { requestAppReview, shareFile, shareText, success, tap } from '../lib/native';
+import { canRemind, reminderText } from '../lib/reminder';
 
 const ASKED_KEY = 'invoicejot:review-asked';
 
@@ -115,6 +116,14 @@ export function DocScreen({ id }: { id: string }) {
         localStorage.setItem(ASKED_KEY, JSON.stringify([...asked, paidCount]));
         window.setTimeout(() => void requestAppReview(), 900);
       }
+    }
+  };
+
+  const sendReminder = async () => {
+    try {
+      if (await shareText(reminderText(doc, db.business), `Reminder for ${doc.number}`)) toast('Reminder ready to send');
+    } catch (e) {
+      toast(`Could not open the share sheet: ${String((e as Error)?.message ?? e)}`);
     }
   };
 
@@ -312,6 +321,12 @@ export function DocScreen({ id }: { id: string }) {
               </Btn>
             </div>
           </>
+        ) : null}
+
+        {canRemind(doc) ? (
+          <Btn kind="ghost" onClick={() => void sendReminder()}>
+            Send a payment reminder (free)
+          </Btn>
         ) : null}
 
         {!isInvoice ? (

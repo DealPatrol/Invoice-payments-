@@ -84,6 +84,30 @@ export async function shareFile(name: string, data: { base64: string } | { text:
   }
 }
 
+/** Opens the share sheet with plain text (for example a payment reminder). Returns false if the user cancelled. */
+export async function shareText(text: string, dialogTitle: string): Promise<boolean> {
+  if (!isNative()) {
+    const nav = navigator as Navigator & { share?: (d: { text: string; title?: string }) => Promise<void> };
+    if (nav.share) {
+      try {
+        await nav.share({ text, title: dialogTitle });
+        return true;
+      } catch {
+        return false;
+      }
+    }
+    await navigator.clipboard?.writeText(text).catch(() => undefined);
+    return true;
+  }
+  try {
+    await Share.share({ text, dialogTitle });
+    return true;
+  } catch (e) {
+    if (/cancel/i.test(String((e as Error)?.message ?? e))) return false;
+    throw e;
+  }
+}
+
 /* ---------- Camera (receipt photos) ---------- */
 
 /** Returns a compressed JPEG data URL, or null if the user cancelled. */

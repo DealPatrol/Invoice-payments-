@@ -17,8 +17,14 @@ export function addDays(iso: string, days: number): string {
   return todayISO(dt);
 }
 
+/**
+ * Round to whole cents, half away from zero, without binary-float surprises
+ * (plain Math.round turns 2.5 x 19.99 = 49.975 into 49.97 because the float is 49.97499999...).
+ */
 export function round2(n: number): number {
-  return Math.round((Number.isFinite(n) ? n : 0) * 100 + Number.EPSILON) / 100;
+  if (!Number.isFinite(n)) return 0;
+  const cents = Math.round(Number((Math.abs(n) * 100).toPrecision(12)));
+  return (n < 0 ? -cents : cents) / 100 || 0;
 }
 
 export function num(v: unknown, fallback = 0): number {

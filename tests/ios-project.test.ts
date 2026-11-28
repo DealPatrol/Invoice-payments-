@@ -53,7 +53,12 @@ describe('Invoice Jot iOS project wiring', () => {
     expect(read('ios/App/App.xcodeproj/xcshareddata/xcschemes/App.xcscheme')).toContain('InvoiceJot.storekit');
     const privacy = read('ios/App/App/PrivacyInfo.xcprivacy');
     expect(privacy).toContain('<key>NSPrivacyTracking</key>\n\t<false/>');
-    expect(privacy).toMatch(/<key>NSPrivacyCollectedDataTypes<\/key>\s*<array\/>/);
+    // Only the optional Stripe card-payments feature collects anything: financial info + the Stripe account id,
+    // linked to the user, for app functionality, never tracking.
+    const collected = [...privacy.matchAll(/<string>(NSPrivacyCollectedDataType[A-Za-z]+)<\/string>/g)].map((x) => x[1]).filter((t) => !t.startsWith('NSPrivacyCollectedDataTypePurpose'));
+    expect(collected.sort()).toEqual(['NSPrivacyCollectedDataTypeOtherFinancialInfo', 'NSPrivacyCollectedDataTypeUserID']);
+    expect(privacy).not.toMatch(/<key>NSPrivacyCollectedDataTypeTracking<\/key>\s*<true\/>/);
+    expect(privacy).not.toContain('NSPrivacyCollectedDataTypeEmailAddress');
   });
 
   it('Swift plugin is a CAPBridgedPlugin registered in BridgeViewController', () => {

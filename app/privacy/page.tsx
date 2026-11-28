@@ -6,7 +6,7 @@ import { SITE_URL } from '@/lib/seo/site';
 
 export const metadata: Metadata = {
   title: 'Privacy Policy | Invoice Jot',
-  description: 'Invoice Jot is local-first: no account, no tracking, and your invoices stay on your iPhone. Here is exactly what is and is not collected.',
+  description: 'Invoice Jot is local-first: no account, no tracking, and your invoices stay on your iPhone. Optional Stripe card payments send only the amount, currency and invoice number. Here is exactly what is and is not collected.',
   alternates: { canonical: `${SITE_URL}/privacy` },
 };
 
@@ -22,7 +22,7 @@ export default function PrivacyPage() {
         <p className="fine">Last updated {LEGAL_UPDATED}. Applies to the Invoice Jot iPhone app and invoicejot.com. Invoice Jot is published by Front Porch Growth.</p>
 
         <p className="answer">
-          <b>Short version:</b> the Invoice Jot iPhone app has no account and no server. Your business profile, clients, invoices, estimates, items and receipt photos are stored only on your iPhone. We do not collect, sell or track them, and there are no ads or analytics SDKs.
+          <b>Short version:</b> the Invoice Jot iPhone app has no account. Your business profile, clients, invoices, estimates, items and receipt photos are stored only on your iPhone. We do not collect, sell or track them, and there are no ads or analytics SDKs. The one exception is the optional <b>Get paid with card</b> feature, described below, which sends only what Stripe needs to take a card payment.
         </p>
 
         <h2 style={H2}>The iPhone app</h2>
@@ -32,16 +32,20 @@ export default function PrivacyPage() {
           <li><b>Camera and photos:</b> used only when you tap Take Photo or Choose Photo, to attach a receipt photo or your logo. Photos stay in the app.</li>
           <li><b>Purchases:</b> Invoice Jot Pro is sold by Apple through the App Store. Apple processes payment; the app only reads whether your Apple Account has an active subscription. We never see card details.</li>
           <li><b>Payment links:</b> if you add your own payment link (for example Stripe, Square, PayPal or Venmo), it is printed on your invoices. Payments go from your client to you through that provider; we are not involved.</li>
+          <li>
+            <b>Get paid with card (optional, Stripe):</b> if you turn this on, Invoice Jot creates a Stripe account for your business through Stripe Connect. Stripe collects your business, identity and bank details on its own pages; we never see them. To do this the app sends our server (invoicejot.com) and Stripe your country and currency, and later your Stripe account id. Each time you add a card payment link, the app sends the invoice amount, currency, invoice number and a random reference. It never sends your client’s name, email, address or line items. Our server keeps no copy: it passes the request to Stripe and the payment records live in <i>your</i> Stripe account. When your client pays, Stripe collects their card and email on Stripe’s checkout page under{' '}
+            <a href="https://stripe.com/privacy">Stripe’s privacy policy</a>; Invoice Jot never sees card details. Invoice Jot receives a small platform fee on each card payment. “Disconnect” in the app removes the Stripe link from your iPhone; your Stripe account and its records stay yours, and you can close it in Stripe.
+          </li>
           <li><b>Review prompt:</b> iOS may show Apple’s standard rating prompt; Apple handles any rating you leave.</li>
         </ul>
 
         <h2 style={H2}>Deleting your data</h2>
-        <p>Because there is no account, there is nothing on our servers to delete. To erase everything, use <b>More › Business &amp; settings › Delete all data on this iPhone</b>, or delete the app. Back up first with “Back up everything (JSON)” if you might need your records. Cancel a Pro subscription in iOS Settings › Apple Account › Subscriptions.</p>
+        <p>Because there is no account, there is nothing on our servers to delete (card-payment records are in your own Stripe account, which you control and can close at dashboard.stripe.com). To erase everything, use <b>More › Business &amp; settings › Delete all data on this iPhone</b>, or delete the app. Back up first with “Back up everything (JSON)” if you might need your records. Cancel a Pro subscription in iOS Settings › Apple Account › Subscriptions.</p>
 
         <h2 style={H2}>invoicejot.com</h2>
         <ul>
           <li>The <Link href="/free-invoice-generator">free invoice generator</Link> builds the PDF in your browser and saves your draft only in your browser’s local storage. Nothing you type is sent to us.</li>
-          <li>Our hosting provider (Vercel) keeps standard server logs (such as IP address and pages requested) for security and reliability.</li>
+          <li>Our hosting provider (Vercel) keeps standard server logs (such as IP address and pages requested) for security and reliability. This includes requests the app makes for card payments and visits to “Pay online” links.</li>
           <li>If you use the separate signed-in web app, the account details and records you enter there are stored with our providers (Vercel hosting, Supabase database, Stripe for web billing, and an email delivery provider for messages you choose to send) only to run that service. You can delete that account in its Settings.</li>
         </ul>
 

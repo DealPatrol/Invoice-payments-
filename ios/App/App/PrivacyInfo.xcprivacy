@@ -3,13 +3,43 @@
 <plist version="1.0">
 <dict>
 	<!-- Invoice Jot is local-first: no account, no analytics, no ads, no tracking.
-	     Invoices, clients and receipts never leave the device unless the user shares a file. -->
+	     Invoices, clients and receipts never leave the device unless the user shares a file.
+	     Optional "Get paid with card" (Stripe Connect): when the user turns it on, the app sends
+	     invoicejot.com (and Stripe) the user's Stripe account id and, per card link, the invoice
+	     amount, currency and invoice number. Those payment records are kept in the user's own
+	     Stripe account, so they are declared below as linked to the user, for app functionality,
+	     not used for tracking. No client names, emails, addresses or line items are sent. -->
 	<key>NSPrivacyTracking</key>
 	<false/>
 	<key>NSPrivacyTrackingDomains</key>
 	<array/>
 	<key>NSPrivacyCollectedDataTypes</key>
-	<array/>
+	<array>
+		<dict>
+			<key>NSPrivacyCollectedDataType</key>
+			<string>NSPrivacyCollectedDataTypeOtherFinancialInfo</string>
+			<key>NSPrivacyCollectedDataTypeLinked</key>
+			<true/>
+			<key>NSPrivacyCollectedDataTypeTracking</key>
+			<false/>
+			<key>NSPrivacyCollectedDataTypePurposes</key>
+			<array>
+				<string>NSPrivacyCollectedDataTypePurposeAppFunctionality</string>
+			</array>
+		</dict>
+		<dict>
+			<key>NSPrivacyCollectedDataType</key>
+			<string>NSPrivacyCollectedDataTypeUserID</string>
+			<key>NSPrivacyCollectedDataTypeLinked</key>
+			<true/>
+			<key>NSPrivacyCollectedDataTypeTracking</key>
+			<false/>
+			<key>NSPrivacyCollectedDataTypePurposes</key>
+			<array>
+				<string>NSPrivacyCollectedDataTypePurposeAppFunctionality</string>
+			</array>
+		</dict>
+	</array>
 	<key>NSPrivacyAccessedAPITypes</key>
 	<array>
 		<dict>

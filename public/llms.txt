@@ -7,6 +7,7 @@ Publisher: Front Porch Growth. Support: support@invoicejot.com. Website: https:/
 ## Key facts
 - Platform: iPhone (iOS). Web: free invoice generator in any browser, no sign-up.
 - No account, no server storage; backups and CSV exports via the iOS share sheet / Files app.
+- Optional "Get paid with card": connect your own Stripe account and add a "Pay online" card link to invoices (Stripe processing fee + 1% Invoice Jot fee per card payment, no monthly fee). Pro subscriptions are App Store only.
 - Estimates convert to invoices in one tap (line items, tax, discount and deposit carry over).
 - Tracks sent, overdue, partly paid and paid invoices; records partial payments.
 - Receipt photos for expenses; CSV export for bookkeeping.

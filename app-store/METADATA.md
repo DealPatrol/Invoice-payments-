@@ -34,17 +34,18 @@ ESTIMATES THAT TURN INTO INVOICES
 • Mark estimates accepted or declined
 
 GET PAID FASTER
-• Add your own payment link (Stripe, Square, PayPal, Venmo) and it prints as a tappable "Pay online" link on every invoice — money goes straight to you
+• Get paid by card: connect your own Stripe account and add a "Pay online" link to any invoice; clients pay by card or Apple Pay and you tap Check payment to mark it paid (optional; Stripe's fee plus 1% per card payment, no monthly fee)
+• Or add your own payment link (Square, PayPal, Venmo) and it prints as a tappable "Pay online" link on every invoice — money goes straight to you
 • See what's outstanding and overdue at a glance; mark invoices paid in one tap
 • One-tap payment reminder for any unpaid invoice (free, sent from your own phone)
-• Jot never touches your money: no payout holds, no processing fees, no frozen balance
+• Your money goes to your own Stripe or payment account, never through ours
 
 RECEIPTS FOR TAX TIME
 • Snap job expense receipts and keep them with your records
 • Export documents, payments, clients and receipts to CSV for your bookkeeper
 
 PRIVATE AND YOURS
-• No account, no tracking, no ads
+• No Invoice Jot account, no tracking, no ads
 • Works fully offline
 • Back up everything to Files or iCloud Drive and restore anytime, with a gentle reminder so nothing is ever lost
 • Every invoice you've ever sent stays free to view and export — always
@@ -75,7 +76,16 @@ Capture on an iPhone 16 Pro Max simulator from a build with sample data (Busines
 
 ## App Privacy (nutrition label)
 
-**Data Not Collected.** No tracking. No third-party SDKs. (The app has no server; StoreKit purchase data is handled by Apple.) Matches `ios/App/App/PrivacyInfo.xcprivacy` (no collected data types).
+No longer "Data Not Collected" — the optional **Get paid with card** (Stripe Connect) feature sends payment data through invoicejot.com to Stripe, and those records are kept in the user's Stripe account. Answer App Store Connect › App Privacy like this:
+
+* **Data used to track you:** none. **No third-party SDKs**, no ads, no analytics.
+* **Data linked to you:**
+  * **Financial Info → Other Financial Info** (invoice amount, currency and invoice number sent when the user makes a card payment link; payment status read back). Purpose: **App Functionality**. Linked: **Yes** (tied to the user's Stripe account). Tracking: **No**.
+  * **Identifiers → User ID** (the user's Stripe connected-account id, sent with each card-payment request). Purpose: **App Functionality**. Linked: **Yes**. Tracking: **No**.
+* **Not collected:** contact info, client names/emails/addresses, line items, location, photos, usage data, diagnostics. Business/bank/identity details are entered on Stripe's own web pages (Stripe is the data controller for those), not in the app. Card details are entered by the payer on Stripe Checkout in a browser, not in the app.
+* Apple's "optional feature" rule: data collected only when the user opts in must still be declared, hence the two entries above.
+
+Matches `ios/App/App/PrivacyInfo.xcprivacy` (`NSPrivacyCollectedDataTypeOtherFinancialInfo` + `NSPrivacyCollectedDataTypeUserID`, linked, not tracking, App Functionality). StoreKit purchase data is handled by Apple and not collected by us.
 
 ## In-app purchases (subscription group "Invoice Jot Pro")
 
@@ -94,7 +104,7 @@ Paywall honesty: each plan shows its own price per its own period ($4.99/week, $
 ## App Review notes (paste into "Notes")
 
 ```
-Invoice Jot is local-first: there is NO login, NO account and NO server. All data is stored on the device (IndexedDB + an atomic JSON copy in the app's Library folder), so the reviewer can use every feature immediately and offline.
+Invoice Jot is local-first: there is NO login and NO Invoice Jot account. All invoices, clients and receipts are stored on the device (IndexedDB + an atomic JSON copy in the app's Library folder), so the reviewer can use every feature immediately and offline. The only network feature is the optional "Get paid with card" (Stripe), see below.
 
 How to test:
 1. Launch → the first screen states the free-plan limits and Pro prices up front → enter any business name (or tap "Skip for now").
@@ -104,10 +114,12 @@ How to test:
 5. Mark an invoice Paid → the standard SKStoreReviewController prompt may appear (system-throttled).
 6. Unpaid sent invoices show "Send a payment reminder (free)": it only opens the iOS share sheet with a prewritten message. Settings → "Report a problem" opens a pre-filled email in the Mail app showing exactly what would be sent (app version and counts only); nothing is sent automatically. A dismissible "Back up your invoices" card appears on Home after a couple of weeks of use and links to the same Files/iCloud Drive backup as Settings.
 
-Payments: digital features are sold only through In-App Purchase. Users may add their OWN payment link (e.g. Stripe/Square/PayPal) which is printed on invoices so THEIR clients can pay them for real-world services (plumbing, landscaping, etc.) — Guideline 3.1.3(e). The app never processes those payments.
+7. Optional: More → "Get paid with card" → "Set up with Stripe" opens Stripe's own onboarding page in Safari (the reviewer does not need to complete it). After setup, an unpaid invoice shows "Add card payment link"; the PDF then carries a "Pay online" link to a Stripe-hosted checkout page, and "Check payment" marks the invoice paid once the client has paid.
+
+Payments: digital features (Invoice Jot Pro) are sold ONLY through In-App Purchase; Stripe is never used for Pro and the paywall has no external links. "Get paid with card" lets the user's OWN clients pay the user for real-world services performed outside the app (plumbing, landscaping, cleaning, etc.) — Guideline 3.1.3(e) goods and services consumed outside the app. Each user connects their own Stripe account (Stripe Connect, direct charges; the user is the merchant of record). The client pays on Stripe Checkout in a web browser; Invoice Jot takes a 1% platform fee on those real-world service payments, disclosed before connecting. Users can instead paste their own payment link (Square/PayPal/Venmo), which is printed on invoices as before.
 
 Camera/Photos are used only when the user taps "Take photo"/"Choose photo" for receipt photos or a logo.
 
-Data deletion: Settings → "Delete all data on this iPhone" (no server-side account exists, so Guideline 5.1.1(v) account deletion does not apply).
+Data deletion: Settings → "Delete all data on this iPhone" (also forgets any Stripe connection). There is no Invoice Jot server-side account, so Guideline 5.1.1(v) account deletion does not apply to Invoice Jot itself. The optional Stripe account belongs to the user; "Disconnect on this iPhone" removes it from the app and the user can close the Stripe account at any time from the Stripe Dashboard (linked in the app). Invoice Jot's server stores no data about it.
 Contact: support@invoicejot.com
 ```

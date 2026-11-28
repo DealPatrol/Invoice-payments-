@@ -18,7 +18,7 @@ const FAQS = [
   { q: 'How do I restore my Pro subscription on a new iPhone?', a: 'Open the Pro screen (More › Invoice Jot Pro, or Settings) and tap Restore Purchases while signed in to the same Apple Account.' },
   { q: 'How do I cancel Pro?', a: 'In Invoice Jot tap Settings › Manage subscription, or go to iOS Settings › Apple Account › Subscriptions › Invoice Jot. You keep Pro until the end of the paid period.' },
   { q: 'How do I back up or move my data?', a: 'Settings › Back up everything (JSON) and save it to Files or iCloud Drive. On the new phone, Settings › Restore from backup. You can also export CSVs of documents, payments, clients and receipts.' },
-  { q: 'How do clients pay me?', a: 'Add your own payment link (Stripe, Square, PayPal or Venmo) in Settings › Getting paid. It prints as a tappable “Pay online” link on every invoice and the money goes straight to you. Then tap Mark paid.' },
+  { q: 'How do clients pay me?', a: 'Two ways. 1) Get paid with card: More › Get paid with card connects your own Stripe account. On an invoice tap Add card payment link; the PDF gets a “Pay online” link to Stripe checkout (cards and Apple Pay). After your client pays, tap Check payment and the invoice is marked paid. Stripe’s processing fee plus a 1% Invoice Jot fee apply per card payment; no monthly fee. 2) Or paste your own payment link (Square, PayPal, Venmo) in Settings › Getting paid. Then tap Mark paid.' },
   { q: 'Does it work offline?', a: 'Yes. Creating, editing and saving work with no connection. Sharing a PDF needs whatever connection the app you share to needs.' },
   { q: 'How do I delete my data?', a: 'Settings › Delete all data on this iPhone. There is no server copy to delete.' },
 ];

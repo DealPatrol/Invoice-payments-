@@ -7,6 +7,8 @@
 | Stack | Capacitor 8 (Swift Package Manager) + Vite/React app in `mobile/` bundled locally (no `server.url`) |
 | Products | One subscription group "Invoice Jot Pro": `com.frontporchgrowth.invoicejot.pro.weekly` ($4.99/wk) · `com.frontporchgrowth.invoicejot.pro.monthly` ($9.99/mo) · `com.frontporchgrowth.invoicejot.pro.yearly` ($59.99/yr) — **no free trial / intro offer** |
 | Free plan | Unlimited drafts, estimates, clients, items, receipts; first 3 invoices sendable; past invoices always viewable/exportable |
+| Get paid with card | Optional Stripe Connect (Accounts v2, direct charges, 1% platform fee) — see `STRIPE_CONNECT.md`. App: `mobile/src/lib/cardPayments.ts`, `screens/GetPaid.tsx`, `screens/CardPaySection.tsx`. Server: `lib/connect/*`, `app/api/connect/*`, `app/pay-online/[token]`. Not used for Pro. |
+| App Privacy | Other Financial Info + User ID, linked, App Functionality, no tracking (only when the user opts into card payments) — see `app-store/METADATA.md` |
 | Metadata | `app-store/METADATA.md` (title, subtitle, keywords, description, captions, review notes, privacy label) |
 
 ## Architecture

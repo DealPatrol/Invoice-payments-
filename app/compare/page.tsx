@@ -18,7 +18,7 @@ const ROWS: [string, string, string, string, string][] = [
   ['Price', 'Free to start; Pro $4.99/wk, $9.99/mo or $59.99/yr', 'Monthly subscription after a limit or trial', 'Free to send; per-transaction card fees', 'Monthly subscription'],
   ['Free plan', 'Unlimited drafts and estimates; first 3 invoices free to send; past invoices always free to view and export', 'Varies', 'Yes', 'Sometimes limited'],
   ['Estimates → invoice', 'One tap, deposit carries over', 'Common', 'Common', 'Common'],
-  ['Getting paid', 'Your own payment link (Stripe, Square, PayPal, Venmo) printed on every invoice', 'Built-in payments with processing fees', 'Built-in card payments', 'Built-in, usually with fees'],
+  ['Getting paid', 'Optional Stripe card payments (Stripe fee + 1%, no monthly fee) or your own payment link (Square, PayPal, Venmo) printed on every invoice', 'Built-in payments with processing fees', 'Built-in card payments', 'Built-in, usually with fees'],
   ['Best for', 'Solo trades and small businesses who want fast, private, offline invoicing', 'Teams that want cloud sync', 'Businesses already on that processor', 'Full bookkeeping'],
 ];
 

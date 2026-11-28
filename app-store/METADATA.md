@@ -89,7 +89,7 @@ All three go in the SAME subscription group so a user can only hold one; switchi
 
 Display names: "Invoice Jot Pro Yearly" / "Invoice Jot Pro Monthly" / "Invoice Jot Pro Weekly". Description: "Unlimited invoices and no PDF footer." Upload a paywall screenshot for review on each product.
 
-Paywall honesty: each plan shows its own price per its own period ($4.99/week, $9.99/month, $59.99/year). The yearly card says "about $5.00/month, billed once a year · saves 49% vs monthly, 76% vs weekly" — computed from the live StoreKit prices (12 months / 52 weeks) and rounded down, never up. No trial, no toggle, Restore Purchases on the paywall and in Settings.
+Paywall honesty: each plan shows its own price per its own period ($4.99/week, $9.99/month, $59.99/year). The yearly card says "about $5.00/month, billed once a year · saves 49% vs monthly, 76% vs weekly"; the monthly card says "saves 53% vs weekly"; the weekly card says "about $21.62/month if kept all year" — computed from the live StoreKit prices (12 months / 52 weeks) and rounded down, never up. No trial, no toggle, Restore Purchases on the paywall and in Settings.
 
 ## App Review notes (paste into "Notes")
 

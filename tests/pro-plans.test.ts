@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { readFileSync } from 'node:fs';
 import { FALLBACK_PRICES, FALLBACK_PRICE_VALUES, PRO_PERIOD, PRO_PLAN_ORDER, PRO_PRODUCT_IDS, PRO_WEEKLY_ID, isProActive } from '../mobile/src/lib/config';
-import { savingsPercent, yearlyPlanNote, yearlySavingsPercent, yearlyVsWeeklySavingsPercent } from '../mobile/src/lib/pricing';
+import { monthlyPlanNote, monthlyVsWeeklySavingsPercent, savingsPercent, weeklyPlanNote, yearlyPlanNote, yearlySavingsPercent, yearlyVsWeeklySavingsPercent } from '../mobile/src/lib/pricing';
 import { IOS_PRO_PRODUCT_IDS } from '../lib/native/iap';
 
 describe('Pro plans: weekly, monthly, yearly', () => {
@@ -23,6 +23,14 @@ describe('Pro plans: weekly, monthly, yearly', () => {
     expect(savingsPercent(10, 12, 120)).toBe(0);
     expect(savingsPercent(0, 12, 10)).toBe(0);
     expect(savingsPercent(Number.NaN, 12, 10)).toBe(0);
+  });
+
+  it('compares monthly with weekly honestly and shows what weekly costs per month', () => {
+    // 12 x 9.99 = 119.88 vs 52 x 4.99 = 259.48 -> 53.8% -> 53%.
+    expect(monthlyVsWeeklySavingsPercent(4.99, 9.99)).toBe(53);
+    expect(monthlyPlanNote({ monthly: 9.99, weekly: 4.99 })).toBe('billed every month · saves 53% vs weekly');
+    expect(monthlyPlanNote({ monthly: 9.99 })).toBe('billed every month');
+    expect(weeklyPlanNote('$4.99', 4.99)).toBe('billed every week · about $21.62/month if kept all year');
   });
 
   it('builds the yearly card note from real prices only', () => {

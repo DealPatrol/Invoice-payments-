@@ -37,3 +37,24 @@ export function yearlyPlanNote(yearlyDisplayPrice: string, prices: { yearly: num
   const base = `about ${perMonthLabel(yearlyDisplayPrice, prices.yearly)}/month, billed once a year`;
   return parts.length ? `${base} · saves ${parts.join(', ')}` : base;
 }
+
+/** Monthly vs weekly, compared over a year (12 monthly vs 52 weekly renewals), rounded down. */
+export function monthlyVsWeeklySavingsPercent(weeklyPrice: number, monthlyPrice: number): number {
+  return savingsPercent(weeklyPrice, 52, monthlyPrice * 12);
+}
+
+/** "$4.99" + 4.99 -> "$21.62": what the weekly plan averages per month if kept all year (52 weeks / 12). */
+export function weeklyPerMonthLabel(weeklyDisplayPrice: string, weeklyPrice: number): string {
+  const symbol = /^[^\d\s-]+/.exec(weeklyDisplayPrice.trim())?.[0] ?? '$';
+  return `${symbol}${(Math.round(((weeklyPrice * 52) / 12) * 100) / 100).toFixed(2)}`;
+}
+
+/** Honest one-liners for the monthly and weekly plan cards. */
+export function monthlyPlanNote(prices: { monthly: number; weekly?: number }): string {
+  const vs = prices.weekly != null ? monthlyVsWeeklySavingsPercent(prices.weekly, prices.monthly) : 0;
+  return vs > 0 ? `billed every month · saves ${vs}% vs weekly` : 'billed every month';
+}
+
+export function weeklyPlanNote(weeklyDisplayPrice: string, weeklyPrice: number): string {
+  return `billed every week · about ${weeklyPerMonthLabel(weeklyDisplayPrice, weeklyPrice)}/month if kept all year`;
+}

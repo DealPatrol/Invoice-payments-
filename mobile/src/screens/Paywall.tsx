@@ -3,7 +3,7 @@ import { useApp } from '../store';
 import { Btn } from '../ui';
 import { buyPro, loadProducts, restorePro, type StoreProduct } from '../lib/storekit';
 import { APPLE_EULA_URL, FALLBACK_PRICES, FALLBACK_PRICE_VALUES, PRIVACY_URL, PRO_MONTHLY_ID, PRO_PERIOD, PRO_PLAN_ORDER, PRO_WEEKLY_ID, PRO_YEARLY_ID } from '../lib/config';
-import { yearlyPlanNote } from '../lib/pricing';
+import { monthlyPlanNote, weeklyPlanNote, yearlyPlanNote } from '../lib/pricing';
 import { openExternal, success } from '../lib/native';
 import { isNative } from '../lib/platform';
 
@@ -88,7 +88,8 @@ export function Paywall() {
               </span>
               <span className="plan-name">{p.name}{p.id === PRO_YEARLY_ID ? ' · best value' : ''}</span>
               {p.id === PRO_YEARLY_ID ? <span className="hint">{yearlyNote}</span> : null}
-              {p.id === PRO_WEEKLY_ID ? <span className="hint">billed every week · for a short busy stretch</span> : null}
+              {p.id === PRO_MONTHLY_ID ? <span className="hint">{monthlyPlanNote({ monthly: p.value, weekly: value(PRO_WEEKLY_ID) })}</span> : null}
+              {p.id === PRO_WEEKLY_ID ? <span className="hint">{weeklyPlanNote(p.price, p.value)}</span> : null}
             </button>
           ))}
         </div>

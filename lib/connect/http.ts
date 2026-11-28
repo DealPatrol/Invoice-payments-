@@ -7,6 +7,8 @@ import { ConnectError, type StripeLike } from './service';
 export function platformStripe(env: Record<string, string | undefined> = process.env): StripeLike {
   const key = env.STRIPE_SECRET_KEY;
   if (!key) throw new ConnectNotConfigured('STRIPE_SECRET_KEY is missing');
+  // Test mode until launch: a live key is refused unless INVOICEJOT_CONNECT_ALLOW_LIVE=true is set on purpose.
+  if (/^(sk|rk)_live_/.test(key) && env.INVOICEJOT_CONNECT_ALLOW_LIVE !== 'true') throw new ConnectNotConfigured('live Stripe key refused; set INVOICEJOT_CONNECT_ALLOW_LIVE=true to go live');
   return new Stripe(key, { appInfo: { name: 'Invoice Jot', url: 'https://invoicejot.com' } }) as unknown as StripeLike;
 }
 

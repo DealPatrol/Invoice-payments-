@@ -125,6 +125,16 @@ describe('POST /api/connect/accounts', () => {
     expect(r.status).toBe(503);
     expect((await r.json()).code).toBe('not_configured');
   });
+  it('refuses a live key unless going live is switched on explicitly', async () => {
+    const { POST } = await import('@/app/api/connect/accounts/route');
+    vi.stubEnv('STRIPE_SECRET_KEY', 'sk_live_dummy');
+    expect((await POST(post({ country: 'us' }))).status).toBe(503);
+    expect(m.accountsCreate).not.toHaveBeenCalled();
+    vi.stubEnv('INVOICEJOT_CONNECT_ALLOW_LIVE', 'true');
+    m.accountsCreate.mockResolvedValue({ id: ACCT });
+    expect((await POST(post({ country: 'us' }))).status).toBe(200);
+    vi.stubEnv('INVOICEJOT_CONNECT_ALLOW_LIVE', '');
+  });
   it('does not echo CORS for unknown origins', async () => {
     m.accountsCreate.mockResolvedValue({ id: ACCT });
     const { POST } = await import('@/app/api/connect/accounts/route');

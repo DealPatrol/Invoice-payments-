@@ -118,4 +118,8 @@ export interface Database {
   /** Invoices marked paid, used to time the App Store review prompt. */
   paidCount: number;
   onboarded: boolean;
+  /** When the user last exported a full backup (ISO), or null. Drives the gentle backup reminder. */
+  lastBackupAt: string | null;
+  /** The backup reminder stays quiet until this ISO time. */
+  backupSnoozedUntil: string | null;
 }

@@ -5,11 +5,13 @@ import type { Business } from '../lib/types';
 import { PDF_STYLES } from '../lib/styles';
 import { emptyDatabase } from '../lib/db';
 import { num, todayISO } from '../lib/util';
-import { backupFileName, backupJson, clientsCsv, documentsCsv, parseBackup, paymentsCsv } from '../lib/exporters';
+import { clientsCsv, documentsCsv, parseBackup, paymentsCsv } from '../lib/exporters';
 import { fileToDataUrl, openExternal, shareFile } from '../lib/native';
 import { InvoiceJotStore, restorePro } from '../lib/storekit';
 import { PRIVACY_URL, SITE_URL, SUPPORT_EMAIL, TERMS_URL } from '../lib/config';
 import { isNative } from '../lib/platform';
+import { lastBackupLabel } from '../lib/backup';
+import { runBackup } from './backupAction';
 
 const CURRENCIES = ['USD', 'CAD', 'GBP', 'EUR', 'AUD', 'NZD', 'MXN', 'ZAR', 'INR'];
 const ACCENTS = ['#1f6f5c', '#1d4ed8', '#b45309', '#be123c', '#334155', '#7c3aed'];
@@ -140,7 +142,8 @@ export function Settings() {
 
       <h2 className="section">Your data (always free)</h2>
       <p className="muted small">Everything is stored only on this iPhone. Export anytime with “Save to Files”, AirDrop or email.</p>
-      <Btn kind="secondary" onClick={() => void exportText(backupFileName(), backupJson(db), 'application/json', 'Back up Invoice Jot')}>
+      <p className="small strong" data-testid="last-backup">{lastBackupLabel(db)}</p>
+      <Btn kind="secondary" onClick={() => void runBackup(db, update, toast)}>
         Back up everything (JSON)
       </Btn>
       <label className="btn btn-ghost file-btn">

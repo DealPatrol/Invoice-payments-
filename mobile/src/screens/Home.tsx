@@ -4,9 +4,13 @@ import { createDoc } from '../lib/db';
 import { displayStatus, docTotals, summarize } from '../lib/calc';
 import { formatDate, formatMoney } from '../lib/util';
 import { FREE_INVOICE_SENDS, freeSendsLeft } from '../lib/gate';
+import { BACKUP_SNOOZE_DAYS, backupReminder } from '../lib/backup';
+import { snoozeBackupReminder } from '../lib/db';
+import { runBackup } from './backupAction';
 
 export function Home() {
-  const { db, update, go, pro, openPaywall } = useApp();
+  const { db, update, go, pro, openPaywall, toast } = useApp();
+  const reminder = backupReminder(db);
   const s = summarize(db.docs);
   const cur = db.business.currency;
   const left = freeSendsLeft(db);
@@ -49,6 +53,19 @@ export function Home() {
           <span className="stat-value">{s.openEstimates}</span>
         </div>
       </div>
+
+      {reminder.due ? (
+        <div className="card backup-card" role="region" aria-label="Backup reminder">
+          <strong>{reminder.title}</strong>
+          <p className="muted small">{reminder.body}</p>
+          <div className="two">
+            <Btn onClick={() => void runBackup(db, update, toast)}>Back up now</Btn>
+            <Btn kind="ghost" onClick={() => update((d) => snoozeBackupReminder(d, BACKUP_SNOOZE_DAYS))}>
+              Later
+            </Btn>
+          </div>
+        </div>
+      ) : null}
 
       {!pro ? (
         <Card onClick={() => openPaywall('Unlimited invoices and no footer on your PDFs.')} label="Invoice Jot Pro">

@@ -36,6 +36,8 @@ export function emptyDatabase(now = new Date().toISOString()): Database {
     sentInvoiceIds: [],
     paidCount: 0,
     onboarded: false,
+    lastBackupAt: null,
+    backupSnoozedUntil: null,
   };
 }
 
@@ -123,6 +125,8 @@ export function normalizeDatabase(raw: unknown): Database {
     sentInvoiceIds: arr(o.sentInvoiceIds).filter((x): x is string => typeof x === 'string'),
     paidCount: num(o.paidCount),
     onboarded: o.onboarded === true,
+    lastBackupAt: str(o.lastBackupAt) || null,
+    backupSnoozedUntil: str(o.backupSnoozedUntil) || null,
   };
 }
 
@@ -284,4 +288,14 @@ export function upsertReceipt(db: Database, r: Partial<Receipt>): Database {
 
 export function deleteReceipt(db: Database, id: string): Database {
   return { ...db, receipts: db.receipts.filter((r) => r.id !== id) };
+}
+
+/** Record that a full backup was just exported (and silence the reminder). */
+export function markBackedUp(db: Database, now = new Date().toISOString()): Database {
+  return { ...db, lastBackupAt: now, backupSnoozedUntil: null, updatedAt: now };
+}
+
+/** "Later" on the backup reminder: stay quiet for `days`. */
+export function snoozeBackupReminder(db: Database, days: number, now = new Date()): Database {
+  return { ...db, backupSnoozedUntil: new Date(now.getTime() + days * 86400000).toISOString(), updatedAt: now.toISOString() };
 }

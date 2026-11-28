@@ -36,6 +36,8 @@ ESTIMATES THAT TURN INTO INVOICES
 GET PAID FASTER
 • Add your own payment link (Stripe, Square, PayPal, Venmo) and it prints as a tappable "Pay online" link on every invoice — money goes straight to you
 • See what's outstanding and overdue at a glance; mark invoices paid in one tap
+• One-tap payment reminder for any unpaid invoice (free, sent from your own phone)
+• Jot never touches your money: no payout holds, no processing fees, no frozen balance
 
 RECEIPTS FOR TAX TIME
 • Snap job expense receipts and keep them with your records
@@ -44,14 +46,14 @@ RECEIPTS FOR TAX TIME
 PRIVATE AND YOURS
 • No account, no tracking, no ads
 • Works fully offline
-• Back up everything to Files or iCloud Drive and restore anytime
+• Back up everything to Files or iCloud Drive and restore anytime, with a gentle reminder so nothing is ever lost
 • Every invoice you've ever sent stays free to view and export — always
 
 BUILT FOR
 Plumbers, electricians, HVAC, handymen, contractors, landscapers, cleaners, painters, photographers, freelancers and every small business that needs to bill a job.
 
-FREE AND PRO
-Free: unlimited drafts, estimates, clients and receipts, and your first 3 invoices to send.
+FREE AND PRO — NO SURPRISES
+Free: unlimited drafts, estimates, clients and receipts, and your first 3 invoices to send. The app tells you how many free sends you have left before every send, so the paywall is never a surprise.
 Invoice Jot Pro: unlimited invoices, no "Made with Invoice Jot" footer, and five extra PDF styles — $9.99/month or $59.99/year.
 
 Payment is charged to your Apple Account at confirmation of purchase. Subscriptions renew automatically unless cancelled at least 24 hours before the end of the current period. Manage or cancel in Settings › Apple Account › Subscriptions.
@@ -90,11 +92,12 @@ Display names: "Invoice Jot Pro Monthly" / "Invoice Jot Pro Yearly". Description
 Invoice Jot is local-first: there is NO login, NO account and NO server. All data is stored on the device (IndexedDB + an atomic JSON copy in the app's Library folder), so the reviewer can use every feature immediately and offline.
 
 How to test:
-1. Launch → enter any business name (or tap "Skip for now").
+1. Launch → the first screen states the free-plan limits and Pro prices up front → enter any business name (or tap "Skip for now").
 2. Home → "+ New invoice" → add a client name and a line item → Done → "Send invoice PDF" opens the iOS share sheet (Save to Files works).
 3. Repeat to send 3 invoices. Creating a 4th invoice is allowed (unlimited drafts), but sending/exporting it opens the Invoice Jot Pro paywall. Previously sent invoices remain viewable and re-shareable for free.
 4. Paywall: monthly ($9.99) and yearly ($59.99) auto-renewable subscriptions via StoreKit 2. There is no free trial. "Restore Purchases" is on the paywall and in Settings; "Manage subscription" opens Apple's manage-subscriptions sheet.
 5. Mark an invoice Paid → the standard SKStoreReviewController prompt may appear (system-throttled).
+6. Unpaid sent invoices show "Send a payment reminder (free)": it only opens the iOS share sheet with a prewritten message. Settings → "Report a problem" opens a pre-filled email in the Mail app showing exactly what would be sent (app version and counts only); nothing is sent automatically. A dismissible "Back up your invoices" card appears on Home after a couple of weeks of use and links to the same Files/iCloud Drive backup as Settings.
 
 Payments: digital features are sold only through In-App Purchase. Users may add their OWN payment link (e.g. Stripe/Square/PayPal) which is printed on invoices so THEIR clients can pay them for real-world services (plumbing, landscaping, etc.) — Guideline 3.1.3(e). The app never processes those payments.
 

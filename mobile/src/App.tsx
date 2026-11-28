@@ -6,6 +6,7 @@ import { ClientEdit, Clients } from './screens/Clients';
 import { Items } from './screens/Items';
 import { ReceiptEdit, Receipts } from './screens/Receipts';
 import { Settings } from './screens/Settings';
+import { GetPaid } from './screens/GetPaid';
 import { More } from './screens/More';
 import { Paywall } from './screens/Paywall';
 import { Onboarding } from './screens/Onboarding';
@@ -30,6 +31,8 @@ function Current({ route }: { route: Route }) {
       return <ReceiptEdit key={route.id ?? 'new'} id={route.id} />;
     case 'settings':
       return <Settings />;
+    case 'getpaid':
+      return <GetPaid />;
     case 'more':
       return <More />;
   }
@@ -41,7 +44,7 @@ function TabBar() {
     { label: 'Home', r: { name: 'home' }, match: ['home'] },
     { label: 'Invoices', r: { name: 'docs', kind: 'invoice' }, match: ['docs', 'doc'] },
     { label: 'Clients', r: { name: 'clients' }, match: ['clients', 'client'] },
-    { label: 'More', r: { name: 'more' }, match: ['more', 'settings', 'items', 'receipts', 'receipt'] },
+    { label: 'More', r: { name: 'more' }, match: ['more', 'settings', 'getpaid', 'items', 'receipts', 'receipt'] },
   ];
   return (
     <nav className="tabbar" aria-label="Main">

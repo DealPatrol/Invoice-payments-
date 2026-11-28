@@ -12,13 +12,14 @@ import { PRIVACY_URL, SITE_URL, SUPPORT_EMAIL, TERMS_URL } from '../lib/config';
 import { isNative } from '../lib/platform';
 import { lastBackupLabel } from '../lib/backup';
 import { runBackup } from './backupAction';
+import { clearConnection } from '../lib/cardPayments';
 import { diagnostics, platformLabel, supportMailto } from '../lib/support';
 
 const CURRENCIES = ['USD', 'CAD', 'GBP', 'EUR', 'AUD', 'NZD', 'MXN', 'ZAR', 'INR'];
 const ACCENTS = ['#1f6f5c', '#1d4ed8', '#b45309', '#be123c', '#334155', '#7c3aed'];
 
 export function Settings() {
-  const { db, update, replace, pro, setPro, openPaywall, toast } = useApp();
+  const { db, update, replace, pro, setPro, openPaywall, toast, go } = useApp();
   const [b, setB] = useState<Business>(db.business);
 
   useEffect(() => {
@@ -55,6 +56,7 @@ export function Settings() {
     if (!window.confirm('Are you sure? This cannot be undone.')) return;
     const fresh = emptyDatabase();
     await replace(fresh);
+    await clearConnection().catch(() => undefined);
     setB(fresh.business);
     toast('All data deleted');
   };
@@ -79,6 +81,12 @@ export function Settings() {
       <Field label="Tax ID / license # (optional)" value={b.taxId} onChange={(e) => set({ taxId: e.target.value })} />
 
       <h2 className="section">Getting paid</h2>
+      <p className="hint">
+        Want card payments built in?{' '}
+        <button className="link-btn" onClick={() => go({ name: 'getpaid' })}>
+          Get paid with card (Stripe)
+        </button>
+      </p>
       <Field label="Default payment link" type="url" inputMode="url" placeholder="https://buy.stripe.com/… or paypal.me/…" value={b.paymentLink} onChange={(e) => set({ paymentLink: e.target.value })} hint="Printed as a tappable “Pay online” link on every invoice. Use your own Stripe, Square, PayPal or Venmo link — clients pay you directly." />
       <Area label="Other payment instructions" value={b.paymentInstructions} onChange={(e) => set({ paymentInstructions: e.target.value })} placeholder="Checks payable to… / Zelle to…" />
 

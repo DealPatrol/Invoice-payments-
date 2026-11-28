@@ -9,6 +9,7 @@ import { canSendDoc, pdfFooter, postSendNotice, preSendNotice, shouldAskForRevie
 import { docPdfBase64, pdfFileName } from '../lib/pdf';
 import { requestAppReview, shareFile, shareText, success, tap } from '../lib/native';
 import { canRemind, reminderText } from '../lib/reminder';
+import { CardPaySection } from './CardPaySection';
 
 const ASKED_KEY = 'invoicejot:review-asked';
 
@@ -308,6 +309,8 @@ export function DocScreen({ id }: { id: string }) {
           {busy ? 'Making PDF…' : sendLabel}
         </Btn>
         {lockHint ? <p className="hint center">{lockHint}</p> : null}
+
+        {isInvoice && status !== 'paid' ? <CardPaySection doc={doc} cur={cur} /> : null}
 
         {isInvoice && status !== 'paid' ? (
           <>

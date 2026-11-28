@@ -16,6 +16,7 @@ export type Route =
   | { name: 'receipts' }
   | { name: 'receipt'; id: string | null }
   | { name: 'settings' }
+  | { name: 'getpaid' }
   | { name: 'more' };
 
 interface Ctx {

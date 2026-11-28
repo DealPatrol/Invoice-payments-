@@ -19,6 +19,12 @@ export function More() {
           </Card>
         </li>
         <li>
+          <Card onClick={() => go({ name: 'getpaid' })} label="Get paid with card">
+            <div className="strong">Get paid with card</div>
+            <div className="muted small">Add a “Pay online” card link to invoices (Stripe)</div>
+          </Card>
+        </li>
+        <li>
           <Card onClick={() => go({ name: 'settings' })} label="Settings">
             <div className="strong">Business & settings</div>
             <div className="muted small">Logo, payment link, PDF style, backup & export</div>

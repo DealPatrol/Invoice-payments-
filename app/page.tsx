@@ -14,7 +14,7 @@ export const metadata: Metadata = {
 
 const FAQS = [
   { q: 'What is Invoice Jot?', a: 'Invoice Jot is an iPhone app for making invoices, estimates and receipts. It needs no account, works offline, and keeps your data on your phone.' },
-  { q: 'Is Invoice Jot free?', a: 'Yes to start: unlimited drafts, estimates, clients and receipts, and your first 3 invoices free to send. Past invoices are always free to view and export. Pro is $9.99/month or $59.99/year for unlimited invoices and no PDF footer.' },
+  { q: 'Is Invoice Jot free?', a: 'Yes to start: unlimited drafts, estimates, clients and receipts, and your first 3 invoices free to send. Past invoices are always free to view and export. Pro is $4.99/week, $9.99/month or $59.99/year for unlimited invoices and no PDF footer.' },
   { q: 'Is there a free trial?', a: 'There is no trial to cancel. The free plan never expires; upgrade only when you need more than 3 sent invoices.' },
   { q: 'How do my clients pay?', a: 'Add your own Stripe, Square, PayPal or Venmo payment link and it appears as a “Pay online” link on every invoice. Money goes straight to you.' },
   { q: 'Can I turn an estimate into an invoice?', a: 'Yes, in one tap. Line items, tax, discount and deposit carry over.' },
@@ -52,7 +52,7 @@ export default function HomePage() {
                 Free web invoice generator
               </Link>
             </div>
-            <p className="fine">Free: unlimited drafts &amp; estimates, first 3 invoices free to send. Pro $9.99/mo or $59.99/yr. No trial to cancel.</p>
+            <p className="fine">Free: unlimited drafts &amp; estimates, first 3 invoices free to send. Pro $4.99/wk, $9.99/mo or $59.99/yr. No trial to cancel.</p>
           </div>
           <div className="card" aria-label="Example invoice">
             <div className="est-head">
@@ -109,7 +109,7 @@ export default function HomePage() {
         <section id="pricing">
           <div className="eyebrow">Pricing</div>
           <h2>Honest pricing</h2>
-          <div className="grid3">
+          <div className="grid4">
             <div className="card price">
               <b>Free</b>
               <div className="amt">$0</div>
@@ -138,6 +138,16 @@ export default function HomePage() {
               <ul>
                 <li>Everything in Pro</li>
                 <li>Billed through your Apple Account</li>
+              </ul>
+            </div>
+            <div className="card price">
+              <b>Pro weekly</b>
+              <div className="amt">
+                $4.99<small>/week</small>
+              </div>
+              <ul>
+                <li>Everything in Pro, for a short busy stretch</li>
+                <li>Yearly saves 76% vs paying weekly all year</li>
               </ul>
             </div>
           </div>

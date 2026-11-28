@@ -19,7 +19,7 @@ describe('SEO / AEO content', () => {
   it('emits valid schema.org shapes', () => {
     const app = softwareAppJsonLd();
     expect(app['@type']).toBe('SoftwareApplication');
-    expect(app.offers.map((o) => o.price)).toEqual(['0', '9.99', '59.99']);
+    expect(app.offers.map((o) => o.price)).toEqual(['0', '4.99', '9.99', '59.99']);
     expect(faqJsonLd([{ q: 'Q', a: 'A' }]).mainEntity[0]).toMatchObject({ '@type': 'Question', acceptedAnswer: { '@type': 'Answer', text: 'A' } });
     expect(howToJsonLd('x', INVOICE_HOWTO_STEPS).step).toHaveLength(5);
   });

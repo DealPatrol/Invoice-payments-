@@ -54,7 +54,7 @@ Plumbers, electricians, HVAC, handymen, contractors, landscapers, cleaners, pain
 
 FREE AND PRO — NO SURPRISES
 Free: unlimited drafts, estimates, clients and receipts, and your first 3 invoices to send. The app tells you how many free sends you have left before every send, so the paywall is never a surprise.
-Invoice Jot Pro: unlimited invoices, no "Made with Invoice Jot" footer, and five extra PDF styles — $9.99/month or $59.99/year.
+Invoice Jot Pro: unlimited invoices, no "Made with Invoice Jot" footer, and five extra PDF styles — $4.99/week, $9.99/month or $59.99/year.
 
 Payment is charged to your Apple Account at confirmation of purchase. Subscriptions renew automatically unless cancelled at least 24 hours before the end of the current period. Manage or cancel in Settings › Apple Account › Subscriptions.
 
@@ -81,10 +81,15 @@ Capture on an iPhone 16 Pro Max simulator from a build with sample data (Busines
 
 | Reference name | Product ID | Duration | Price | Intro offer |
 |---|---|---|---|---|
-| Invoice Jot Pro Monthly | `com.frontporchgrowth.invoicejot.pro.monthly` | 1 month | $9.99 (Tier) | **None** |
 | Invoice Jot Pro Yearly | `com.frontporchgrowth.invoicejot.pro.yearly` | 1 year | $59.99 | **None** |
+| Invoice Jot Pro Monthly | `com.frontporchgrowth.invoicejot.pro.monthly` | 1 month | $9.99 | **None** |
+| Invoice Jot Pro Weekly | `com.frontporchgrowth.invoicejot.pro.weekly` | 1 week | $4.99 | **None** |
 
-Display names: "Invoice Jot Pro Monthly" / "Invoice Jot Pro Yearly". Description: "Unlimited invoices and no PDF footer." Upload a paywall screenshot for review on each product. Yearly ranks higher in the group (level 1).
+All three go in the SAME subscription group so a user can only hold one; switching is an upgrade/downgrade, never a second charge. Group levels: Yearly = 1 (highest), Monthly = 2, Weekly = 3.
+
+Display names: "Invoice Jot Pro Yearly" / "Invoice Jot Pro Monthly" / "Invoice Jot Pro Weekly". Description: "Unlimited invoices and no PDF footer." Upload a paywall screenshot for review on each product.
+
+Paywall honesty: each plan shows its own price per its own period ($4.99/week, $9.99/month, $59.99/year). The yearly card says "about $5.00/month, billed once a year · saves 49% vs monthly, 76% vs weekly" — computed from the live StoreKit prices (12 months / 52 weeks) and rounded down, never up. No trial, no toggle, Restore Purchases on the paywall and in Settings.
 
 ## App Review notes (paste into "Notes")
 
@@ -95,7 +100,7 @@ How to test:
 1. Launch → the first screen states the free-plan limits and Pro prices up front → enter any business name (or tap "Skip for now").
 2. Home → "+ New invoice" → add a client name and a line item → Done → "Send invoice PDF" opens the iOS share sheet (Save to Files works).
 3. Repeat to send 3 invoices. Creating a 4th invoice is allowed (unlimited drafts), but sending/exporting it opens the Invoice Jot Pro paywall. Previously sent invoices remain viewable and re-shareable for free.
-4. Paywall: monthly ($9.99) and yearly ($59.99) auto-renewable subscriptions via StoreKit 2. There is no free trial. "Restore Purchases" is on the paywall and in Settings; "Manage subscription" opens Apple's manage-subscriptions sheet.
+4. Paywall: weekly ($4.99), monthly ($9.99) and yearly ($59.99) auto-renewable subscriptions in one group via StoreKit 2. There is no free trial. "Restore Purchases" is on the paywall and in Settings; "Manage subscription" opens Apple's manage-subscriptions sheet.
 5. Mark an invoice Paid → the standard SKStoreReviewController prompt may appear (system-throttled).
 6. Unpaid sent invoices show "Send a payment reminder (free)": it only opens the iOS share sheet with a prewritten message. Settings → "Report a problem" opens a pre-filled email in the Mail app showing exactly what would be sent (app version and counts only); nothing is sent automatically. A dismissible "Back up your invoices" card appears on Home after a couple of weeks of use and links to the same Files/iCloud Drive backup as Settings.
 

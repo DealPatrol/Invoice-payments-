@@ -7,7 +7,7 @@ import StoreKit
 /// (mobile/src/lib/storekit.ts). Registered in `BridgeViewController.capacitorDidLoad()`
 /// because it lives in the App target rather than in an npm package.
 ///
-/// - StoreKit 2 auto-renewable subscription "Invoice Jot Pro" (monthly / yearly, no free trial).
+/// - StoreKit 2 auto-renewable subscription group "Invoice Jot Pro" (weekly / monthly / yearly, no free trial).
 ///   Purchase, Restore Purchases (AppStore.sync), current entitlements, Manage Subscriptions and a
 ///   `Transaction.updates` listener. Entitlements are read on-device; there is no account or server.
 /// - App Store review prompt (`AppStore.requestReview` / `SKStoreReviewController`), asked only
@@ -23,6 +23,13 @@ public class InvoiceJotPlugin: CAPPlugin, CAPBridgedPlugin {
         CAPPluginMethod(name: "getEntitlements", returnType: CAPPluginReturnPromise),
         CAPPluginMethod(name: "manageSubscriptions", returnType: CAPPluginReturnPromise),
         CAPPluginMethod(name: "requestReview", returnType: CAPPluginReturnPromise)
+    ]
+
+    /// The three plans in the "Invoice Jot Pro" subscription group (mobile/src/lib/config.ts PRO_PRODUCT_IDS).
+    static let proProductIds = [
+        "com.frontporchgrowth.invoicejot.pro.weekly",
+        "com.frontporchgrowth.invoicejot.pro.monthly",
+        "com.frontporchgrowth.invoicejot.pro.yearly"
     ]
 
     private var updatesTask: Task<Void, Never>?
@@ -47,11 +54,8 @@ public class InvoiceJotPlugin: CAPPlugin, CAPBridgedPlugin {
     // MARK: - StoreKit 2
 
     @objc func getProducts(_ call: CAPPluginCall) {
-        let ids = call.getArray("productIds", String.self) ?? []
-        guard !ids.isEmpty else {
-            call.reject("productIds is required")
-            return
-        }
+        let requested = call.getArray("productIds", String.self) ?? []
+        let ids = requested.isEmpty ? InvoiceJotPlugin.proProductIds : requested
         Task {
             do {
                 let products = try await Product.products(for: ids)

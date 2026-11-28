@@ -5,7 +5,7 @@
 | App name | Invoice Jot (`Invoice Jot: Estimate Maker`) |
 | Bundle ID | `com.frontporchgrowth.invoicejot` |
 | Stack | Capacitor 8 (Swift Package Manager) + Vite/React app in `mobile/` bundled locally (no `server.url`) |
-| Products | `com.frontporchgrowth.invoicejot.pro.monthly` ($9.99/mo) · `com.frontporchgrowth.invoicejot.pro.yearly` ($59.99/yr) — **no free trial / intro offer** |
+| Products | One subscription group "Invoice Jot Pro": `com.frontporchgrowth.invoicejot.pro.weekly` ($4.99/wk) · `com.frontporchgrowth.invoicejot.pro.monthly` ($9.99/mo) · `com.frontporchgrowth.invoicejot.pro.yearly` ($59.99/yr) — **no free trial / intro offer** |
 | Free plan | Unlimited drafts, estimates, clients, items, receipts; first 3 invoices sendable; past invoices always viewable/exportable |
 | Metadata | `app-store/METADATA.md` (title, subtitle, keywords, description, captions, review notes, privacy label) |
 

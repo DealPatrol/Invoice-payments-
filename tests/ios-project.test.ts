@@ -25,13 +25,22 @@ describe('Invoice Jot iOS project wiring', () => {
     expect(plist).toMatch(/<string>invoicejot<\/string>/);
   });
 
-  it('StoreKit config: $9.99 monthly and $59.99 yearly, no free-trial introductory offer', () => {
+  it('StoreKit config: $4.99 weekly, $9.99 monthly and $59.99 yearly in one group, no free-trial introductory offer', () => {
     const sk = JSON.parse(read('ios/App/App/InvoiceJot.storekit'));
     const subs = sk.subscriptionGroups.flatMap((g: { subscriptions: unknown[] }) => g.subscriptions) as Array<{ productID: string; displayPrice: string; recurringSubscriptionPeriod: string; introductoryOffer?: unknown }>;
     expect(subs.map((s) => s.productID).sort()).toEqual([...PRO_PRODUCT_IDS].sort());
     const byId = Object.fromEntries(subs.map((s) => [s.productID, s]));
     expect(byId['com.frontporchgrowth.invoicejot.pro.monthly']).toMatchObject({ displayPrice: '9.99', recurringSubscriptionPeriod: 'P1M' });
     expect(byId['com.frontporchgrowth.invoicejot.pro.yearly']).toMatchObject({ displayPrice: '59.99', recurringSubscriptionPeriod: 'P1Y' });
+    expect(byId['com.frontporchgrowth.invoicejot.pro.weekly']).toMatchObject({ displayPrice: '4.99', recurringSubscriptionPeriod: 'P1W' });
+    expect(sk.subscriptionGroups).toHaveLength(1);
+    expect(sk.subscriptionGroups[0].name).toBe('Invoice Jot Pro');
+    // Upgrade order inside the group: yearly (1) > monthly (2) > weekly (3).
+    expect([1, 2, 3].map((n) => subs.find((s) => (s as { groupNumber?: number }).groupNumber === n)?.productID)).toEqual([
+      'com.frontporchgrowth.invoicejot.pro.yearly',
+      'com.frontporchgrowth.invoicejot.pro.monthly',
+      'com.frontporchgrowth.invoicejot.pro.weekly',
+    ]);
     for (const s of subs) expect(s.introductoryOffer).toBeUndefined();
   });
 

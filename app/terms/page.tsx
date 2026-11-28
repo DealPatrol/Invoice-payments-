@@ -26,7 +26,7 @@ export default function TermsPage() {
         <h2 style={H2}>Free plan and Invoice Jot Pro</h2>
         <ul>
           <li><b>Free:</b> unlimited drafts, estimates, clients, items and receipts; you can send or export your first 3 invoices. Every invoice you have ever sent stays free to view, re-share and export. Free PDFs include a small “Made with Invoice Jot” line.</li>
-          <li><b>Pro:</b> an auto-renewing App Store subscription ($9.99 per month or $59.99 per year in the US; local prices shown in the app) for unlimited invoices and no footer. Payment is charged to your Apple Account at confirmation. It renews automatically unless cancelled at least 24 hours before the end of the current period. Manage or cancel in iOS Settings › Apple Account › Subscriptions. Refunds are handled by Apple.</li>
+          <li><b>Pro:</b> an auto-renewing App Store subscription ($4.99 per week, $9.99 per month or $59.99 per year in the US; local prices shown in the app) for unlimited invoices and no footer. Payment is charged to your Apple Account at confirmation. It renews automatically unless cancelled at least 24 hours before the end of the current period. Manage or cancel in iOS Settings › Apple Account › Subscriptions. Refunds are handled by Apple.</li>
           <li>Apple’s <a href={APPLE_STANDARD_EULA_URL}>Licensed Application End User License Agreement</a> applies to the app in addition to these terms.</li>
         </ul>
 

@@ -2,12 +2,10 @@ import { useEffect, useState } from 'react';
 import { useApp } from '../store';
 import { Btn } from '../ui';
 import { buyPro, loadProducts, restorePro, type StoreProduct } from '../lib/storekit';
-import { APPLE_EULA_URL, FALLBACK_PRICES, FALLBACK_PRICE_VALUES, PRIVACY_URL, PRO_MONTHLY_ID, PRO_YEARLY_ID } from '../lib/config';
-import { perMonthLabel, yearlySavingsPercent } from '../lib/pricing';
+import { APPLE_EULA_URL, FALLBACK_PRICES, FALLBACK_PRICE_VALUES, PRIVACY_URL, PRO_MONTHLY_ID, PRO_PERIOD, PRO_PLAN_ORDER, PRO_WEEKLY_ID, PRO_YEARLY_ID } from '../lib/config';
+import { yearlyPlanNote } from '../lib/pricing';
 import { openExternal, success } from '../lib/native';
 import { isNative } from '../lib/platform';
-
-const PERIOD: Record<string, string> = { [PRO_MONTHLY_ID]: 'month', [PRO_YEARLY_ID]: 'year' };
 
 export function Paywall() {
   const { paywall, closePaywall, setPro, toast } = useApp();
@@ -21,22 +19,22 @@ export function Paywall() {
   }, [paywall.open]);
   if (!paywall.open) return null;
 
-  const plans = [PRO_YEARLY_ID, PRO_MONTHLY_ID].map((id) => {
+  // Once StoreKit answers, show only the plans it returned (with its localized prices); before that, US fallbacks.
+  const ids: readonly string[] = products.length ? PRO_PLAN_ORDER.filter((id) => products.some((x) => x.id === id)) : PRO_PLAN_ORDER;
+  const plans = ids.map((id) => {
     const p = products.find((x) => x.id === id);
-    return { id, price: p?.displayPrice ?? FALLBACK_PRICES[id], period: PERIOD[id], name: id === PRO_YEARLY_ID ? 'Yearly' : 'Monthly' };
+    return { id, price: p?.displayPrice ?? FALLBACK_PRICES[id], value: p?.price ?? FALLBACK_PRICE_VALUES[id], period: PRO_PERIOD[id].unit, name: PRO_PERIOD[id].name };
   });
   const sel = plans.find((p) => p.id === selected) ?? plans[0];
-  const yearly = products.find((x) => x.id === PRO_YEARLY_ID);
-  const monthly = products.find((x) => x.id === PRO_MONTHLY_ID);
-  const yearlyValue = yearly?.price ?? FALLBACK_PRICE_VALUES[PRO_YEARLY_ID];
-  const monthlyValue = monthly?.price ?? FALLBACK_PRICE_VALUES[PRO_MONTHLY_ID];
-  const yearlyNote = `about ${perMonthLabel(plans[0].price, yearlyValue)}/month, billed once a year${yearlySavingsPercent(monthlyValue, yearlyValue) > 0 ? ` (saves ${yearlySavingsPercent(monthlyValue, yearlyValue)}%)` : ''}`;
+  const value = (id: string) => plans.find((p) => p.id === id)?.value;
+  const yearlyPlan = plans.find((p) => p.id === PRO_YEARLY_ID);
+  const yearlyNote = yearlyPlan ? yearlyPlanNote(yearlyPlan.price, { yearly: yearlyPlan.value, monthly: value(PRO_MONTHLY_ID), weekly: value(PRO_WEEKLY_ID) }) : '';
 
   const buy = async () => {
     setErr(null);
     setBusy('buy');
     try {
-      const r = await buyPro(selected);
+      const r = await buyPro(sel.id);
       if (r.status === 'purchased') {
         setPro(true);
         success();
@@ -90,6 +88,7 @@ export function Paywall() {
               </span>
               <span className="plan-name">{p.name}{p.id === PRO_YEARLY_ID ? ' · best value' : ''}</span>
               {p.id === PRO_YEARLY_ID ? <span className="hint">{yearlyNote}</span> : null}
+              {p.id === PRO_WEEKLY_ID ? <span className="hint">billed every week · for a short busy stretch</span> : null}
             </button>
           ))}
         </div>

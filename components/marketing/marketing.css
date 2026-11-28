@@ -34,6 +34,7 @@
 .il-site section h2{font-size:38px;margin:8px 0 18px}
 .il-site .grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:28px}
 .il-site .grid2{display:grid;grid-template-columns:repeat(2,1fr);gap:28px}
+.il-site .grid4{display:grid;grid-template-columns:repeat(4,1fr);gap:20px}
 .il-site .step .num{font-family:var(--font-serif),Georgia,serif;font-size:44px;color:var(--copper);line-height:1}
 .il-site .step h3{font-size:22px;margin:8px 0}
 .il-site ul.plain{padding-left:18px}
@@ -59,7 +60,7 @@
 .il-site .panel{max-width:640px;margin:64px auto;padding:0 24px}
 .il-site ol.steps{padding-left:22px}
 .il-site ol.steps li{margin:10px 0}
-@media (max-width:860px){.il-site .hero{grid-template-columns:1fr;padding-top:40px}.il-site .hero h1{font-size:40px}.il-site .grid3,.il-site .grid2{grid-template-columns:1fr}.il-site nav.links a:not(.signin){display:none}.il-site .layouts{grid-template-columns:repeat(2,1fr)}.il-site section h2{font-size:30px}}
+@media (max-width:860px){.il-site .hero{grid-template-columns:1fr;padding-top:40px}.il-site .hero h1{font-size:40px}.il-site .grid3,.il-site .grid2{grid-template-columns:1fr}.il-site .grid4{grid-template-columns:repeat(2,1fr)}.il-site nav.links a:not(.signin){display:none}.il-site .layouts{grid-template-columns:repeat(2,1fr)}.il-site section h2{font-size:30px}}
 
 /* SEO pages */
 .il-site .page{padding:48px 0 24px}

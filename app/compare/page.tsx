@@ -15,7 +15,7 @@ const ROWS: [string, string, string, string, string][] = [
   ['Account required', 'No. Open the app and start.', 'Usually yes (email sign-up)', 'Yes (merchant account)', 'Yes'],
   ['Works offline', 'Yes: everything is stored on your iPhone', 'Varies; many need a connection to sync', 'Mostly online', 'Mostly online'],
   ['Where your data lives', 'On your device; you export it anytime (PDF, CSV, JSON)', 'Vendor cloud', 'Processor cloud', 'Vendor cloud'],
-  ['Price', 'Free to start; Pro $9.99/mo or $59.99/yr', 'Monthly subscription after a limit or trial', 'Free to send; per-transaction card fees', 'Monthly subscription'],
+  ['Price', 'Free to start; Pro $4.99/wk, $9.99/mo or $59.99/yr', 'Monthly subscription after a limit or trial', 'Free to send; per-transaction card fees', 'Monthly subscription'],
   ['Free plan', 'Unlimited drafts and estimates; first 3 invoices free to send; past invoices always free to view and export', 'Varies', 'Yes', 'Sometimes limited'],
   ['Estimates → invoice', 'One tap, deposit carries over', 'Common', 'Common', 'Common'],
   ['Getting paid', 'Your own payment link (Stripe, Square, PayPal, Venmo) printed on every invoice', 'Built-in payments with processing fees', 'Built-in card payments', 'Built-in, usually with fees'],
@@ -24,7 +24,7 @@ const ROWS: [string, string, string, string, string][] = [
 
 const FAQS = [
   { q: 'What is the best invoice app for a small business?', a: 'If you work alone or with a small crew and want to send invoices quickly from your phone without an account, Invoice Jot is built for that. If you need full bookkeeping and payroll, an accounting suite is a better fit.' },
-  { q: 'Is there an invoice app with no subscription?', a: 'Invoice Jot is free to use for drafts, estimates, receipts and your first 3 sent invoices, and every invoice you ever made stays free to view and export. Pro removes the limit for $9.99/month or $59.99/year.' },
+  { q: 'Is there an invoice app with no subscription?', a: 'Invoice Jot is free to use for drafts, estimates, receipts and your first 3 sent invoices, and every invoice you ever made stays free to view and export. Pro removes the limit for $4.99/week, $9.99/month or $59.99/year.' },
   { q: 'Do I need an account to use Invoice Jot?', a: 'No. There is no login. Your data is stored on your iPhone and you can back it up to Files at any time.' },
 ];
 

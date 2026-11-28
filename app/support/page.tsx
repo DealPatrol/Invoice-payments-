@@ -14,7 +14,7 @@ export const metadata: Metadata = {
 const FAQS = [
   { q: 'Do I need an account?', a: 'No. Open Invoice Jot and tap New invoice. Everything is stored on your iPhone.' },
   { q: 'How do I send an invoice?', a: 'Open the invoice and tap Send invoice PDF. Choose Mail, Messages, AirDrop or Save to Files. The invoice is marked Sent.' },
-  { q: 'What is free and what is Pro?', a: 'Free: unlimited drafts, estimates, clients, items and receipts, and your first 3 invoices to send. Past invoices are always free to view and export. Pro ($9.99/month or $59.99/year) unlocks unlimited invoices and removes the PDF footer.' },
+  { q: 'What is free and what is Pro?', a: 'Free: unlimited drafts, estimates, clients, items and receipts, and your first 3 invoices to send. Past invoices are always free to view and export. Pro ($4.99/week, $9.99/month or $59.99/year) unlocks unlimited invoices and removes the PDF footer.' },
   { q: 'How do I restore my Pro subscription on a new iPhone?', a: 'Open the Pro screen (More › Invoice Jot Pro, or Settings) and tap Restore Purchases while signed in to the same Apple Account.' },
   { q: 'How do I cancel Pro?', a: 'In Invoice Jot tap Settings › Manage subscription, or go to iOS Settings › Apple Account › Subscriptions › Invoice Jot. You keep Pro until the end of the paid period.' },
   { q: 'How do I back up or move my data?', a: 'Settings › Back up everything (JSON) and save it to Files or iCloud Drive. On the new phone, Settings › Restore from backup. You can also export CSVs of documents, payments, clients and receipts.' },

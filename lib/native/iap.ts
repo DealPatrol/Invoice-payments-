@@ -5,7 +5,8 @@
 export const IOS_BUNDLE_ID = 'com.frontporchgrowth.invoicejot';
 export const IOS_PRO_MONTHLY = 'com.frontporchgrowth.invoicejot.pro.monthly';
 export const IOS_PRO_YEARLY = 'com.frontporchgrowth.invoicejot.pro.yearly';
-export const IOS_PRO_PRODUCT_IDS = [IOS_PRO_YEARLY, IOS_PRO_MONTHLY] as const;
+export const IOS_PRO_WEEKLY = 'com.frontporchgrowth.invoicejot.pro.weekly';
+export const IOS_PRO_PRODUCT_IDS = [IOS_PRO_YEARLY, IOS_PRO_MONTHLY, IOS_PRO_WEEKLY] as const;
 
 export function isIosProProduct(productId: string | null | undefined): boolean {
   return Boolean(productId && (IOS_PRO_PRODUCT_IDS as readonly string[]).includes(productId));

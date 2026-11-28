@@ -57,6 +57,27 @@
           "subscriptionGroupID": "4C1A7E21",
           "type": "RecurringSubscription",
           "winbackOffers": []
+        },
+        {
+          "adHocOffers": [],
+          "codeOffers": [],
+          "displayPrice": "4.99",
+          "familyShareable": false,
+          "groupNumber": 3,
+          "internalID": "4C1A7E26",
+          "localizations": [
+            {
+              "description": "Unlimited invoices and no footer on your PDFs, billed weekly.",
+              "displayName": "Invoice Jot Pro Weekly",
+              "locale": "en_US"
+            }
+          ],
+          "productID": "com.frontporchgrowth.invoicejot.pro.weekly",
+          "recurringSubscriptionPeriod": "P1W",
+          "referenceName": "Invoice Jot Pro Weekly",
+          "subscriptionGroupID": "4C1A7E21",
+          "type": "RecurringSubscription",
+          "winbackOffers": []
         }
       ]
     }

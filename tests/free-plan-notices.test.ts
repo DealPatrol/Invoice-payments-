@@ -50,7 +50,7 @@ describe('free-plan transparency (learned from competitor reviews: no surprise p
   it('shows the yearly price per month and the real savings', () => {
     expect(perMonthLabel('$59.99', 59.99)).toBe('$5.00');
     expect(perMonthLabel('£47.99', 47.99)).toBe('£4.00');
-    expect(yearlySavingsPercent(9.99, 59.99)).toBe(50);
+    expect(yearlySavingsPercent(9.99, 59.99)).toBe(49); // 49.96% rounded down, never overstated
     expect(yearlySavingsPercent(9.99, 200)).toBe(0);
   });
 

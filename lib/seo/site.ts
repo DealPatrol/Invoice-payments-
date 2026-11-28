@@ -19,6 +19,7 @@ export function appStoreUrl(): string {
 
 export const PRICING = {
   free: 'Free: unlimited drafts, estimates, clients and receipts; send your first 3 invoices.',
+  weekly: '$4.99/week',
   monthly: '$9.99/month',
   yearly: '$59.99/year',
 };
@@ -37,6 +38,7 @@ export function softwareAppJsonLd(extra: Record<string, unknown> = {}) {
     ...(id ? { downloadUrl: `https://apps.apple.com/app/id${id}`, installUrl: `https://apps.apple.com/app/id${id}` } : {}),
     offers: [
       { '@type': 'Offer', name: 'Free', price: '0', priceCurrency: 'USD' },
+      { '@type': 'Offer', name: 'Invoice Jot Pro (weekly)', price: '4.99', priceCurrency: 'USD' },
       { '@type': 'Offer', name: 'Invoice Jot Pro (monthly)', price: '9.99', priceCurrency: 'USD' },
       { '@type': 'Offer', name: 'Invoice Jot Pro (yearly)', price: '59.99', priceCurrency: 'USD' },
     ],

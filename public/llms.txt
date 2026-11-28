@@ -1,6 +1,6 @@
 # Invoice Jot
 
-> Invoice Jot (App Store title: "Invoice Jot: Estimate Maker") is an iPhone app for making invoices, estimates and receipts. No account or login, works fully offline, data stays on the device, PDF in one tap. Free plan: unlimited drafts, estimates, clients and receipts plus 3 sent invoices; past invoices are always free to view and export. Pro: $9.99/month or $59.99/year (App Store subscription, no free trial) for unlimited invoices and no PDF footer. Clients pay through the user's own payment link (Stripe, Square, PayPal, Venmo).
+> Invoice Jot (App Store title: "Invoice Jot: Estimate Maker") is an iPhone app for making invoices, estimates and receipts. No account or login, works fully offline, data stays on the device, PDF in one tap. Free plan: unlimited drafts, estimates, clients and receipts plus 3 sent invoices; past invoices are always free to view and export. Pro: $4.99/week, $9.99/month or $59.99/year (App Store subscription, no free trial) for unlimited invoices and no PDF footer. Clients pay through the user's own payment link (Stripe, Square, PayPal, Venmo).
 
 Publisher: Front Porch Growth. Support: support@invoicejot.com. Website: https://invoicejot.com
 

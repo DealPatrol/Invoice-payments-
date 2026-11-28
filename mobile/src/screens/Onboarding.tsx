@@ -1,6 +1,8 @@
 import { useState } from 'react';
 import { useApp } from '../store';
 import { Btn, Field } from '../ui';
+import { FALLBACK_PRICES, PRO_MONTHLY_ID, PRO_YEARLY_ID } from '../lib/config';
+import { FREE_INVOICE_SENDS } from '../lib/gate';
 
 export function Onboarding() {
   const { db, update } = useApp();
@@ -16,6 +18,9 @@ export function Onboarding() {
       <Field label="Business name" value={name} onChange={(e) => setName(e.target.value)} placeholder="Rivera Plumbing" autoComplete="organization" />
       <Field label="Email (shown on your invoices)" type="email" inputMode="email" value={email} onChange={(e) => setEmail(e.target.value)} autoComplete="email" />
       <Field label="Phone (optional)" type="tel" value={phone} onChange={(e) => setPhone(e.target.value)} autoComplete="tel" />
+      <p className="fine" data-testid="plan-disclosure">
+        Free plan: unlimited drafts, estimates, clients and receipts, plus your first {FREE_INVOICE_SENDS} invoice sends. After that, sending new invoices needs Invoice Jot Pro ({FALLBACK_PRICES[PRO_MONTHLY_ID]}/month or {FALLBACK_PRICES[PRO_YEARLY_ID]}/year, no free trial). Everything you have already sent stays free to view and share, and you can back up all of it any time.
+      </p>
       <Btn onClick={finish}>Start invoicing</Btn>
       <button className="link-btn" onClick={() => update((d) => ({ ...d, onboarded: true }))}>
         Skip for now

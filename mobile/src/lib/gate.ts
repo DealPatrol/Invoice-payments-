@@ -31,3 +31,28 @@ export function shouldAskForReview(paidCount: number, alreadyAsked: number[]): b
 export function pdfFooter(pro: boolean): string | null {
   return pro ? null : 'Made with Invoice Jot · invoicejot.com';
 }
+
+/**
+ * Plain-language heads-up shown on an invoice BEFORE the user taps Send, so the paywall is never a surprise
+ * (the most common complaint about competing apps is being "locked out in front of a client without notice").
+ * Empty when nothing needs saying (Pro, estimates, invoices that were already sent once).
+ */
+export function preSendNotice(db: Database, doc: Pick<Doc, 'id' | 'kind'>, pro: boolean): string {
+  if (pro || doc.kind !== 'invoice' || db.sentInvoiceIds.includes(doc.id)) return '';
+  const left = freeSendsLeft(db);
+  if (left <= 0) {
+    return `You have used your ${FREE_INVOICE_SENDS} free invoice sends. Sending this one needs Invoice Jot Pro. Saving it as a draft, estimates and every past invoice stay free.`;
+  }
+  if (left === 1) {
+    return 'This is your last free invoice send. After it, sending new invoices needs Invoice Jot Pro. Drafts, estimates and past invoices stay free.';
+  }
+  return `Sending uses 1 of your ${left} remaining free invoice sends. Re-sharing an invoice you already sent is always free.`;
+}
+
+/** Message after a successful free send, so the end of the free plan is announced before it happens again. */
+export function postSendNotice(db: Database, pro: boolean, wasNewSend: boolean): string {
+  if (pro || !wasNewSend) return '';
+  const left = freeSendsLeft(db);
+  if (left === 0) return `That was your last free invoice send. It stays free to view and share. New invoices need Invoice Jot Pro.`;
+  return '';
+}

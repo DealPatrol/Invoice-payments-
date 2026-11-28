@@ -5,7 +5,7 @@ import type { Doc, LineItem } from '../lib/types';
 import { convertEstimate, deleteDoc, duplicateDoc, markSent, recordPayment, rememberItems, saveDoc, upsertClient } from '../lib/db';
 import { displayStatus, docTotals, lineTotal } from '../lib/calc';
 import { formatDate, formatMoney, num, uid } from '../lib/util';
-import { canSendDoc, freeSendsLeft, pdfFooter, shouldAskForReview } from '../lib/gate';
+import { canSendDoc, pdfFooter, postSendNotice, preSendNotice, shouldAskForReview } from '../lib/gate';
 import { docPdfBase64, pdfFileName } from '../lib/pdf';
 import { requestAppReview, shareFile, success, tap } from '../lib/native';
 
@@ -76,7 +76,7 @@ export function DocScreen({ id }: { id: string }) {
   const sendPdf = async () => {
     if (editing) finishEditing();
     if (!canSendDoc(db, doc, pro)) {
-      openPaywall('You have sent your 3 free invoices. Go Pro for unlimited invoices — your past invoices stay free to view and export.');
+      openPaywall('You have used your 3 free invoice sends. Pro unlocks unlimited sends. Drafts, estimates and every past invoice stay free to view and export.');
       return;
     }
     setBusy(true);
@@ -84,9 +84,11 @@ export function DocScreen({ id }: { id: string }) {
       const base64 = docPdfBase64({ doc, business: db.business, footer: pdfFooter(pro), pro });
       const shared = await shareFile(pdfFileName(doc), { base64 }, 'application/pdf', `Send ${doc.number}`);
       if (shared) {
+        const wasNew = isInvoice && !db.sentInvoiceIds.includes(doc.id);
+        const after = markSent(db, doc.id);
         update((d) => markSent(d, doc.id));
         success();
-        toast(isInvoice ? 'Invoice ready to send' : 'Estimate ready to send');
+        toast(postSendNotice(after, pro, wasNew) || (isInvoice ? 'Invoice ready to send' : 'Estimate ready to send'));
       }
     } catch (e) {
       toast(`Could not create the PDF: ${String((e as Error)?.message ?? e)}`);
@@ -260,7 +262,7 @@ export function DocScreen({ id }: { id: string }) {
   }
 
   const sendLabel = isInvoice ? (db.sentInvoiceIds.includes(doc.id) ? 'Share PDF again' : 'Send invoice PDF') : 'Send estimate PDF';
-  const lockHint = isInvoice && !pro && !db.sentInvoiceIds.includes(doc.id) ? `${freeSendsLeft(db)} free invoice sends left` : '';
+  const lockHint = preSendNotice(db, doc, pro);
 
   return (
     <Screen title={title} action={<button className="link-btn" onClick={() => setEditing(true)}>Edit</button>}>

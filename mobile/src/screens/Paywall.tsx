@@ -2,7 +2,8 @@ import { useEffect, useState } from 'react';
 import { useApp } from '../store';
 import { Btn } from '../ui';
 import { buyPro, loadProducts, restorePro, type StoreProduct } from '../lib/storekit';
-import { APPLE_EULA_URL, FALLBACK_PRICES, PRIVACY_URL, PRO_MONTHLY_ID, PRO_YEARLY_ID } from '../lib/config';
+import { APPLE_EULA_URL, FALLBACK_PRICES, FALLBACK_PRICE_VALUES, PRIVACY_URL, PRO_MONTHLY_ID, PRO_YEARLY_ID } from '../lib/config';
+import { perMonthLabel, yearlySavingsPercent } from '../lib/pricing';
 import { openExternal, success } from '../lib/native';
 import { isNative } from '../lib/platform';
 
@@ -25,6 +26,11 @@ export function Paywall() {
     return { id, price: p?.displayPrice ?? FALLBACK_PRICES[id], period: PERIOD[id], name: id === PRO_YEARLY_ID ? 'Yearly' : 'Monthly' };
   });
   const sel = plans.find((p) => p.id === selected) ?? plans[0];
+  const yearly = products.find((x) => x.id === PRO_YEARLY_ID);
+  const monthly = products.find((x) => x.id === PRO_MONTHLY_ID);
+  const yearlyValue = yearly?.price ?? FALLBACK_PRICE_VALUES[PRO_YEARLY_ID];
+  const monthlyValue = monthly?.price ?? FALLBACK_PRICE_VALUES[PRO_MONTHLY_ID];
+  const yearlyNote = `about ${perMonthLabel(plans[0].price, yearlyValue)}/month, billed once a year${yearlySavingsPercent(monthlyValue, yearlyValue) > 0 ? ` (saves ${yearlySavingsPercent(monthlyValue, yearlyValue)}%)` : ''}`;
 
   const buy = async () => {
     setErr(null);
@@ -83,9 +89,13 @@ export function Paywall() {
                 {p.price}/{p.period}
               </span>
               <span className="plan-name">{p.name}{p.id === PRO_YEARLY_ID ? ' · best value' : ''}</span>
+              {p.id === PRO_YEARLY_ID ? <span className="hint">{yearlyNote}</span> : null}
             </button>
           ))}
         </div>
+        <p className="hint center" data-testid="billing-honesty">
+          No free trial and no hidden steps: nothing is charged until you confirm with Apple (Face ID or passcode). Cancel any time in Settings › Apple Account › Subscriptions. You keep Pro until the paid period ends, and your invoices stay yours.
+        </p>
         <Btn onClick={() => void buy()} disabled={!!busy || !isNative()}>
           {busy === 'buy' ? 'Opening App Store…' : `Subscribe for ${sel.price}/${sel.period}`}
         </Btn>
